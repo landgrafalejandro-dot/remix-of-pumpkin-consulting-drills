@@ -377,15 +377,141 @@ export const generateTask = (type: TaskType, difficulty: number = 1): Task => {
   return generators[type](difficulty);
 };
 
-// Check if answer is correct (with tolerance for rounding)
-export const checkAnswer = (userAnswer: number, correctAnswer: number): boolean => {
-  const tolerance = Math.abs(correctAnswer) * 0.01; // 1% tolerance
-  return Math.abs(userAnswer - correctAnswer) <= tolerance;
+// Normalize user input to a float value
+const normalizeInput = (input: string): number | null => {
+  let cleaned = input
+    .trim()
+    .toLowerCase()
+    .replace(/[€$]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/eur|usd/gi, "");
+
+  // Handle scientific notation (e.g., 2e6)
+  if (/^-?[\d.,]+e\d+$/i.test(cleaned)) {
+    const normalized = cleaned.replace(",", ".");
+    const parsed = parseFloat(normalized);
+    return isNaN(parsed) ? null : parsed;
+  }
+
+  // Detect and apply unit multipliers (case insensitive)
+  const unitPatterns: [RegExp, number][] = [
+    [/(bio|trillion|t)$/, 1_000_000_000_000],
+    [/(mrd|milliarden?|bn?|b)$/, 1_000_000_000],
+    [/(mio|mill(?:ionen?)?|million(?:en)?|m)$/, 1_000_000],
+    [/(k|tsd|tausend)$/, 1_000],
+  ];
+
+  let multiplier = 1;
+  for (const [pattern, mult] of unitPatterns) {
+    if (pattern.test(cleaned)) {
+      cleaned = cleaned.replace(pattern, "");
+      multiplier = mult;
+      break;
+    }
+  }
+
+  // Handle percentage sign
+  const isPercent = cleaned.includes("%");
+  cleaned = cleaned.replace(/%/g, "");
+
+  // Parse number with German/English format detection
+  // German: 1.000,50 (dot = thousand, comma = decimal)
+  // English: 1,000.50 (comma = thousand, dot = decimal)
+  
+  let numericValue: number;
+  
+  // Count dots and commas
+  const dots = (cleaned.match(/\./g) || []).length;
+  const commas = (cleaned.match(/,/g) || []).length;
+  
+  if (dots === 0 && commas === 0) {
+    // No separators
+    numericValue = parseFloat(cleaned);
+  } else if (dots === 0 && commas === 1) {
+    // Single comma - likely German decimal (1,5) 
+    numericValue = parseFloat(cleaned.replace(",", "."));
+  } else if (dots === 1 && commas === 0) {
+    // Single dot - could be decimal (1.5) or thousand (1.000)
+    // Check position: if 3 digits after dot, it's likely thousand separator
+    const afterDot = cleaned.split(".")[1];
+    if (afterDot && afterDot.length === 3 && /^\d+$/.test(afterDot)) {
+      // Likely thousand separator (German style)
+      numericValue = parseFloat(cleaned.replace(".", ""));
+    } else {
+      // Decimal point
+      numericValue = parseFloat(cleaned);
+    }
+  } else if (dots >= 1 && commas === 1) {
+    // German format: 1.000.000,50
+    numericValue = parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
+  } else if (commas >= 1 && dots === 1) {
+    // English format: 1,000,000.50
+    numericValue = parseFloat(cleaned.replace(/,/g, ""));
+  } else if (commas > 1 && dots === 0) {
+    // Multiple commas, no dots - English thousand separators
+    numericValue = parseFloat(cleaned.replace(/,/g, ""));
+  } else if (dots > 1 && commas === 0) {
+    // Multiple dots, no commas - German thousand separators
+    numericValue = parseFloat(cleaned.replace(/\./g, ""));
+  } else {
+    // Ambiguous - try German format first
+    numericValue = parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
+  }
+  
+  if (isNaN(numericValue)) return null;
+  
+  // Apply multiplier
+  numericValue *= multiplier;
+  
+  // Handle percentage as decimal (0.035 for 3.5%)
+  if (isPercent) {
+    // Already correct, user entered with %
+  }
+  
+  return numericValue;
 };
 
+// Check if answer is correct (with tolerance for rounding)
+export const checkAnswer = (userAnswer: number | string, correctAnswer: number, isPercentageResult: boolean = false): boolean => {
+  let normalizedUserAnswer: number;
+  
+  if (typeof userAnswer === "string") {
+    const normalized = normalizeInput(userAnswer);
+    if (normalized === null) return false;
+    normalizedUserAnswer = normalized;
+  } else {
+    normalizedUserAnswer = userAnswer;
+  }
+  
+  // For percentage results, also accept decimal form (0.035 for 3.5%)
+  if (isPercentageResult && normalizedUserAnswer < 1 && correctAnswer >= 1) {
+    // User might have entered decimal form of percentage
+    normalizedUserAnswer *= 100;
+  }
+  
+  // Check with epsilon tolerance (0.01%)
+  const epsilon = Math.abs(correctAnswer) * 0.0001;
+  const tolerance = Math.max(epsilon, 0.01); // At least 0.01 absolute tolerance
+  
+  return Math.abs(normalizedUserAnswer - correctAnswer) <= tolerance;
+};
+
+// Export normalizeInput for external use
+export { normalizeInput };
+
 // Generate error hint
-export const generateErrorHint = (userAnswer: number, correctAnswer: number): string => {
-  const ratio = userAnswer / correctAnswer;
+export const generateErrorHint = (userAnswer: number | string, correctAnswer: number): string => {
+  let normalizedUserAnswer: number;
+  
+  if (typeof userAnswer === "string") {
+    const normalized = normalizeInput(userAnswer);
+    if (normalized === null) return "Konnte die Eingabe nicht als Zahl interpretieren.";
+    normalizedUserAnswer = normalized;
+  } else {
+    normalizedUserAnswer = userAnswer;
+  }
+  
+  const ratio = normalizedUserAnswer / correctAnswer;
   
   if (Math.abs(ratio - 10) < 0.1) return "Eine Null zu viel! Überprüfe die Größenordnung.";
   if (Math.abs(ratio - 0.1) < 0.01) return "Eine Null zu wenig! Überprüfe die Größenordnung.";

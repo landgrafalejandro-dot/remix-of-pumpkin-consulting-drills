@@ -23,7 +23,7 @@ export interface Task {
 
 export interface FeedbackState {
   isCorrect: boolean;
-  userAnswer: number;
+  userAnswer: string | number;
   correctAnswer: number;
   shortcut: ShortcutInfo;
   errorHint?: string;
