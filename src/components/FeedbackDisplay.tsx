@@ -1,12 +1,25 @@
 import React from "react";
 import { DrillButton } from "@/components/ui/drill-button";
 import { FeedbackState } from "@/types/drill";
-import { Check, X, Lightbulb } from "lucide-react";
+import { Check, X, Lightbulb, Clock } from "lucide-react";
 
 interface FeedbackDisplayProps {
   feedback: FeedbackState | null;
   onNext: () => void;
 }
+
+const formatTime = (ms: number): string => {
+  const seconds = Math.floor(ms / 1000);
+  const tenths = Math.floor((ms % 1000) / 100);
+  return `${seconds},${tenths}s`;
+};
+
+const getTimeRating = (ms: number): { label: string; color: string } => {
+  if (ms < 5000) return { label: "Blitzschnell!", color: "text-success" };
+  if (ms < 10000) return { label: "Gut", color: "text-primary" };
+  if (ms < 20000) return { label: "Okay", color: "text-muted-foreground" };
+  return { label: "Übung macht den Meister", color: "text-muted-foreground" };
+};
 
 const formatNumberDE = (num: number): string => {
   if (num >= 1_000_000_000) {
@@ -60,6 +73,15 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, onNext }) =
                   Ergebnis: {formatNumberDE(feedback.correctAnswer)}
                 </p>
               </div>
+              {/* Reaction Time Badge */}
+              {feedback.reactionTime && (
+                <div className="ml-auto flex items-center gap-1.5 rounded-full bg-success/20 px-3 py-1">
+                  <Clock className="h-3.5 w-3.5 text-success" />
+                  <span className="font-mono text-sm font-medium text-success">
+                    {formatTime(feedback.reactionTime)}
+                  </span>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -72,6 +94,15 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, onNext }) =
                   Richtig ist: <span className="font-medium text-foreground">{formatNumberDE(feedback.correctAnswer)}</span>
                 </p>
               </div>
+              {/* Reaction Time Badge */}
+              {feedback.reactionTime && (
+                <div className="ml-auto flex items-center gap-1.5 rounded-full bg-muted px-3 py-1">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="font-mono text-sm font-medium text-muted-foreground">
+                    {formatTime(feedback.reactionTime)}
+                  </span>
+                </div>
+              )}
             </>
           )}
         </div>

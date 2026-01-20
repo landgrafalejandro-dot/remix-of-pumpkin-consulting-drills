@@ -27,4 +27,5 @@ export interface FeedbackState {
   correctAnswer: number;
   shortcut: ShortcutInfo;
   errorHint?: string;
+  reactionTime?: number;
 }
