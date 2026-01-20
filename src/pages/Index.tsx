@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import DrillIcon from "@/components/DrillIcon";
 import TaskTypeSelector from "@/components/TaskTypeSelector";
 import TaskDisplay from "@/components/TaskDisplay";
@@ -15,12 +15,37 @@ const Index = () => {
   const [stats, setStats] = useState({ correct: 0, total: 0, streak: 0 });
   const [difficulty, setDifficulty] = useState(1);
   const [isStarted, setIsStarted] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const taskStartTime = useRef<number>(0);
+  const timerInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const startTimer = useCallback(() => {
+    taskStartTime.current = Date.now();
+    setElapsedTime(0);
+    
+    if (timerInterval.current) {
+      clearInterval(timerInterval.current);
+    }
+    
+    timerInterval.current = setInterval(() => {
+      setElapsedTime(Date.now() - taskStartTime.current);
+    }, 100);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerInterval.current) {
+      clearInterval(timerInterval.current);
+      timerInterval.current = null;
+    }
+    return Date.now() - taskStartTime.current;
+  }, []);
 
   const createNewTask = useCallback(() => {
     const task = generateTask(selectedType, difficulty);
     setCurrentTask(task);
     setFeedback(null);
-  }, [selectedType, difficulty]);
+    startTimer();
+  }, [selectedType, difficulty, startTimer]);
 
   const handleStart = () => {
     setIsStarted(true);
@@ -30,6 +55,7 @@ const Index = () => {
   const handleSubmit = (userAnswer: string) => {
     if (!currentTask) return;
 
+    const reactionTime = stopTimer();
     const isPercentageResult = currentTask.type === "percentage" || currentTask.type === "growth";
     const isCorrect = checkAnswer(userAnswer, currentTask.answer, isPercentageResult);
     
@@ -39,6 +65,7 @@ const Index = () => {
       correctAnswer: currentTask.answer,
       shortcut: currentTask.shortcut,
       errorHint: isCorrect ? undefined : generateErrorHint(userAnswer, currentTask.answer),
+      reactionTime,
     });
 
     setStats((prev) => ({
@@ -62,8 +89,18 @@ const Index = () => {
     if (isStarted) {
       setCurrentTask(generateTask(type, difficulty));
       setFeedback(null);
+      startTimer();
     }
   };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerInterval.current) {
+        clearInterval(timerInterval.current);
+      }
+    };
+  }, []);
 
   // Keyboard shortcut for next task
   useEffect(() => {
@@ -125,7 +162,7 @@ const Index = () => {
               </div>
 
               {/* Task Display */}
-              <TaskDisplay task={currentTask} />
+              <TaskDisplay task={currentTask} elapsedTime={feedback ? undefined : elapsedTime} />
 
               {/* Answer Input - hidden when showing feedback */}
               {!feedback && (
