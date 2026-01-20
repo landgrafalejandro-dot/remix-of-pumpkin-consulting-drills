@@ -27,10 +27,11 @@ const Index = () => {
     createNewTask();
   };
 
-  const handleSubmit = (userAnswer: number) => {
+  const handleSubmit = (userAnswer: string) => {
     if (!currentTask) return;
 
-    const isCorrect = checkAnswer(userAnswer, currentTask.answer);
+    const isPercentageResult = currentTask.type === "percentage" || currentTask.type === "growth";
+    const isCorrect = checkAnswer(userAnswer, currentTask.answer, isPercentageResult);
     
     setFeedback({
       isCorrect,

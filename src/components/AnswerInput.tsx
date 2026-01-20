@@ -3,7 +3,7 @@ import { DrillButton } from "@/components/ui/drill-button";
 import { Input } from "@/components/ui/input";
 
 interface AnswerInputProps {
-  onSubmit: (answer: number) => void;
+  onSubmit: (answer: string) => void;
   disabled?: boolean;
 }
 
@@ -21,13 +21,9 @@ const AnswerInput: React.FC<AnswerInputProps> = ({ onSubmit, disabled }) => {
     e.preventDefault();
     if (!value.trim() || disabled) return;
     
-    // Parse German number format (comma as decimal separator)
-    const parsed = parseFloat(value.replace(/\./g, "").replace(",", "."));
-    
-    if (!isNaN(parsed)) {
-      onSubmit(parsed);
-      setValue("");
-    }
+    // Submit raw string - normalization happens in checkAnswer
+    onSubmit(value.trim());
+    setValue("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
