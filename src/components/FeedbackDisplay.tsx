@@ -89,10 +89,15 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({ feedback, onNext }) =
         {/* Shortcut Section */}
         <div className="rounded-xl bg-card/60 border border-border/50 overflow-hidden">
           {/* Shortcut Header */}
-          <div className="flex items-center gap-2 bg-primary/10 px-4 py-3 border-b border-border/50">
-            <Lightbulb className="h-4 w-4 text-primary" />
-            <p className="text-sm font-semibold text-primary">
-              {feedback.shortcut.name}
+          <div className="bg-primary/10 px-4 py-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-primary" />
+              <p className="text-sm font-semibold text-primary">
+                {feedback.shortcut.name}
+              </p>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+              {feedback.shortcut.description}
             </p>
           </div>
           

@@ -8,6 +8,7 @@ export type TaskType =
 
 export interface ShortcutInfo {
   name: string;
+  description: string;
   steps: string[];
 }
 
