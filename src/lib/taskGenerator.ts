@@ -48,13 +48,12 @@ const generateMultiplication = (difficulty: number): Task => {
   let shortcut: ShortcutInfo;
   
   if (mult === 2.5 || mult === 1.5 || mult === 3.5 || mult === 4.5) {
-    // Verdoppeln & Halbieren oder Split
     const wholepart = Math.floor(mult);
     const decimalPart = mult - wholepart;
-    const baseK = base / 1000;
     
     shortcut = {
       name: "Distributivgesetz (Split & Calculate)",
+      description: "Zerlege krumme Zahlen in glatte Blöcke. Rechne jeden Block einzeln und addiere die Ergebnisse. Besonders effektiv bei Dezimalzahlen wie 1,5 oder 2,5.",
       steps: [
         `Zerlege ${bold(multStr)} in ${bold(wholepart)} + ${bold((decimalPart).toString().replace('.', ','))}`,
         `${bold(formatNumber(base))} × ${wholepart} = ${bold(formatNumber(base * wholepart))}`,
@@ -65,6 +64,7 @@ const generateMultiplication = (difficulty: number): Task => {
   } else if (mult === 1.25) {
     shortcut = {
       name: "Prozent-Trick (125% = 100% + 25%)",
+      description: "Wandle den Multiplikator in Prozente um. 1,25 = 125% = 100% + 25%. Berechne 25% als Viertel der Basis.",
       steps: [
         `${bold("1,25")} = 1 + 0,25 = 1 + ¼`,
         `100%: ${bold(formatNumber(base))}`,
@@ -73,9 +73,9 @@ const generateMultiplication = (difficulty: number): Task => {
       ]
     };
   } else {
-    // Standard distributive
     shortcut = {
       name: "Direkte Multiplikation",
+      description: "Bei glatten Faktoren: Multipliziere direkt. Nutze bekannte Einmaleins-Fakten und verschiebe Nullen nach Bedarf.",
       steps: [
         `Rechne ${bold(formatNumber(base))} × ${bold(multStr)}`,
         `Ergebnis: ${bold(formatNumber(answer))}`
@@ -116,6 +116,7 @@ const generatePercentage = (difficulty: number): Task => {
     const divisor = 100 / pct;
     shortcut = {
       name: "Block-Methode (Einfache Prozente)",
+      description: "Rechne nie 0,XX × Y. Nutze stattdessen Brüche: 10% = ÷10, 20% = ÷5, 50% = ÷2. Das Komma-Verschieben ist schneller als Dezimalmultiplikation.",
       steps: [
         `${bold(pctStr + "%")} = 1/${divisor}`,
         `${bold(formatNumber(base, true))} ÷ ${divisor} = ${bold(formatNumber(answer, true))}`,
@@ -125,6 +126,7 @@ const generatePercentage = (difficulty: number): Task => {
   } else if (pct === 25) {
     shortcut = {
       name: "Block-Methode (Viertel)",
+      description: "25% = ¼. Teile einfach durch 4. Bei großen Zahlen: Erst durch 2, dann nochmal durch 2.",
       steps: [
         `${bold("25%")} = ¼`,
         `${bold(formatNumber(base, true))} ÷ 4 = ${bold(formatNumber(answer, true))}`,
@@ -134,6 +136,7 @@ const generatePercentage = (difficulty: number): Task => {
   } else if (pct === 12.5) {
     shortcut = {
       name: "Block-Methode (Achtel)",
+      description: "12,5% = ⅛. Merke dir: 12,5% ist ein Achtel. Teile durch 8 (oder 3× durch 2).",
       steps: [
         `${bold("12,5%")} = ⅛`,
         `${bold(formatNumber(base, true))} ÷ 8 = ${bold(formatNumber(answer, true))}`,
@@ -145,6 +148,7 @@ const generatePercentage = (difficulty: number): Task => {
     const five = ten / 2;
     shortcut = {
       name: "Block-Methode (10% + 5%)",
+      description: "Zerlege den Prozentsatz in einfache Blöcke. 15% = 10% + 5%. Berechne 10% (Komma verschieben), dann 5% als Hälfte davon.",
       steps: [
         `Zerlege ${bold("15%")} in ${bold("10%")} + ${bold("5%")}`,
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(ten, true))}`,
@@ -157,6 +161,7 @@ const generatePercentage = (difficulty: number): Task => {
     const ten = base * 0.1;
     shortcut = {
       name: "Block-Methode (25% + 10%)",
+      description: "Zerlege krumme Prozentsätze in bekannte Blöcke. 35% = 25% + 10%. Nutze bekannte Brüche (¼) und einfache Prozente (10%).",
       steps: [
         `Zerlege ${bold("35%")} in ${bold("25%")} + ${bold("10%")}`,
         `25% (÷4) = ${bold(formatNumber(twentyfive, true))}`,
@@ -168,6 +173,7 @@ const generatePercentage = (difficulty: number): Task => {
     const tenPct = base * 0.1;
     shortcut = {
       name: "Block-Methode",
+      description: "Starte immer mit 10% (Komma um 1 nach links). Dann skaliere: 8% = 10% - 2%, 17% = 10% + 5% + 2%.",
       steps: [
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(tenPct, true))}`,
         `${pctStr}% = ${pct / 10} × 10% = ${bold(formatNumber(answer, true))}`,
@@ -216,6 +222,7 @@ const generateDivision = (difficulty: number): Task => {
   
   const shortcut: ShortcutInfo = {
     name: "Kürzen & Verschieben",
+    description: "Bei Division großer Zahlen: Streiche gemeinsame Nullen auf beiden Seiten. Das Ergebnis bleibt gleich, die Rechnung wird einfacher.",
     steps: [
       `Streiche ${bold(zerosRemoved)} gemeinsame Nullen`,
       `${formatNumber(dividend)} / ${formatNumber(divisor)} → ${bold(formatNumber(tempDividend))} / ${bold(formatNumber(tempDivisor))}`,
@@ -253,6 +260,7 @@ const generateZeros = (difficulty: number): Task => {
   
   const shortcut: ShortcutInfo = {
     name: "Nullen-Management (Unit Game)",
+    description: "Bei großen Zahlen (Mio, Mrd, k): Rechne NIEMALS mit Nullen. Nutze Einheiten und merke dir: k × k = M, M × k = Mrd, M / k = k.",
     steps: [
       `Regel: ${bold("k · k = M")} | ${bold("M · k = Mrd")} | ${bold("M / k = k")}`,
       `Rechne in Einheiten: ${bold(divInUnit + " " + scenario.divUnit)} / ${bold(divisorInK + "k")}`,
@@ -296,6 +304,7 @@ const generateGrowth = (difficulty: number): Task => {
   if (rate === 10) {
     shortcut = {
       name: "Block-Methode (10%)",
+      description: "10% ist der einfachste Prozentsatz: Verschiebe das Komma um 1 Stelle nach links. Dann addiere zur Basis.",
       steps: [
         `${bold("10%")} = Komma um 1 nach links`,
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(growth, true))}`,
@@ -306,6 +315,7 @@ const generateGrowth = (difficulty: number): Task => {
   } else if (rate === 5) {
     shortcut = {
       name: "Block-Methode (5% = 10% ÷ 2)",
+      description: "5% ist die Hälfte von 10%. Berechne zuerst 10% (Komma verschieben), dann halbieren.",
       steps: [
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(base * 0.1, true))}`,
         `5% = Hälfte = ${bold(formatNumber(growth, true))}`,
@@ -316,6 +326,7 @@ const generateGrowth = (difficulty: number): Task => {
   } else if (rate === 2.5) {
     shortcut = {
       name: "Block-Methode (2,5% = 10% ÷ 4)",
+      description: "2,5% ist ein Viertel von 10%. Berechne 10%, dann teile durch 4 (oder 2× durch 2).",
       steps: [
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(base * 0.1, true))}`,
         `2,5% = ¼ von 10% = ${bold(formatNumber(growth, true))}`,
@@ -327,6 +338,7 @@ const generateGrowth = (difficulty: number): Task => {
     const tenPct = base * 0.1;
     shortcut = {
       name: "Block-Methode",
+      description: "Zerlege den Prozentsatz in 10%-Blöcke. Berechne 10% als Basis, dann skaliere auf den gewünschten Wert.",
       steps: [
         `10% von ${formatNumber(base, true)} = ${bold(formatNumber(tenPct, true))}`,
         `${rateStr}% = ${rate / 10} × 10% = ${bold(formatNumber(growth, true))}`,
