@@ -6,12 +6,17 @@ export type TaskType =
   | "zeros" 
   | "growth";
 
+export interface ShortcutInfo {
+  name: string;
+  steps: string[];
+}
+
 export interface Task {
   id: number;
   type: TaskType;
   question: string;
   answer: number;
-  shortcut: string;
+  shortcut: ShortcutInfo;
   difficulty: number;
 }
 
@@ -19,6 +24,6 @@ export interface FeedbackState {
   isCorrect: boolean;
   userAnswer: number;
   correctAnswer: number;
-  shortcut: string;
+  shortcut: ShortcutInfo;
   errorHint?: string;
 }
