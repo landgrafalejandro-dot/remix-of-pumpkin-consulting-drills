@@ -118,87 +118,282 @@ const generateMultiplicationL2 = (): Task => {
 };
 
 // ============================================
-// LEVEL 3: Decimal Precision (Schwer)
+// LEVEL 3: Decimal Precision (Schwer) - VARIANCE PROTOCOL
 // ============================================
-const generateMultiplicationL3 = (): Task => {
-  const scenarios = [
-    { base: 1_250_000_000, mult: 0.04, baseStr: "1,25 Mrd" },
-    { base: 800_000_000, mult: 0.125, baseStr: "800 Mio" },
-    { base: 2_400_000, mult: 2.5, baseStr: "2,4 Mio" },
-    { base: 1_500_000, mult: 1.25, baseStr: "1,5 Mio" },
-    { base: 3_200_000, mult: 0.75, baseStr: "3,2 Mio" },
-    { base: 17_000_000, mult: 2.3, baseStr: "17 Mio" },
-    { base: 820_000, mult: 0.15, baseStr: "820k" },
-  ];
 
-  const scenario = choice(scenarios);
-  const answer = scenario.base * scenario.mult;
-  const multStr = scenario.mult.toString().replace('.', ',');
+// Track recent tasks to avoid repetition
+const recentL3Tasks: string[] = [];
+const MAX_RECENT = 10;
+
+const addToHistory = (taskKey: string) => {
+  recentL3Tasks.push(taskKey);
+  if (recentL3Tasks.length > MAX_RECENT) recentL3Tasks.shift();
+};
+
+const isInHistory = (taskKey: string): boolean => recentL3Tasks.includes(taskKey);
+
+// Format number with random unit variation (70% with units, 30% without)
+const formatWithRandomUnit = (num: number): { value: number; display: string } => {
+  const useUnit = Math.random() < 0.7;
   
-  let shortcut: ShortcutInfo;
-  
-  if (scenario.mult === 0.04) {
-    shortcut = {
-      name: "Prozent-Umwandlung",
-      description: "0,04 = 4% = 4/100. Teile durch 100, multipliziere mit 4.",
-      steps: [
-        `${bold("0,04")} = 4%`,
-        `${scenario.baseStr} ÷ 100 = ${bold(formatNumber(scenario.base / 100, true))}`,
-        `× 4 = ${bold(formatNumber(answer, true))}`
-      ]
-    };
-  } else if (scenario.mult === 0.125) {
-    shortcut = {
-      name: "Bruch-Trick (⅛)",
-      description: "0,125 = ⅛. Teile einfach durch 8.",
-      steps: [
-        `${bold("0,125")} = ⅛`,
-        `${scenario.baseStr} ÷ 8 = ${bold(formatNumber(answer, true))}`
-      ]
-    };
-  } else if (scenario.mult === 1.25) {
-    shortcut = {
-      name: "Prozent-Trick (125%)",
-      description: "1,25 = 100% + 25%. Basis + ein Viertel.",
-      steps: [
-        `100%: ${bold(scenario.baseStr)}`,
-        `25% (÷4): ${bold(formatNumber(scenario.base / 4, true))}`,
-        `Summe: ${bold(formatNumber(answer, true))}`
-      ]
-    };
-  } else if (scenario.mult === 0.75) {
-    shortcut = {
-      name: "Komplement-Trick (75%)",
-      description: "0,75 = ¾ = 1 - ¼. Basis minus ein Viertel.",
-      steps: [
-        `100%: ${bold(scenario.baseStr)}`,
-        `25% (÷4): ${bold(formatNumber(scenario.base / 4, true))}`,
-        `75% = 100% - 25% = ${bold(formatNumber(answer, true))}`
-      ]
-    };
-  } else {
-    const wholePart = Math.floor(scenario.mult);
-    const decimalPart = scenario.mult - wholePart;
-    shortcut = {
-      name: "Distributivgesetz",
-      description: "Zerlege Dezimalzahlen in ganze Teile + Dezimalteil.",
-      steps: [
-        `Zerlege ${bold(multStr)} in ${wholePart} + ${decimalPart.toFixed(2).replace('.', ',')}`,
-        `${scenario.baseStr} × ${wholePart} = ${bold(formatNumber(scenario.base * wholePart, true))}`,
-        `${scenario.baseStr} × ${decimalPart.toFixed(2).replace('.', ',')} = ${bold(formatNumber(scenario.base * decimalPart, true))}`,
-        `Summe: ${bold(formatNumber(answer, true))}`
-      ]
-    };
+  if (!useUnit) {
+    return { value: num, display: num.toLocaleString('de-DE') };
   }
   
+  // Randomly choose format style
+  const style = Math.random();
+  
+  if (num >= 1_000_000_000) {
+    const val = num / 1_000_000_000;
+    if (style < 0.4) return { value: num, display: `${val.toString().replace('.', ',')} Mrd` };
+    if (style < 0.7) return { value: num, display: `${val.toString().replace('.', ',')} Mrd.` };
+    return { value: num, display: `${(val * 1000).toLocaleString('de-DE')} Mio` };
+  }
+  if (num >= 1_000_000) {
+    const val = num / 1_000_000;
+    if (style < 0.35) return { value: num, display: `${val.toString().replace('.', ',')} Mio` };
+    if (style < 0.55) return { value: num, display: `${val.toString().replace('.', ',')} M` };
+    if (style < 0.75) return { value: num, display: `${val.toString().replace('.', ',')} Mio.` };
+    return { value: num, display: `${(val * 1000).toLocaleString('de-DE')}k` };
+  }
+  if (num >= 1000) {
+    const val = num / 1000;
+    if (style < 0.4) return { value: num, display: `${val.toString().replace('.', ',')}k` };
+    if (style < 0.7) return { value: num, display: `${val.toString().replace('.', ',')} Tsd` };
+    return { value: num, display: num.toLocaleString('de-DE') };
+  }
+  return { value: num, display: num.toLocaleString('de-DE') };
+};
+
+// Archetype A: Komma-Verschiebung
+const generateArchetypeA = (): Task | null => {
+  const smallFactors = [0.02, 0.04, 0.05, 0.003, 0.025, 1.2, 1.5, 2.5, 0.08];
+  const largeBases = [10, 20, 40, 50, 80, 100, 150, 200, 300, 400, 500, 600, 800, 900];
+  const suffixes = [1_000_000, 1_000_000_000, 1_000]; // Mio, Mrd, k
+  
+  const factor1 = choice(smallFactors);
+  const baseNum = choice(largeBases);
+  const suffix = choice(suffixes);
+  const factor2 = baseNum * suffix;
+  
+  const taskKey = `A:${factor1}x${factor2}`;
+  if (isInHistory(taskKey)) return null;
+  
+  const answer = factor1 * factor2;
+  const formatted = formatWithRandomUnit(factor2);
+  const factor1Str = factor1.toString().replace('.', ',');
+  
+  const shortcut: ShortcutInfo = {
+    name: "Komma-Verschiebung",
+    description: `Bei ${factor1Str} das Komma passend verschieben und mit den signifikanten Ziffern multiplizieren.`,
+    steps: [
+      `${bold(factor1Str)} bedeutet: Komma um ${Math.abs(Math.log10(factor1)).toFixed(0)} Stellen verschieben`,
+      `${formatted.display} → Kernrechnung identifizieren`,
+      `Ergebnis: ${bold(formatNumber(answer, true))}`
+    ]
+  };
+  
+  addToHistory(taskKey);
   return {
     id: ++taskCounter,
     type: "multiplication",
-    question: `${scenario.baseStr} × ${multStr}`,
+    question: `${factor1Str} × ${formatted.display}`,
     answer,
     shortcut,
     difficulty: 3,
   };
+};
+
+// Archetype B: Brüche als Dezimal (1/8, 1/4 Fallen)
+const generateArchetypeB = (): Task | null => {
+  const fractionFactors = [
+    { decimal: 0.125, fraction: "⅛", divisor: 8 },
+    { decimal: 0.375, fraction: "⅜", mult: 3, divisor: 8 },
+    { decimal: 0.625, fraction: "⅝", mult: 5, divisor: 8 },
+    { decimal: 0.875, fraction: "⅞", mult: 7, divisor: 8 },
+    { decimal: 1.25, fraction: "1¼", addBase: true, divisor: 4 },
+    { decimal: 2.25, fraction: "2¼", mult: 9, divisor: 4 },
+    { decimal: 0.75, fraction: "¾", mult: 3, divisor: 4 },
+  ];
+  // Numbers divisible by 8 or 4
+  const divisibleBases = [16, 24, 32, 40, 48, 64, 80, 88, 96, 120, 160, 240, 320, 400, 480, 640, 800];
+  
+  const factorInfo = choice(fractionFactors);
+  const base = choice(divisibleBases);
+  
+  const taskKey = `B:${factorInfo.decimal}x${base}`;
+  if (isInHistory(taskKey)) return null;
+  
+  const answer = factorInfo.decimal * base;
+  const decimalStr = factorInfo.decimal.toString().replace('.', ',');
+  
+  const shortcut: ShortcutInfo = {
+    name: `Bruch-Trick (${factorInfo.fraction})`,
+    description: `${decimalStr} = ${factorInfo.fraction}. Nutze den Bruch für einfacheres Rechnen.`,
+    steps: [
+      `${bold(decimalStr)} = ${bold(factorInfo.fraction)}`,
+      `${bold(base)} ÷ ${factorInfo.divisor} = ${bold(base / factorInfo.divisor)}`,
+      factorInfo.mult ? `× ${factorInfo.mult} = ${bold(answer)}` : `Ergebnis: ${bold(answer)}`
+    ].filter(Boolean) as string[]
+  };
+  
+  addToHistory(taskKey);
+  return {
+    id: ++taskCounter,
+    type: "multiplication",
+    question: `${decimalStr} × ${base}`,
+    answer,
+    shortcut,
+    difficulty: 3,
+  };
+};
+
+// Archetype C: Distributivgesetz (krumme Zahlen)
+const generateArchetypeC = (): Task | null => {
+  const crookedNumbers = [11, 12, 13, 14, 16, 17, 18, 19, 21, 22, 23, 24, 26, 27, 28, 29, 31, 32, 33];
+  const smoothNumbers = [20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 1.5, 2.5, 25];
+  const suffixes = [1, 1_000, 1_000_000]; // none, k, Mio
+  
+  const crooked = choice(crookedNumbers);
+  const smooth = choice(smoothNumbers);
+  const suffix = choice(suffixes);
+  const actualSmooth = smooth * suffix;
+  
+  const taskKey = `C:${crooked}x${actualSmooth}`;
+  if (isInHistory(taskKey)) return null;
+  
+  const answer = crooked * actualSmooth;
+  const formatted = formatWithRandomUnit(actualSmooth);
+  
+  const tens = Math.floor(crooked / 10) * 10;
+  const ones = crooked % 10;
+  
+  const shortcut: ShortcutInfo = {
+    name: "Distributivgesetz",
+    description: `Zerlege ${crooked} in ${tens} + ${ones} für einfachere Teilrechnungen.`,
+    steps: [
+      `${bold(crooked)} = ${tens} + ${ones}`,
+      `${tens} × ${formatted.display} = ${bold(formatNumber(tens * actualSmooth, true))}`,
+      `${ones} × ${formatted.display} = ${bold(formatNumber(ones * actualSmooth, true))}`,
+      `Summe: ${bold(formatNumber(answer, true))}`
+    ]
+  };
+  
+  addToHistory(taskKey);
+  return {
+    id: ++taskCounter,
+    type: "multiplication",
+    question: `${crooked} × ${formatted.display}`,
+    answer,
+    shortcut,
+    difficulty: 3,
+  };
+};
+
+// Archetype D: Growth Rates (1 + x)
+const generateArchetypeD = (): Task | null => {
+  const growthFactors = [1.02, 1.05, 1.08, 1.10, 1.12, 1.15, 1.18, 1.20, 1.25, 1.03];
+  const bases = [20, 30, 40, 50, 60, 80, 100, 120, 150, 200, 250, 400, 500];
+  const suffixes = [1_000, 1_000_000, 1_000_000_000]; // k, Mio, Mrd
+  
+  const growth = choice(growthFactors);
+  const baseNum = choice(bases);
+  const suffix = choice(suffixes);
+  const actualBase = baseNum * suffix;
+  
+  const taskKey = `D:${growth}x${actualBase}`;
+  if (isInHistory(taskKey)) return null;
+  
+  const answer = growth * actualBase;
+  const formatted = formatWithRandomUnit(actualBase);
+  const growthStr = growth.toString().replace('.', ',');
+  const growthPct = Math.round((growth - 1) * 100);
+  
+  const shortcut: ShortcutInfo = {
+    name: "Wachstums-Rechnung",
+    description: `${growthStr} = 100% + ${growthPct}%. Berechne Basis + Zuwachs.`,
+    steps: [
+      `${bold(growthStr)} = 1 + ${(growth - 1).toFixed(2).replace('.', ',')} (= +${growthPct}%)`,
+      `Basis: ${bold(formatted.display)}`,
+      `+${growthPct}%: ${bold(formatNumber(actualBase * (growth - 1), true))}`,
+      `Gesamt: ${bold(formatNumber(answer, true))}`
+    ]
+  };
+  
+  addToHistory(taskKey);
+  return {
+    id: ++taskCounter,
+    type: "multiplication",
+    question: `${growthStr} × ${formatted.display}`,
+    answer,
+    shortcut,
+    difficulty: 3,
+  };
+};
+
+// Archetype E: Quadratzahlen-Nähe
+const generateArchetypeE = (): Task | null => {
+  const nearSquares = [11, 12, 13, 14, 15, 16, 19, 21, 24, 25, 26, 29, 31];
+  
+  const num1 = choice(nearSquares);
+  // Pick a number close to num1 but not the same
+  const offset = choice([-2, -1, 1, 2]);
+  const num2 = num1 + offset;
+  
+  if (num2 < 10 || num2 > 35) return null;
+  
+  const taskKey = `E:${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+  if (isInHistory(taskKey)) return null;
+  
+  const answer = num1 * num2;
+  
+  // Find nearest square
+  const avg = (num1 + num2) / 2;
+  const nearestSquare = Math.round(avg);
+  const diff = Math.abs(num1 - nearestSquare);
+  
+  const shortcut: ShortcutInfo = {
+    name: "Quadratzahlen-Nähe",
+    description: `(a+b)(a-b) = a² - b². Nutze bekannte Quadratzahlen als Anker.`,
+    steps: [
+      `${bold(num1)} × ${bold(num2)} liegt nahe bei ${nearestSquare}²`,
+      `${nearestSquare}² = ${bold(nearestSquare * nearestSquare)}`,
+      `Korrektur: ±${diff} → Ergebnis: ${bold(answer)}`
+    ]
+  };
+  
+  addToHistory(taskKey);
+  return {
+    id: ++taskCounter,
+    type: "multiplication",
+    question: `${num1} × ${num2}`,
+    answer,
+    shortcut,
+    difficulty: 3,
+  };
+};
+
+const generateMultiplicationL3 = (): Task => {
+  const archetypes = [
+    generateArchetypeA,
+    generateArchetypeB,
+    generateArchetypeC,
+    generateArchetypeD,
+    generateArchetypeE,
+  ];
+  
+  // Shuffle archetypes for randomness
+  const shuffled = [...archetypes].sort(() => Math.random() - 0.5);
+  
+  // Try each archetype until one succeeds (not in history)
+  for (const generator of shuffled) {
+    const task = generator();
+    if (task) return task;
+  }
+  
+  // Fallback: clear history and try again
+  recentL3Tasks.length = 0;
+  return shuffled[0]()!;
 };
 
 // Main multiplication generator by level
