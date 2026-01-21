@@ -5,17 +5,27 @@ import TaskDisplay from "@/components/TaskDisplay";
 import AnswerInput from "@/components/AnswerInput";
 import FeedbackDisplay from "@/components/FeedbackDisplay";
 import StatsDisplay from "@/components/StatsDisplay";
+import DifficultySelector, { DifficultyLevel } from "@/components/DifficultySelector";
+import LevelPrompt from "@/components/LevelPrompt";
 import { Task, TaskType, FeedbackState } from "@/types/drill";
 import { generateTask, checkAnswer, generateErrorHint } from "@/lib/taskGenerator";
+
+const levelNames: Record<DifficultyLevel, string> = {
+  1: "Einfach",
+  2: "Mittel",
+  3: "Schwer",
+};
 
 const Index = () => {
   const [selectedType, setSelectedType] = useState<TaskType>("all");
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [stats, setStats] = useState({ correct: 0, total: 0, streak: 0 });
-  const [difficulty, setDifficulty] = useState(1);
+  const [stats, setStats] = useState({ correct: 0, total: 0, streak: 0, wrongStreak: 0 });
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
   const [isStarted, setIsStarted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [levelPrompt, setLevelPrompt] = useState<{ type: "up" | "down"; target: DifficultyLevel } | null>(null);
+  
   const taskStartTime = useRef<number>(0);
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -44,6 +54,7 @@ const Index = () => {
     const task = generateTask(selectedType, difficulty);
     setCurrentTask(task);
     setFeedback(null);
+    setLevelPrompt(null);
     startTimer();
   }, [selectedType, difficulty, startTimer]);
 
@@ -68,16 +79,33 @@ const Index = () => {
       reactionTime,
     });
 
-    setStats((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-      streak: isCorrect ? prev.streak + 1 : 0,
-    }));
+    const newStreak = isCorrect ? stats.streak + 1 : 0;
+    const newWrongStreak = isCorrect ? 0 : stats.wrongStreak + 1;
 
-    // Increase difficulty on streak
-    if (isCorrect && stats.streak >= 2 && difficulty < 5) {
-      setDifficulty((d) => Math.min(d + 1, 5));
+    setStats({
+      correct: stats.correct + (isCorrect ? 1 : 0),
+      total: stats.total + 1,
+      streak: newStreak,
+      wrongStreak: newWrongStreak,
+    });
+
+    // Check for level up prompt (3 correct in a row, fast answers)
+    if (isCorrect && newStreak >= 3 && difficulty < 3 && reactionTime < 15000) {
+      setLevelPrompt({ type: "up", target: (difficulty + 1) as DifficultyLevel });
     }
+
+    // Check for level down prompt (3 wrong in a row)
+    if (!isCorrect && newWrongStreak >= 3 && difficulty > 1) {
+      setLevelPrompt({ type: "down", target: (difficulty - 1) as DifficultyLevel });
+    }
+  };
+
+  const handleLevelChange = (accept: boolean) => {
+    if (accept && levelPrompt) {
+      setDifficulty(levelPrompt.target);
+      setStats(prev => ({ ...prev, streak: 0, wrongStreak: 0 }));
+    }
+    setLevelPrompt(null);
   };
 
   const handleNext = () => {
@@ -89,8 +117,13 @@ const Index = () => {
     if (isStarted) {
       setCurrentTask(generateTask(type, difficulty));
       setFeedback(null);
+      setLevelPrompt(null);
       startTimer();
     }
+  };
+
+  const handleDifficultyChange = (level: DifficultyLevel) => {
+    setDifficulty(level);
   };
 
   // Cleanup timer on unmount
@@ -105,13 +138,13 @@ const Index = () => {
   // Keyboard shortcut for next task
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && feedback) {
+      if (e.key === "Enter" && feedback && !levelPrompt) {
         handleNext();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [feedback]);
+  }, [feedback, levelPrompt]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -139,10 +172,11 @@ const Index = () => {
         {/* Task Card */}
         <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 shadow-xl">
           {!isStarted ? (
-            <div className="flex flex-col items-center py-8">
-              <p className="mb-6 text-center text-lg text-muted-foreground">
-                Drill-Modus aktiviert. Bereit für reine Zahlen?
-              </p>
+            <div className="flex flex-col items-center gap-8 py-4">
+              <DifficultySelector
+                selectedLevel={difficulty}
+                onLevelChange={handleDifficultyChange}
+              />
               <button
                 onClick={handleStart}
                 className="rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
@@ -152,8 +186,13 @@ const Index = () => {
             </div>
           ) : (
             <>
-              {/* Stats */}
-              <div className="mb-6 flex justify-center">
+              {/* Stats + Current Level */}
+              <div className="mb-6 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                    Level: {levelNames[difficulty]}
+                  </span>
+                </div>
                 <StatsDisplay
                   correct={stats.correct}
                   total={stats.total}
@@ -175,12 +214,23 @@ const Index = () => {
               <div className="flex justify-center">
                 <FeedbackDisplay feedback={feedback} onNext={handleNext} />
               </div>
+
+              {/* Level Prompt */}
+              {levelPrompt && feedback && (
+                <LevelPrompt
+                  type={levelPrompt.type}
+                  currentLevel={difficulty}
+                  targetLevel={levelPrompt.target}
+                  onAccept={() => handleLevelChange(true)}
+                  onDecline={() => handleLevelChange(false)}
+                />
+              )}
             </>
           )}
         </div>
 
         {/* Keyboard Hint */}
-        {isStarted && feedback && (
+        {isStarted && feedback && !levelPrompt && (
           <p className="mt-4 text-sm text-muted-foreground">
             Drücke <kbd className="rounded bg-muted px-2 py-1 font-mono">Enter</kbd> für die nächste Aufgabe
           </p>
