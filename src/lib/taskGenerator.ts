@@ -580,31 +580,37 @@ const generatePercentage = (difficulty: number): Task => {
 // DIVISION GENERATORS BY LEVEL
 // ============================================
 const generateDivisionL1 = (): Task => {
-  const scenarios = [
-    { dividend: 1_200_000, divisor: 400, answer: 3000 },
-    { dividend: 3_600_000, divisor: 600, answer: 6000 },
-    { dividend: 4_800_000, divisor: 800, answer: 6000 },
-    { dividend: 2_500_000, divisor: 500, answer: 5000 },
-    { dividend: 8_000_000, divisor: 2000, answer: 4000 },
-  ];
-
-  const scenario = choice(scenarios);
+  // Level 1: Only whole numbers, clean division results
+  // Generate from scratch: result × divisor = dividend
+  const cleanResults = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 50, 100];
+  const divisors = [2, 4, 5, 10, 20, 25, 50, 100, 200, 500];
+  const multipliers = [100, 1000, 10000, 100000]; // To scale up
+  
+  const result = choice(cleanResults);
+  const divisor = choice(divisors);
+  const multiplier = choice(multipliers);
+  
+  // Scale both to get larger numbers
+  const scaledDivisor = divisor * (Math.random() > 0.5 ? 1 : 10);
+  const scaledResult = result * multiplier;
+  const dividend = scaledResult * scaledDivisor;
+  
   const useAbbrev = Math.random() > 0.5;
   
   const shortcut: ShortcutInfo = {
     name: "Kürzen & Verschieben",
     description: "Streiche gemeinsame Nullen auf beiden Seiten.",
     steps: [
-      `Kürze Nullen: ${formatNumber(scenario.dividend, useAbbrev)} ÷ ${formatNumber(scenario.divisor)}`,
-      `Ergebnis: ${bold(formatNumber(scenario.answer, useAbbrev))}`
+      `Kürze Nullen: ${formatNumber(dividend, useAbbrev)} ÷ ${formatNumber(scaledDivisor)}`,
+      `Ergebnis: ${bold(formatNumber(scaledResult, useAbbrev))}`
     ]
   };
   
   return {
     id: ++taskCounter,
     type: "division",
-    question: `${formatNumber(scenario.dividend, useAbbrev)} / ${formatNumber(scenario.divisor)}`,
-    answer: scenario.answer,
+    question: `${formatNumber(dividend, useAbbrev)} / ${formatNumber(scaledDivisor)}`,
+    answer: scaledResult,
     shortcut,
     difficulty: 1,
   };
