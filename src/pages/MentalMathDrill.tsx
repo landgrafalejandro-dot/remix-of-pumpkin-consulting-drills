@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import DrillIcon from "@/components/DrillIcon";
 import SprintConfig from "@/components/sprint/SprintConfig";
 import SprintGame from "@/components/sprint/SprintGame";
@@ -134,7 +135,9 @@ const Index = () => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex flex-col items-center px-4 pt-12 pb-6">
-        <DrillIcon className="mb-4" />
+        <Link to="/" className="mb-4 transition-opacity hover:opacity-80">
+          <DrillIcon />
+        </Link>
         <h1 className="mb-2 text-center text-3xl font-bold text-foreground md:text-4xl">
           Consulting Mental Math Drill
         </h1>
