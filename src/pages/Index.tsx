@@ -5,7 +5,7 @@ import SprintGame from "@/components/sprint/SprintGame";
 import SprintDebrief from "@/components/sprint/SprintDebrief";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } from "@/types/drill";
-import { generateTask, checkAnswer } from "@/lib/taskGenerator";
+import { generateTask, checkAnswer, resetTaskHistory } from "@/lib/taskGenerator";
 
 const Index = () => {
   // Configuration state
@@ -41,6 +41,7 @@ const Index = () => {
 
   // Start the sprint
   const handleStart = useCallback(() => {
+    resetTaskHistory(); // Clear history for fresh session
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
@@ -61,6 +62,13 @@ const Index = () => {
       });
     }, 1000);
   }, [duration, generateNewTask]);
+
+  // End the sprint early
+  const handleEndEarly = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (flashTimeout.current) clearTimeout(flashTimeout.current);
+    setPhase("debrief");
+  }, []);
 
   // Handle answer submission
   const handleSubmit = useCallback((userAnswer: string) => {
@@ -162,6 +170,7 @@ const Index = () => {
               totalAttempted={results.length}
               flashState={flashState}
               onSubmit={handleSubmit}
+              onEnd={handleEndEarly}
             />
           )}
 
