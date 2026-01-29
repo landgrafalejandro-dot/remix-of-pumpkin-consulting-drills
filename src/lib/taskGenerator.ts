@@ -121,16 +121,19 @@ const generateMultiplicationL2 = (): Task => {
 // LEVEL 3: Decimal Precision (Schwer) - VARIANCE PROTOCOL
 // ============================================
 
-// Track recent tasks to avoid repetition
-const recentL3Tasks: string[] = [];
-const MAX_RECENT = 10;
+// Session-based task history to prevent ALL repetition within a session
+const sessionTaskHistory: Set<string> = new Set();
 
 const addToHistory = (taskKey: string) => {
-  recentL3Tasks.push(taskKey);
-  if (recentL3Tasks.length > MAX_RECENT) recentL3Tasks.shift();
+  sessionTaskHistory.add(taskKey);
 };
 
-const isInHistory = (taskKey: string): boolean => recentL3Tasks.includes(taskKey);
+const isInHistory = (taskKey: string): boolean => sessionTaskHistory.has(taskKey);
+
+// Reset session history - call this when starting a new sprint
+export const resetTaskHistory = () => {
+  sessionTaskHistory.clear();
+};
 
 // Format number with random unit variation (70% with units, 30% without)
 const formatWithRandomUnit = (num: number): { value: number; display: string } => {
@@ -392,7 +395,7 @@ const generateMultiplicationL3 = (): Task => {
   }
   
   // Fallback: clear history and try again
-  recentL3Tasks.length = 0;
+  sessionTaskHistory.clear();
   return shuffled[0]()!;
 };
 

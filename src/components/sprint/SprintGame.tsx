@@ -3,6 +3,8 @@ import SprintTimer from "./SprintTimer";
 import SprintInput from "./SprintInput";
 import { Task } from "@/types/drill";
 import { DifficultyLevel } from "@/components/DifficultySelector";
+import { DrillButton } from "@/components/ui/drill-button";
+import { X } from "lucide-react";
 
 interface SprintGameProps {
   task: Task | null;
@@ -13,6 +15,7 @@ interface SprintGameProps {
   totalAttempted: number;
   flashState: "none" | "correct" | "incorrect";
   onSubmit: (answer: string) => void;
+  onEnd: () => void;
 }
 
 const levelNames: Record<DifficultyLevel, string> = {
@@ -30,11 +33,25 @@ const SprintGame: React.FC<SprintGameProps> = ({
   totalAttempted,
   flashState,
   onSubmit,
+  onEnd,
 }) => {
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Timer */}
-      <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
+      {/* Timer with End Button */}
+      <div className="flex w-full items-center gap-4">
+        <div className="flex-1">
+          <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
+        </div>
+        <DrillButton
+          variant="inactive"
+          size="sm"
+          onClick={onEnd}
+          className="text-muted-foreground hover:text-destructive hover:border-destructive"
+        >
+          <X className="h-4 w-4 mr-1" />
+          Beenden
+        </DrillButton>
+      </div>
 
       {/* Stats Bar */}
       <div className="flex items-center gap-4 text-sm">
