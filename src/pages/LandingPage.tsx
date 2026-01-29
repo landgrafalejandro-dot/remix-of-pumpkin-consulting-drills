@@ -119,7 +119,8 @@ const modules = [
     title: "Case Math (Textaufgaben)",
     description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.",
     icon: <FileText className="h-8 w-8" />,
-    isActive: false,
+    isActive: true,
+    href: "/case-math-drill",
   },
   {
     title: "Mental Math",
