@@ -9,6 +9,7 @@ import {
   Lightbulb 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
 
 interface ModuleCardProps {
   title: string;
@@ -142,8 +143,12 @@ const LandingPage: React.FC = () => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex flex-col items-center px-4 pt-16 pb-12">
-        <div className="mb-6 inline-flex items-center justify-center rounded-xl border border-primary/30 bg-primary/10 p-4">
-          <Brain className="h-10 w-10 text-primary" />
+        <div className="mb-6">
+          <img 
+            src={pumpkinLogo} 
+            alt="Pumpkin Logo" 
+            className="h-20 w-auto"
+          />
         </div>
         <h1 className="mb-3 text-center text-4xl font-bold text-foreground md:text-5xl">
           Consulting Case Prep Hub
