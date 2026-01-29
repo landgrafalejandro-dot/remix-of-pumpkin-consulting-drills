@@ -979,7 +979,13 @@ const generateGrowth = (difficulty: number): Task => {
   return generateGrowthL3();
 };
 
-// Main generator function
+// Create a unique key for any task based on its question
+const getTaskKey = (task: Task): string => {
+  // Normalize the question to create a unique key
+  return `${task.type}:${task.difficulty}:${task.question}`;
+};
+
+// Main generator function with anti-repetition for ALL task types
 export const generateTask = (type: TaskType, difficulty: number = 1): Task => {
   const generators = {
     multiplication: generateMultiplication,
@@ -989,13 +995,37 @@ export const generateTask = (type: TaskType, difficulty: number = 1): Task => {
     growth: generateGrowth,
   };
 
-  if (type === "all") {
-    const types = Object.keys(generators) as (keyof typeof generators)[];
-    const randomType = choice(types);
-    return generators[randomType](difficulty);
-  }
+  const maxAttempts = 50; // Prevent infinite loops
+  let attempts = 0;
+  
+  const generateOne = (): Task => {
+    if (type === "all") {
+      const types = Object.keys(generators) as (keyof typeof generators)[];
+      const randomType = choice(types);
+      return generators[randomType](difficulty);
+    }
+    return generators[type](difficulty);
+  };
 
-  return generators[type](difficulty);
+  // Try to generate a unique task
+  while (attempts < maxAttempts) {
+    const task = generateOne();
+    const taskKey = getTaskKey(task);
+    
+    if (!isInHistory(taskKey)) {
+      addToHistory(taskKey);
+      return task;
+    }
+    
+    attempts++;
+  }
+  
+  // If we've exhausted attempts, clear history and start fresh
+  console.log('Task history exhausted, clearing for fresh tasks');
+  sessionTaskHistory.clear();
+  const freshTask = generateOne();
+  addToHistory(getTaskKey(freshTask));
+  return freshTask;
 };
 
 // Normalize user input to a float value
