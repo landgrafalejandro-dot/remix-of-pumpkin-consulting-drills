@@ -1,240 +1,178 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import DrillIcon from "@/components/DrillIcon";
-import TaskTypeSelector from "@/components/TaskTypeSelector";
-import TaskDisplay from "@/components/TaskDisplay";
-import AnswerInput from "@/components/AnswerInput";
-import FeedbackDisplay from "@/components/FeedbackDisplay";
-import StatsDisplay from "@/components/StatsDisplay";
-import DifficultySelector, { DifficultyLevel } from "@/components/DifficultySelector";
-import LevelPrompt from "@/components/LevelPrompt";
-import { Task, TaskType, FeedbackState } from "@/types/drill";
-import { generateTask, checkAnswer, generateErrorHint } from "@/lib/taskGenerator";
-
-const levelNames: Record<DifficultyLevel, string> = {
-  1: "Einfach",
-  2: "Mittel",
-  3: "Schwer",
-};
+import SprintConfig from "@/components/sprint/SprintConfig";
+import SprintGame from "@/components/sprint/SprintGame";
+import SprintDebrief from "@/components/sprint/SprintDebrief";
+import { DifficultyLevel } from "@/components/DifficultySelector";
+import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } from "@/types/drill";
+import { generateTask, checkAnswer } from "@/lib/taskGenerator";
 
 const Index = () => {
-  const [selectedType, setSelectedType] = useState<TaskType>("all");
-  const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
-  const [stats, setStats] = useState({ correct: 0, total: 0, streak: 0, wrongStreak: 0 });
+  // Configuration state
+  const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
-  const [isStarted, setIsStarted] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [levelPrompt, setLevelPrompt] = useState<{ type: "up" | "down"; target: DifficultyLevel } | null>(null);
+  const [selectedTypes, setSelectedTypes] = useState<TaskType[]>(["multiplication", "percentage", "division", "zeros"]);
   
+  // Game state
+  const [phase, setPhase] = useState<GamePhase>("config");
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [flashState, setFlashState] = useState<"none" | "correct" | "incorrect">("none");
+  
+  // Results tracking
+  const [results, setResults] = useState<SprintResult[]>([]);
+  const [correctCount, setCorrectCount] = useState(0);
+  
+  // Refs for timing
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const taskStartTime = useRef<number>(0);
-  const timerInterval = useRef<NodeJS.Timeout | null>(null);
+  const flashTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const startTimer = useCallback(() => {
-    taskStartTime.current = Date.now();
-    setElapsedTime(0);
+  // Generate a new task based on selected types
+  const generateNewTask = useCallback(() => {
+    const taskType = selectedTypes.length === 1 
+      ? selectedTypes[0] 
+      : selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
     
-    if (timerInterval.current) {
-      clearInterval(timerInterval.current);
-    }
-    
-    timerInterval.current = setInterval(() => {
-      setElapsedTime(Date.now() - taskStartTime.current);
-    }, 100);
-  }, []);
-
-  const stopTimer = useCallback(() => {
-    if (timerInterval.current) {
-      clearInterval(timerInterval.current);
-      timerInterval.current = null;
-    }
-    return Date.now() - taskStartTime.current;
-  }, []);
-
-  const createNewTask = useCallback(() => {
-    const task = generateTask(selectedType, difficulty);
+    const task = generateTask(taskType, difficulty);
     setCurrentTask(task);
-    setFeedback(null);
-    setLevelPrompt(null);
-    startTimer();
-  }, [selectedType, difficulty, startTimer]);
+    taskStartTime.current = Date.now();
+  }, [selectedTypes, difficulty]);
 
-  const handleStart = () => {
-    setIsStarted(true);
-    createNewTask();
-  };
+  // Start the sprint
+  const handleStart = useCallback(() => {
+    setPhase("sprint");
+    setTimeRemaining(duration);
+    setResults([]);
+    setCorrectCount(0);
+    setFlashState("none");
+    generateNewTask();
 
-  const handleSubmit = (userAnswer: string) => {
-    if (!currentTask) return;
+    // Start the countdown timer
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          // Time's up - end the sprint
+          if (timerRef.current) clearInterval(timerRef.current);
+          setPhase("debrief");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [duration, generateNewTask]);
 
-    const reactionTime = stopTimer();
+  // Handle answer submission
+  const handleSubmit = useCallback((userAnswer: string) => {
+    if (!currentTask || phase !== "sprint") return;
+
+    const timeSpent = Date.now() - taskStartTime.current;
     const isPercentageResult = currentTask.type === "percentage" || currentTask.type === "growth";
     const isCorrect = checkAnswer(userAnswer, currentTask.answer, isPercentageResult);
-    
-    setFeedback({
-      isCorrect,
+
+    // Record result
+    const result: SprintResult = {
+      task: currentTask,
       userAnswer,
-      correctAnswer: currentTask.answer,
-      shortcut: currentTask.shortcut,
-      errorHint: isCorrect ? undefined : generateErrorHint(userAnswer, currentTask.answer),
-      reactionTime,
-    });
-
-    const newStreak = isCorrect ? stats.streak + 1 : 0;
-    const newWrongStreak = isCorrect ? 0 : stats.wrongStreak + 1;
-
-    setStats({
-      correct: stats.correct + (isCorrect ? 1 : 0),
-      total: stats.total + 1,
-      streak: newStreak,
-      wrongStreak: newWrongStreak,
-    });
-
-    // Check for level up prompt (3 correct in a row, fast answers)
-    if (isCorrect && newStreak >= 3 && difficulty < 3 && reactionTime < 15000) {
-      setLevelPrompt({ type: "up", target: (difficulty + 1) as DifficultyLevel });
+      isCorrect,
+      timeSpent,
+    };
+    
+    setResults(prev => [...prev, result]);
+    
+    if (isCorrect) {
+      setCorrectCount(prev => prev + 1);
     }
 
-    // Check for level down prompt (3 wrong in a row)
-    if (!isCorrect && newWrongStreak >= 3 && difficulty > 1) {
-      setLevelPrompt({ type: "down", target: (difficulty - 1) as DifficultyLevel });
-    }
-  };
+    // Flash feedback
+    setFlashState(isCorrect ? "correct" : "incorrect");
+    
+    // Clear flash and load next task after 200ms
+    if (flashTimeout.current) clearTimeout(flashTimeout.current);
+    flashTimeout.current = setTimeout(() => {
+      setFlashState("none");
+      generateNewTask();
+    }, 200);
+  }, [currentTask, phase, generateNewTask]);
 
-  const handleLevelChange = (accept: boolean) => {
-    if (accept && levelPrompt) {
-      setDifficulty(levelPrompt.target);
-      setStats(prev => ({ ...prev, streak: 0, wrongStreak: 0 }));
-    }
-    setLevelPrompt(null);
-  };
+  // Restart the game
+  const handleRestart = useCallback(() => {
+    setPhase("config");
+    setCurrentTask(null);
+    setResults([]);
+    setCorrectCount(0);
+    setTimeRemaining(0);
+    setFlashState("none");
+  }, []);
 
-  const handleNext = () => {
-    createNewTask();
-  };
-
-  const handleTypeChange = (type: TaskType) => {
-    setSelectedType(type);
-    if (isStarted) {
-      setCurrentTask(generateTask(type, difficulty));
-      setFeedback(null);
-      setLevelPrompt(null);
-      startTimer();
-    }
-  };
-
-  const handleDifficultyChange = (level: DifficultyLevel) => {
-    setDifficulty(level);
-  };
-
-  // Cleanup timer on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (timerInterval.current) {
-        clearInterval(timerInterval.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (flashTimeout.current) clearTimeout(flashTimeout.current);
     };
   }, []);
 
-  // Keyboard shortcut for next task
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && feedback && !levelPrompt) {
-        handleNext();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [feedback, levelPrompt]);
+  // Calculate stats for debrief
+  const stats: SprintStats = {
+    totalAttempted: results.length,
+    correctCount,
+    accuracyPercent: results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0,
+    tasksPerMinute: results.length > 0 ? (results.length / (duration / 60)) : 0,
+    durationSeconds: duration,
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="flex flex-col items-center px-4 pt-12 pb-8">
-        <DrillIcon className="mb-6" />
+      <header className="flex flex-col items-center px-4 pt-12 pb-6">
+        <DrillIcon className="mb-4" />
         <h1 className="mb-2 text-center text-3xl font-bold text-foreground md:text-4xl">
           Consulting Mental Math Drill
         </h1>
         <p className="max-w-md text-center text-muted-foreground">
-          Trainiere deine Rechengeschwindigkeit und Präzision für Interviews.
+          {phase === "config" && "Trainiere deine Rechengeschwindigkeit unter Zeitdruck."}
+          {phase === "sprint" && "Löse so viele Aufgaben wie möglich!"}
+          {phase === "debrief" && "Analysiere deine Ergebnisse."}
         </p>
       </header>
 
-      {/* Task Type Selector */}
-      <section className="px-4 pb-8">
-        <TaskTypeSelector
-          selectedType={selectedType}
-          onTypeChange={handleTypeChange}
-        />
-      </section>
-
       {/* Main Content */}
       <main className="flex flex-1 flex-col items-center px-4 pb-12">
-        {/* Task Card */}
         <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 shadow-xl">
-          {!isStarted ? (
-            <div className="flex flex-col items-center gap-8 py-4">
-              <DifficultySelector
-                selectedLevel={difficulty}
-                onLevelChange={handleDifficultyChange}
-              />
-              <button
-                onClick={handleStart}
-                className="rounded-xl bg-primary px-8 py-4 text-lg font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
-              >
-                Starten →
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Stats + Current Level */}
-              <div className="mb-6 flex flex-col items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                    Level: {levelNames[difficulty]}
-                  </span>
-                </div>
-                <StatsDisplay
-                  correct={stats.correct}
-                  total={stats.total}
-                  streak={stats.streak}
-                />
-              </div>
+          {phase === "config" && (
+            <SprintConfig
+              duration={duration}
+              onDurationChange={setDuration}
+              difficulty={difficulty}
+              onDifficultyChange={setDifficulty}
+              selectedTypes={selectedTypes}
+              onTypesChange={setSelectedTypes}
+              onStart={handleStart}
+            />
+          )}
 
-              {/* Task Display */}
-              <TaskDisplay task={currentTask} elapsedTime={feedback ? undefined : elapsedTime} />
+          {phase === "sprint" && (
+            <SprintGame
+              task={currentTask}
+              timeRemaining={timeRemaining}
+              totalDuration={duration}
+              difficulty={difficulty}
+              correctCount={correctCount}
+              totalAttempted={results.length}
+              flashState={flashState}
+              onSubmit={handleSubmit}
+            />
+          )}
 
-              {/* Answer Input - hidden when showing feedback */}
-              {!feedback && (
-                <div className="mt-8 flex justify-center">
-                  <AnswerInput onSubmit={handleSubmit} disabled={!!feedback} />
-                </div>
-              )}
-
-              {/* Feedback */}
-              <div className="flex justify-center">
-                <FeedbackDisplay feedback={feedback} onNext={handleNext} />
-              </div>
-
-              {/* Level Prompt */}
-              {levelPrompt && feedback && (
-                <LevelPrompt
-                  type={levelPrompt.type}
-                  currentLevel={difficulty}
-                  targetLevel={levelPrompt.target}
-                  onAccept={() => handleLevelChange(true)}
-                  onDecline={() => handleLevelChange(false)}
-                />
-              )}
-            </>
+          {phase === "debrief" && (
+            <SprintDebrief
+              stats={stats}
+              results={results}
+              onRestart={handleRestart}
+            />
           )}
         </div>
-
-        {/* Keyboard Hint */}
-        {isStarted && feedback && !levelPrompt && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Drücke <kbd className="rounded bg-muted px-2 py-1 font-mono">Enter</kbd> für die nächste Aufgabe
-          </p>
-        )}
       </main>
     </div>
   );
