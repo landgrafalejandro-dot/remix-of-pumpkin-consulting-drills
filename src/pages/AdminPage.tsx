@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, LogIn } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, LogIn, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AdminModuleTab from "@/components/admin/AdminModuleTab";
+import CsvUpload from "@/components/admin/CsvUpload";
+import QuestionTable from "@/components/admin/QuestionTable";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
+
+const PAGE_SIZE = 20;
 
 const AdminPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -16,7 +22,23 @@ const AdminPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+
+  // Add form
+  const [newCategory, setNewCategory] = useState("case_math");
+  const [newDifficulty, setNewDifficulty] = useState("easy");
+  const [newTask, setNewTask] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Table state
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [importing, setImporting] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -48,17 +70,83 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  const handleSignUp = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
+  const fetchQuestions = useCallback(async () => {
+    let q = supabase
+      .from("drill_tasks")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+    if (difficultyFilter !== "all") q = q.eq("difficulty", difficultyFilter as any);
+    if (categoryFilter !== "all") q = q.eq("category", categoryFilter as any);
+    if (activeFilter !== "all") q = q.eq("active", activeFilter === "true");
+    if (searchQuery.trim()) q = q.ilike("task", `%${searchQuery}%`);
+
+    const { data, count, error } = await q;
     if (error) {
-      toast({ title: "Registrierung fehlgeschlagen", description: error.message, variant: "destructive" });
+      toast({ title: "Fehler beim Laden", description: error.message, variant: "destructive" });
+      return;
+    }
+    setQuestions(data ?? []);
+    setTotalCount(count ?? 0);
+  }, [page, difficultyFilter, categoryFilter, activeFilter, searchQuery, toast]);
+
+  useEffect(() => {
+    if (isAdmin) fetchQuestions();
+  }, [isAdmin, fetchQuestions]);
+
+  const handleAddTask = async () => {
+    if (!newTask.trim()) {
+      toast({ title: "Bitte Task eingeben", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("drill_tasks").insert({
+      category: newCategory,
+      difficulty: newDifficulty,
+      task: newTask.trim(),
+    } as any);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Fehler", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Registrierung erfolgreich", description: "Bitte bestätige deine E-Mail-Adresse." });
+      toast({ title: "Aufgabe gespeichert" });
+      setNewTask("");
+      fetchQuestions();
     }
   };
 
+  const handleImport = async (rows: Record<string, string>[]) => {
+    setImporting(true);
+    let inserted = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const row of rows) {
+      const { error } = await supabase.from("drill_tasks").insert({
+        category: row.category,
+        difficulty: row.difficulty,
+        task: row.task,
+      } as any);
+      if (error) {
+        if (error.code === "23505") {
+          skipped++;
+        } else {
+          failed++;
+        }
+      } else {
+        inserted++;
+      }
+    }
+
+    setImporting(false);
+    toast({
+      title: "Import abgeschlossen",
+      description: `${inserted} eingefügt, ${skipped} Duplikate übersprungen, ${failed} fehlgeschlagen`,
+    });
+    fetchQuestions();
+  };
+
+  // Login screen
   if (!isLoggedIn) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
@@ -72,9 +160,6 @@ const AdminPage: React.FC = () => {
             <Input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)} required />
             <Button type="submit" className="w-full" disabled={loading}>
               <LogIn className="mr-2 h-4 w-4" /> Anmelden
-            </Button>
-            <Button type="button" variant="outline" className="w-full" onClick={handleSignUp} disabled={loading}>
-              Registrieren
             </Button>
           </form>
           <Link to="/" className="block text-center text-sm text-muted-foreground hover:text-foreground">
@@ -114,19 +199,70 @@ const AdminPage: React.FC = () => {
         <Button variant="outline" size="sm" onClick={() => supabase.auth.signOut()}>Abmelden</Button>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <Tabs defaultValue="case_math">
-          <TabsList className="mb-6">
-            <TabsTrigger value="case_math">Case Math</TabsTrigger>
-            <TabsTrigger value="mental_math">Mental Math</TabsTrigger>
-          </TabsList>
-          <TabsContent value="case_math">
-            <AdminModuleTab module="case_math" />
-          </TabsContent>
-          <TabsContent value="mental_math">
-            <AdminModuleTab module="mental_math" />
-          </TabsContent>
-        </Tabs>
+      <main className="mx-auto max-w-6xl px-4 py-8 space-y-8">
+        {/* Add task form */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-lg">Neue Aufgabe</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-3">
+              <Select value={newCategory} onValueChange={setNewCategory}>
+                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="case_math">Case Math</SelectItem>
+                  <SelectItem value="mental_math">Mental Math</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={newDifficulty} onValueChange={setNewDifficulty}>
+                <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Textarea
+              placeholder="Aufgabentext eingeben…"
+              rows={3}
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+            />
+            <Button onClick={handleAddTask} disabled={saving}>
+              <Plus className="mr-2 h-4 w-4" /> {saving ? "Speichere…" : "Speichern"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* CSV Import (collapsible) */}
+        <Collapsible open={csvOpen} onOpenChange={setCsvOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-start">
+              {csvOpen ? "▾" : "▸"} CSV Import
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3">
+            <CsvUpload onImport={handleImport} importing={importing} />
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Task table */}
+        <QuestionTable
+          questions={questions}
+          totalCount={totalCount}
+          page={page}
+          onPageChange={setPage}
+          searchQuery={searchQuery}
+          onSearchChange={(q) => { setSearchQuery(q); setPage(0); }}
+          difficultyFilter={difficultyFilter}
+          onDifficultyFilterChange={(d) => { setDifficultyFilter(d); setPage(0); }}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={(c) => { setCategoryFilter(c); setPage(0); }}
+          activeFilter={activeFilter}
+          onActiveFilterChange={(a) => { setActiveFilter(a); setPage(0); }}
+          onRefresh={fetchQuestions}
+        />
       </main>
     </div>
   );
