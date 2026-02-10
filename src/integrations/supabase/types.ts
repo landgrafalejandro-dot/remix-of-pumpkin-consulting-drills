@@ -69,6 +69,7 @@ export type Database = {
           created_at: string
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           id: string
+          rand_key: number
           task: string
           task_type: string | null
         }
@@ -78,6 +79,7 @@ export type Database = {
           created_at?: string
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           id?: string
+          rand_key?: number
           task: string
           task_type?: string | null
         }
@@ -87,6 +89,7 @@ export type Database = {
           created_at?: string
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
           id?: string
+          rand_key?: number
           task?: string
           task_type?: string | null
         }

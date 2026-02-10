@@ -6,74 +6,80 @@ import SprintGame from "@/components/sprint/SprintGame";
 import SprintDebrief from "@/components/sprint/SprintDebrief";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } from "@/types/drill";
-import { generateTask, checkAnswer, resetTaskHistory } from "@/lib/taskGenerator";
-import { fetchDbMultiplicationTasks, getRandomDbTask, resetDbTaskHistory } from "@/lib/dbTaskFetcher";
+import { checkAnswer } from "@/lib/taskGenerator";
+import {
+  fetchMentalMathTasks,
+  getNextMentalMathTask,
+  resetMentalMathSession,
+  getMentalMathTaskCount,
+} from "@/lib/mentalMathFetcher";
+
+const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
+  1: "easy",
+  2: "medium",
+  3: "hard",
+};
 
 const Index = () => {
   // Configuration state
   const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
   const [selectedTypes, setSelectedTypes] = useState<TaskType[]>(["multiplication", "percentage", "division", "zeros"]);
-  
+
   // Game state
   const [phase, setPhase] = useState<GamePhase>("config");
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [flashState, setFlashState] = useState<"none" | "correct" | "incorrect">("none");
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   // Results tracking
   const [results, setResults] = useState<SprintResult[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
-  
+
   // Refs for timing
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const taskStartTime = useRef<number>(0);
   const flashTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Generate a new task based on selected types
+  // Generate next task from DB
   const generateNewTask = useCallback(() => {
-    const taskType = selectedTypes.length === 1 
-      ? selectedTypes[0] 
-      : selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
-    
-    // For multiplication at easy level, use DB tasks
-    if (taskType === "multiplication" && difficulty === 1) {
-      const dbTask = getRandomDbTask();
-      if (dbTask) {
-        setCurrentTask(dbTask);
-        taskStartTime.current = Date.now();
-        return;
-      }
+    const task = getNextMentalMathTask();
+    if (task) {
+      setCurrentTask(task);
+      taskStartTime.current = Date.now();
+    } else {
+      console.warn("No tasks available from DB");
     }
-    
-    const task = generateTask(taskType, difficulty);
-    setCurrentTask(task);
-    taskStartTime.current = Date.now();
-  }, [selectedTypes, difficulty]);
+  }, []);
 
   // Start the sprint
   const handleStart = useCallback(async () => {
-    resetTaskHistory(); // Clear history for fresh session
-    resetDbTaskHistory();
-    
-    // Pre-fetch DB tasks for multiplication easy
-    const diffMap: Record<number, "easy" | "medium" | "hard"> = { 1: "easy", 2: "medium", 3: "hard" };
-    if (selectedTypes.includes("multiplication") && difficulty === 1) {
-      await fetchDbMultiplicationTasks(diffMap[difficulty]);
+    setIsLoading(true);
+    resetMentalMathSession();
+
+    // Fetch tasks from DB
+    await fetchMentalMathTasks(selectedTypes, DIFFICULTY_MAP[difficulty]);
+
+    const count = getMentalMathTaskCount();
+    if (count === 0) {
+      setIsLoading(false);
+      alert("Keine Aufgaben für diese Kombination in der Datenbank gefunden.");
+      return;
     }
-    
+
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
     setCorrectCount(0);
     setFlashState("none");
+    setIsLoading(false);
     generateNewTask();
 
     // Start the countdown timer
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          // Time's up - end the sprint
           if (timerRef.current) clearInterval(timerRef.current);
           setPhase("debrief");
           return 0;
@@ -98,23 +104,22 @@ const Index = () => {
     const isPercentageResult = currentTask.type === "percentage" || currentTask.type === "growth";
     const isCorrect = checkAnswer(userAnswer, currentTask.answer, isPercentageResult);
 
-    // Record result
     const result: SprintResult = {
       task: currentTask,
       userAnswer,
       isCorrect,
       timeSpent,
     };
-    
+
     setResults(prev => [...prev, result]);
-    
+
     if (isCorrect) {
       setCorrectCount(prev => prev + 1);
     }
 
     // Flash feedback
     setFlashState(isCorrect ? "correct" : "incorrect");
-    
+
     // Clear flash and load next task after 200ms
     if (flashTimeout.current) clearTimeout(flashTimeout.current);
     flashTimeout.current = setTimeout(() => {
@@ -171,15 +176,22 @@ const Index = () => {
       <main className="flex flex-1 flex-col items-center px-4 pb-12">
         <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 shadow-xl">
           {phase === "config" && (
-            <SprintConfig
-              duration={duration}
-              onDurationChange={setDuration}
-              difficulty={difficulty}
-              onDifficultyChange={setDifficulty}
-              selectedTypes={selectedTypes}
-              onTypesChange={setSelectedTypes}
-              onStart={handleStart}
-            />
+            <>
+              <SprintConfig
+                duration={duration}
+                onDurationChange={setDuration}
+                difficulty={difficulty}
+                onDifficultyChange={setDifficulty}
+                selectedTypes={selectedTypes}
+                onTypesChange={setSelectedTypes}
+                onStart={handleStart}
+              />
+              {isLoading && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  Lade Aufgaben aus der Datenbank…
+                </p>
+              )}
+            </>
           )}
 
           {phase === "sprint" && (
