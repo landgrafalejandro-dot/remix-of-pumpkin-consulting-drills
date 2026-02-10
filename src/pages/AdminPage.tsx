@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CsvUpload from "@/components/admin/CsvUpload";
 import QuestionTable from "@/components/admin/QuestionTable";
+import { normalizeTaskString } from "@/lib/normalizeTaskString";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
 
 const PAGE_SIZE = 20;
@@ -117,7 +118,7 @@ const AdminPage: React.FC = () => {
         category: bulkCategory,
         difficulty: bulkDifficulty,
         task_type: bulkTaskType || null,
-        task: task.trim(),
+        task: normalizeTaskString(task.trim()),
       } as any);
       if (error) {
         if (error.code === "23505") skipped++;
@@ -156,7 +157,7 @@ const AdminPage: React.FC = () => {
         category: row.category,
         difficulty: row.difficulty,
         task_type: row.task_type || null,
-        task: row.task,
+        task: normalizeTaskString(row.task),
       } as any);
       if (error) {
         if (error.code === "23505") skipped++;
@@ -267,16 +268,23 @@ const AdminPage: React.FC = () => {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">{filledCount} / 20 Aufgaben ausgefüllt</p>
               <div className="grid gap-2">
-                {bulkSlots.map((slot, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="w-6 text-right text-xs text-muted-foreground">{i + 1}</span>
-                    <Input
-                      placeholder={`Aufgabe ${i + 1}…`}
-                      value={slot}
-                      onChange={(e) => updateSlot(i, e.target.value)}
-                    />
-                  </div>
-                ))}
+                {bulkSlots.map((slot, i) => {
+                  const normalized = slot.trim() ? normalizeTaskString(slot.trim()) : "";
+                  const changed = normalized && normalized !== slot.trim();
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="w-6 text-right text-xs text-muted-foreground">{i + 1}</span>
+                      <Input
+                        placeholder={`Aufgabe ${i + 1}…`}
+                        value={slot}
+                        onChange={(e) => updateSlot(i, e.target.value)}
+                      />
+                      {changed && (
+                        <span className="shrink-0 text-xs text-muted-foreground">→ {normalized}</span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
