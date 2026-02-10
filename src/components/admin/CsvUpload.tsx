@@ -2,15 +2,14 @@ import React, { useCallback, useRef, useState } from "react";
 import { Upload, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseCSV, ValidationError, validateCaseMathRow, validateMentalMathRow, CASE_MATH_CSV_TEMPLATE, MENTAL_MATH_CSV_TEMPLATE } from "@/lib/csvParser";
+import { parseCSV, ValidationError, validateDrillTaskRow, DRILL_TASKS_CSV_TEMPLATE } from "@/lib/csvParser";
 
 interface CsvUploadProps {
-  module: "case_math" | "mental_math";
   onImport: (rows: Record<string, string>[]) => void;
   importing: boolean;
 }
 
-const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) => {
+const CsvUpload: React.FC<CsvUploadProps> = ({ onImport, importing }) => {
   const [parsedRows, setParsedRows] = useState<Record<string, string>[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -27,15 +26,14 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
       setHeaders(h);
       setParsedRows(rows);
 
-      const validate = module === "case_math" ? validateCaseMathRow : validateMentalMathRow;
       const allErrors: ValidationError[] = [];
       rows.forEach((row, i) => {
-        allErrors.push(...validate(row, i + 2));
+        allErrors.push(...validateDrillTaskRow(row, i + 2));
       });
       setErrors(allErrors);
     };
     reader.readAsText(file, "UTF-8");
-  }, [module]);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -45,12 +43,11 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
   }, [processFile]);
 
   const downloadTemplate = () => {
-    const content = module === "case_math" ? CASE_MATH_CSV_TEMPLATE : MENTAL_MATH_CSV_TEMPLATE;
-    const blob = new Blob(["\ufeff" + content], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob(["\ufeff" + DRILL_TASKS_CSV_TEMPLATE], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${module}_template.csv`;
+    a.download = "drill_tasks_template.csv";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -66,7 +63,6 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Drop zone */}
         <div
           className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 transition-colors ${
             dragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
@@ -86,7 +82,6 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
           }} />
         </div>
 
-        {/* Preview */}
         {parsedRows.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -94,7 +89,6 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
               <span>{parsedRows.length} Zeilen geladen, {validRows.length} valide</span>
             </div>
 
-            {/* Errors */}
             {errors.length > 0 && (
               <div className="max-h-40 overflow-auto rounded-lg bg-destructive/10 p-3 text-sm">
                 <p className="mb-1 font-semibold text-destructive">{errors.length} Fehler:</p>
@@ -105,12 +99,11 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
               </div>
             )}
 
-            {/* Preview table */}
             <div className="max-h-60 overflow-auto rounded-lg border border-border">
               <table className="w-full text-xs">
                 <thead className="bg-muted/50 sticky top-0">
                   <tr>
-                    {headers.slice(0, 6).map((h) => (
+                    {headers.map((h) => (
                       <th key={h} className="px-2 py-1 text-left font-medium text-muted-foreground">{h}</th>
                     ))}
                   </tr>
@@ -118,7 +111,7 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
                 <tbody>
                   {parsedRows.slice(0, 10).map((row, i) => (
                     <tr key={i} className="border-t border-border">
-                      {headers.slice(0, 6).map((h) => (
+                      {headers.map((h) => (
                         <td key={h} className="max-w-[200px] truncate px-2 py-1">{row[h]}</td>
                       ))}
                     </tr>
@@ -127,7 +120,6 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ module, onImport, importing }) =>
               </table>
             </div>
 
-            {/* Import button */}
             <Button
               onClick={() => onImport(validRows)}
               disabled={validRows.length === 0 || importing}

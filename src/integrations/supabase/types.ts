@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      drill_tasks: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["drill_category"]
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id: string
+          task: string
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["drill_category"]
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          task: string
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["drill_category"]
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          task?: string
+        }
+        Relationships: []
+      }
       mental_math_questions: {
         Row: {
           active: boolean
@@ -152,6 +179,7 @@ export type Database = {
         | "break_even"
         | "market_sizing"
       difficulty_level: "easy" | "medium" | "hard"
+      drill_category: "case_math" | "mental_math"
       mental_math_task_type:
         | "multiplication"
         | "percentage"
@@ -292,6 +320,7 @@ export const Constants = {
         "market_sizing",
       ],
       difficulty_level: ["easy", "medium", "hard"],
+      drill_category: ["case_math", "mental_math"],
       mental_math_task_type: [
         "multiplication",
         "percentage",

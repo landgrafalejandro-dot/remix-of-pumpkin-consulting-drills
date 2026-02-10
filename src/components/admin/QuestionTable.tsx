@@ -3,19 +3,24 @@ import { Search, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
 
-type CaseMathQ = Tables<"case_math_questions">;
-type MentalMathQ = Tables<"mental_math_questions">;
+interface DrillTask {
+  id: string;
+  category: string;
+  difficulty: string;
+  task: string;
+  active: boolean;
+  created_at: string;
+}
 
 interface QuestionTableProps {
-  module: "case_math" | "mental_math";
-  questions: (CaseMathQ | MentalMathQ)[];
+  questions: DrillTask[];
   totalCount: number;
   page: number;
   onPageChange: (p: number) => void;
@@ -33,7 +38,7 @@ interface QuestionTableProps {
 const PAGE_SIZE = 20;
 
 const QuestionTable: React.FC<QuestionTableProps> = ({
-  module, questions, totalCount, page, onPageChange,
+  questions, totalCount, page, onPageChange,
   searchQuery, onSearchChange,
   difficultyFilter, onDifficultyFilterChange,
   categoryFilter, onCategoryFilterChange,
@@ -42,19 +47,13 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
 }) => {
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editQuestion, setEditQuestion] = useState<(CaseMathQ | MentalMathQ) | null>(null);
-  const [editForm, setEditForm] = useState<Record<string, string>>({});
-
-  const tableName = module === "case_math" ? "case_math_questions" : "mental_math_questions";
-  const categoryField = module === "case_math" ? "category" : "task_type";
-  const categories = module === "case_math"
-    ? ["profitability", "investment_roi", "break_even", "market_sizing"]
-    : ["multiplication", "percentage", "division", "zero_management"];
+  const [editTask, setEditTask] = useState<DrillTask | null>(null);
+  const [editForm, setEditForm] = useState({ category: "", difficulty: "", task: "" });
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handleToggleActive = async (id: string, active: boolean) => {
-    const { error } = await supabase.from(tableName).update({ active: !active }).eq("id", id);
+    const { error } = await supabase.from("drill_tasks").update({ active: !active } as any).eq("id", id);
     if (error) {
       toast({ title: "Fehler", description: error.message, variant: "destructive" });
     } else {
@@ -64,7 +63,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from(tableName).delete().eq("id", deleteId);
+    const { error } = await supabase.from("drill_tasks").delete().eq("id", deleteId);
     if (error) {
       toast({ title: "Fehler", description: error.message, variant: "destructive" });
     } else {
@@ -74,50 +73,25 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
     setDeleteId(null);
   };
 
-  const openEdit = (q: CaseMathQ | MentalMathQ) => {
-    setEditQuestion(q);
-    setEditForm({
-      question: q.question,
-      answer_value: String(q.answer_value),
-      answer_display: q.answer_display ?? "",
-      tolerance: String(q.tolerance),
-      tags: q.tags ?? "",
-      explanation: q.explanation ?? "",
-      difficulty: q.difficulty,
-      [categoryField]: (q as any)[categoryField],
-      ...("answer_unit" in q ? { answer_unit: (q as CaseMathQ).answer_unit ?? "" } : {}),
-      ...("number_format" in q ? { number_format: (q as MentalMathQ).number_format ?? "" } : {}),
-      ...("time_limit_sec" in q ? { time_limit_sec: String((q as MentalMathQ).time_limit_sec ?? "") } : {}),
-    });
+  const openEdit = (q: DrillTask) => {
+    setEditTask(q);
+    setEditForm({ category: q.category, difficulty: q.difficulty, task: q.task });
   };
 
   const handleSaveEdit = async () => {
-    if (!editQuestion) return;
-    const updates: Record<string, any> = {
-      question: editForm.question,
-      answer_value: Number(editForm.answer_value),
-      answer_display: editForm.answer_display || null,
-      tolerance: Number(editForm.tolerance) || 0,
-      tags: editForm.tags || null,
-      explanation: editForm.explanation || null,
-      difficulty: editForm.difficulty as any,
-      [categoryField]: editForm[categoryField] as any,
-    };
-    if (module === "case_math") {
-      updates.answer_unit = editForm.answer_unit || null;
-    } else {
-      updates.number_format = editForm.number_format || null;
-      updates.time_limit_sec = editForm.time_limit_sec ? Number(editForm.time_limit_sec) : null;
-    }
-
-    const { error } = await supabase.from(tableName).update(updates).eq("id", editQuestion.id);
+    if (!editTask) return;
+    const { error } = await supabase.from("drill_tasks").update({
+      category: editForm.category,
+      difficulty: editForm.difficulty,
+      task: editForm.task,
+    } as any).eq("id", editTask.id);
     if (error) {
       toast({ title: "Fehler", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Gespeichert" });
       onRefresh();
     }
-    setEditQuestion(null);
+    setEditTask(null);
   };
 
   return (
@@ -127,12 +101,20 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Suche in Fragen & Tags…"
+            placeholder="Suche in Aufgaben…"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
+        <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Kategorie" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle Kategorien</SelectItem>
+            <SelectItem value="case_math">Case Math</SelectItem>
+            <SelectItem value="mental_math">Mental Math</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={difficultyFilter} onValueChange={onDifficultyFilterChange}>
           <SelectTrigger className="w-[130px]"><SelectValue placeholder="Difficulty" /></SelectTrigger>
           <SelectContent>
@@ -140,15 +122,6 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
             <SelectItem value="easy">Easy</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="hard">Hard</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Kategorie" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle Kategorien</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
-            ))}
           </SelectContent>
         </Select>
         <Select value={activeFilter} onValueChange={onActiveFilterChange}>
@@ -161,18 +134,15 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
         </Select>
       </div>
 
-      {/* Count */}
       <p className="text-sm text-muted-foreground">{totalCount} Aufgaben gefunden</p>
 
-      {/* Table */}
       <div className="rounded-lg border border-border overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Category</TableHead>
               <TableHead>Difficulty</TableHead>
-              <TableHead>{module === "case_math" ? "Category" : "Task Type"}</TableHead>
-              <TableHead className="min-w-[250px]">Question</TableHead>
-              <TableHead>Answer</TableHead>
+              <TableHead className="min-w-[300px]">Task</TableHead>
               <TableHead>Active</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Aktionen</TableHead>
@@ -181,17 +151,16 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
           <TableBody>
             {questions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Keine Aufgaben gefunden.
                 </TableCell>
               </TableRow>
             ) : (
               questions.map((q) => (
                 <TableRow key={q.id}>
+                  <TableCell>{q.category}</TableCell>
                   <TableCell className="capitalize">{q.difficulty}</TableCell>
-                  <TableCell>{(q as any)[categoryField]}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">{q.question}</TableCell>
-                  <TableCell>{q.answer_display || q.answer_value}</TableCell>
+                  <TableCell className="max-w-[400px] truncate">{q.task}</TableCell>
                   <TableCell>
                     <Switch checked={q.active} onCheckedChange={() => handleToggleActive(q.id, q.active)} />
                   </TableCell>
@@ -213,7 +182,6 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
         </Table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button variant="outline" size="sm" disabled={page === 0} onClick={() => onPageChange(page - 1)}>
@@ -243,13 +211,23 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
       </Dialog>
 
       {/* Edit Modal */}
-      <Dialog open={!!editQuestion} onOpenChange={() => setEditQuestion(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <Dialog open={!!editTask} onOpenChange={() => setEditTask(null)}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Aufgabe bearbeiten</DialogTitle>
             <DialogDescription>Änderungen werden direkt gespeichert.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-foreground">Category</label>
+              <Select value={editForm.category} onValueChange={(v) => setEditForm((p) => ({ ...p, category: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="case_math">Case Math</SelectItem>
+                  <SelectItem value="mental_math">Mental Math</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <label className="text-sm font-medium text-foreground">Difficulty</label>
               <Select value={editForm.difficulty} onValueChange={(v) => setEditForm((p) => ({ ...p, difficulty: v }))}>
@@ -262,75 +240,16 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground">{module === "case_math" ? "Category" : "Task Type"}</label>
-              <Select value={editForm[categoryField]} onValueChange={(v) => setEditForm((p) => ({ ...p, [categoryField]: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Question</label>
-              <textarea
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                rows={3}
-                value={editForm.question}
-                onChange={(e) => setEditForm((p) => ({ ...p, question: e.target.value }))}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium text-foreground">Answer Value</label>
-                <Input type="number" value={editForm.answer_value} onChange={(e) => setEditForm((p) => ({ ...p, answer_value: e.target.value }))} />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground">Answer Display</label>
-                <Input value={editForm.answer_display} onChange={(e) => setEditForm((p) => ({ ...p, answer_display: e.target.value }))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium text-foreground">Tolerance</label>
-                <Input type="number" step="0.01" value={editForm.tolerance} onChange={(e) => setEditForm((p) => ({ ...p, tolerance: e.target.value }))} />
-              </div>
-              {module === "case_math" && (
-                <div>
-                  <label className="text-sm font-medium text-foreground">Unit</label>
-                  <Input value={editForm.answer_unit ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, answer_unit: e.target.value }))} />
-                </div>
-              )}
-              {module === "mental_math" && (
-                <>
-                  <div>
-                    <label className="text-sm font-medium text-foreground">Number Format</label>
-                    <Input value={editForm.number_format ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, number_format: e.target.value }))} />
-                  </div>
-                </>
-              )}
-            </div>
-            {module === "mental_math" && (
-              <div>
-                <label className="text-sm font-medium text-foreground">Time Limit (sec)</label>
-                <Input type="number" value={editForm.time_limit_sec ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, time_limit_sec: e.target.value }))} />
-              </div>
-            )}
-            <div>
-              <label className="text-sm font-medium text-foreground">Tags</label>
-              <Input value={editForm.tags} onChange={(e) => setEditForm((p) => ({ ...p, tags: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Explanation</label>
-              <textarea
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                rows={2}
-                value={editForm.explanation}
-                onChange={(e) => setEditForm((p) => ({ ...p, explanation: e.target.value }))}
+              <label className="text-sm font-medium text-foreground">Task</label>
+              <Textarea
+                rows={4}
+                value={editForm.task}
+                onChange={(e) => setEditForm((p) => ({ ...p, task: e.target.value }))}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditQuestion(null)}>Abbrechen</Button>
+            <Button variant="outline" onClick={() => setEditTask(null)}>Abbrechen</Button>
             <Button onClick={handleSaveEdit}>Speichern</Button>
           </DialogFooter>
         </DialogContent>

@@ -56,46 +56,23 @@ export interface ValidationError {
   message: string;
 }
 
+const VALID_CATEGORIES = ["case_math", "mental_math"];
 const VALID_DIFFICULTIES = ["easy", "medium", "hard"];
-const VALID_CASE_CATEGORIES = ["profitability", "investment_roi", "break_even", "market_sizing"];
-const VALID_MENTAL_TYPES = ["multiplication", "percentage", "division", "zero_management"];
 
-export function validateCaseMathRow(row: Record<string, string>, idx: number): ValidationError[] {
+export function validateDrillTaskRow(row: Record<string, string>, idx: number): ValidationError[] {
   const errors: ValidationError[] = [];
+  if (!row.category || !VALID_CATEGORIES.includes(row.category)) {
+    errors.push({ row: idx, field: "category", message: `Ungültiger Wert: "${row.category}". Erlaubt: ${VALID_CATEGORIES.join(", ")}` });
+  }
   if (!row.difficulty || !VALID_DIFFICULTIES.includes(row.difficulty)) {
     errors.push({ row: idx, field: "difficulty", message: `Ungültiger Wert: "${row.difficulty}". Erlaubt: ${VALID_DIFFICULTIES.join(", ")}` });
   }
-  if (!row.category || !VALID_CASE_CATEGORIES.includes(row.category)) {
-    errors.push({ row: idx, field: "category", message: `Ungültiger Wert: "${row.category}". Erlaubt: ${VALID_CASE_CATEGORIES.join(", ")}` });
-  }
-  if (!row.question?.trim()) {
-    errors.push({ row: idx, field: "question", message: "Pflichtfeld fehlt" });
-  }
-  if (!row.answer_value || isNaN(Number(row.answer_value))) {
-    errors.push({ row: idx, field: "answer_value", message: "Muss numerisch sein" });
+  if (!row.task?.trim()) {
+    errors.push({ row: idx, field: "task", message: "Pflichtfeld fehlt" });
   }
   return errors;
 }
 
-export function validateMentalMathRow(row: Record<string, string>, idx: number): ValidationError[] {
-  const errors: ValidationError[] = [];
-  if (!row.difficulty || !VALID_DIFFICULTIES.includes(row.difficulty)) {
-    errors.push({ row: idx, field: "difficulty", message: `Ungültiger Wert: "${row.difficulty}". Erlaubt: ${VALID_DIFFICULTIES.join(", ")}` });
-  }
-  if (!row.task_type || !VALID_MENTAL_TYPES.includes(row.task_type)) {
-    errors.push({ row: idx, field: "task_type", message: `Ungültiger Wert: "${row.task_type}". Erlaubt: ${VALID_MENTAL_TYPES.join(", ")}` });
-  }
-  if (!row.question?.trim()) {
-    errors.push({ row: idx, field: "question", message: "Pflichtfeld fehlt" });
-  }
-  if (!row.answer_value || isNaN(Number(row.answer_value))) {
-    errors.push({ row: idx, field: "answer_value", message: "Muss numerisch sein" });
-  }
-  return errors;
-}
-
-export const CASE_MATH_CSV_TEMPLATE = `module,difficulty,category,question,answer_value,answer_unit,answer_display,tolerance,tags,explanation,active
-case_math,easy,profitability,"Ein Unternehmen hat 100k EUR Umsatz und 60k EUR Kosten. Wie hoch ist der Gewinn?",40000,EUR,€40k,0,gewinn,Umsatz minus Kosten,true`;
-
-export const MENTAL_MATH_CSV_TEMPLATE = `module,difficulty,task_type,question,answer_value,answer_display,tolerance,number_format,time_limit_sec,tags,explanation,active
-mental_math,easy,multiplication,"25 × 16",400,400,0,integers,10,multiplication,25×16=400,true`;
+export const DRILL_TASKS_CSV_TEMPLATE = `category,difficulty,task
+case_math,easy,"Ein Unternehmen hat 100k EUR Umsatz und 60k EUR Kosten. Wie hoch ist der Gewinn?"
+mental_math,medium,"25 × 16"`;
