@@ -7,6 +7,7 @@ import SprintDebrief from "@/components/sprint/SprintDebrief";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } from "@/types/drill";
 import { generateTask, checkAnswer, resetTaskHistory } from "@/lib/taskGenerator";
+import { fetchDbMultiplicationTasks, getRandomDbTask, resetDbTaskHistory } from "@/lib/dbTaskFetcher";
 
 const Index = () => {
   // Configuration state
@@ -35,14 +36,32 @@ const Index = () => {
       ? selectedTypes[0] 
       : selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
     
+    // For multiplication at easy level, use DB tasks
+    if (taskType === "multiplication" && difficulty === 1) {
+      const dbTask = getRandomDbTask();
+      if (dbTask) {
+        setCurrentTask(dbTask);
+        taskStartTime.current = Date.now();
+        return;
+      }
+    }
+    
     const task = generateTask(taskType, difficulty);
     setCurrentTask(task);
     taskStartTime.current = Date.now();
   }, [selectedTypes, difficulty]);
 
   // Start the sprint
-  const handleStart = useCallback(() => {
+  const handleStart = useCallback(async () => {
     resetTaskHistory(); // Clear history for fresh session
+    resetDbTaskHistory();
+    
+    // Pre-fetch DB tasks for multiplication easy
+    const diffMap: Record<number, "easy" | "medium" | "hard"> = { 1: "easy", 2: "medium", 3: "hard" };
+    if (selectedTypes.includes("multiplication") && difficulty === 1) {
+      await fetchDbMultiplicationTasks(diffMap[difficulty]);
+    }
+    
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
@@ -62,7 +81,7 @@ const Index = () => {
         return prev - 1;
       });
     }, 1000);
-  }, [duration, generateNewTask]);
+  }, [duration, generateNewTask, selectedTypes, difficulty]);
 
   // End the sprint early
   const handleEndEarly = useCallback(() => {
