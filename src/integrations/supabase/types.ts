@@ -70,6 +70,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           id: string
           task: string
+          task_type: string | null
         }
         Insert: {
           active?: boolean
@@ -78,6 +79,7 @@ export type Database = {
           difficulty: Database["public"]["Enums"]["difficulty_level"]
           id?: string
           task: string
+          task_type?: string | null
         }
         Update: {
           active?: boolean
@@ -86,6 +88,7 @@ export type Database = {
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
           id?: string
           task?: string
+          task_type?: string | null
         }
         Relationships: []
       }
