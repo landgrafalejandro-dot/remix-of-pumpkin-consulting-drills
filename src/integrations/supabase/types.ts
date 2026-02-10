@@ -95,6 +95,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mental_math_explanations: {
+        Row: {
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text: string
+          id: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text: string
+          id?: string
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text?: string
+          id?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mental_math_questions: {
         Row: {
           active: boolean
