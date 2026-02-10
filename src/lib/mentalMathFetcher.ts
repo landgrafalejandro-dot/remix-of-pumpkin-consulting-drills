@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Task, ShortcutInfo } from "@/types/drill";
 import { normalizeInput } from "@/lib/taskGenerator";
+import { loadExplanationTemplates, getTemplateExplanation, clearTemplateCache } from "@/lib/explanationMatcher";
 
 /**
  * DB-only fetcher for Mental Math drill tasks.
@@ -131,7 +132,7 @@ export const fetchMentalMathTasks = async (
 
   if (cacheFilterKey === key && cachedTasks.length > 0) return;
 
-  // Fetch tasks and explanations in parallel
+  // Fetch tasks, generic explanations, and templates in parallel
   let taskQuery = supabase
     .from("drill_tasks")
     .select("id, task, task_type, difficulty")
@@ -146,6 +147,7 @@ export const fetchMentalMathTasks = async (
   const [taskResult, explanationResult] = await Promise.all([
     taskQuery,
     supabase.from("mental_math_explanations").select("task_type, difficulty, explanation_text"),
+    loadExplanationTemplates(),
   ]);
 
   if (taskResult.error) {
@@ -157,7 +159,7 @@ export const fetchMentalMathTasks = async (
   cachedTasks = taskResult.data ?? [];
   cacheFilterKey = key;
 
-  // Cache explanations
+  // Cache generic explanations as fallback
   if (explanationResult.data) {
     for (const row of explanationResult.data) {
       explanationCache[`${row.task_type}_${row.difficulty}`] = row.explanation_text;
@@ -201,14 +203,17 @@ export const getNextMentalMathTask = (): Task | null => {
 
       const frontendType = DB_TO_FRONTEND_TYPE[pick.task_type] || pick.task_type;
 
+      // Try template-based explanation first, fall back to generic
+      const templateExplanation = getTemplateExplanation(pick.task, pick.task_type, pick.difficulty);
       const explanationKey = `${pick.task_type}_${pick.difficulty}`;
-      const explanation = explanationCache[explanationKey] || null;
+      const genericExplanation = explanationCache[explanationKey] || null;
+      const explanation = templateExplanation || genericExplanation;
 
       const steps: string[] = [];
       if (explanation) {
         steps.push(`💡 **Tipp:** ${explanation}`);
       }
-      steps.push(`Aufgabe: **${pick.task}**`);
+      steps.push(`Rechne: **${pick.task}**`);
       steps.push(`Ergebnis: **${formatAnswer(answer)}**`);
 
       const shortcut: ShortcutInfo = {
@@ -268,6 +273,7 @@ export const clearMentalMathCache = () => {
   cacheFilterKey = "";
   seenIds = [];
   explanationCache = {};
+  clearTemplateCache();
 };
 
 /**
