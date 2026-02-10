@@ -3,6 +3,7 @@ import { Upload, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { parseCSV, ValidationError, validateDrillTaskRow, DRILL_TASKS_CSV_TEMPLATE } from "@/lib/csvParser";
+import { normalizeTaskString } from "@/lib/normalizeTaskString";
 
 interface CsvUploadProps {
   onImport: (rows: Record<string, string>[]) => void;
@@ -109,13 +110,26 @@ const CsvUpload: React.FC<CsvUploadProps> = ({ onImport, importing }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {parsedRows.slice(0, 10).map((row, i) => (
-                    <tr key={i} className="border-t border-border">
-                      {headers.map((h) => (
-                        <td key={h} className="max-w-[200px] truncate px-2 py-1">{row[h]}</td>
-                      ))}
-                    </tr>
-                  ))}
+                  {parsedRows.slice(0, 10).map((row, i) => {
+                    const norm = row.task ? normalizeTaskString(row.task) : "";
+                    const changed = norm && norm !== row.task;
+                    return (
+                      <tr key={i} className="border-t border-border">
+                        {headers.map((h) => (
+                          <td key={h} className="max-w-[200px] truncate px-2 py-1">
+                            {h === "task" && changed ? (
+                              <span>
+                                <span className="line-through text-muted-foreground">{row[h]}</span>{" "}
+                                <span className="text-foreground">→ {norm}</span>
+                              </span>
+                            ) : (
+                              row[h]
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
