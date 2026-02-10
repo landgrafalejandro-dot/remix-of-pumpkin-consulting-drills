@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogIn, Plus, Trash2, Lightbulb } from "lucide-react";
+import { ArrowLeft, LogIn, Plus, Trash2, Lightbulb, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import CsvUpload from "@/components/admin/CsvUpload";
 import QuestionTable from "@/components/admin/QuestionTable";
 import ExplanationEditor from "@/components/admin/ExplanationEditor";
+import TemplateEditor from "@/components/admin/TemplateEditor";
 import { normalizeTaskString } from "@/lib/normalizeTaskString";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
 
@@ -322,6 +323,19 @@ const AdminPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <ExplanationEditor />
+          </CardContent>
+        </Card>
+
+        {/* Template Editor */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Erklärungstemplates (Match-Regeln)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TemplateEditor />
           </CardContent>
         </Card>
 
