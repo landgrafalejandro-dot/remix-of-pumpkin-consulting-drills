@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogIn, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, LogIn, Plus, Trash2, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CsvUpload from "@/components/admin/CsvUpload";
 import QuestionTable from "@/components/admin/QuestionTable";
+import ExplanationEditor from "@/components/admin/ExplanationEditor";
 import { normalizeTaskString } from "@/lib/normalizeTaskString";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
 
@@ -310,6 +311,19 @@ const AdminPage: React.FC = () => {
             <CsvUpload onImport={handleImport} importing={importing} />
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Explanation Editor */}
+        <Card className="border-border">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              Erklärungstexte (Mental Math)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ExplanationEditor />
+          </CardContent>
+        </Card>
 
         {/* Task table */}
         <QuestionTable
