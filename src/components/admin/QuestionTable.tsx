@@ -10,10 +10,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const TASK_TYPES: Record<string, string[]> = {
+  case_math: ["profitability", "investment_roi", "break_even", "market_sizing"],
+  mental_math: ["multiplication", "percentage", "division", "zero_management"],
+};
+
 interface DrillTask {
   id: string;
   category: string;
   difficulty: string;
+  task_type: string | null;
   task: string;
   active: boolean;
   created_at: string;
@@ -30,6 +36,8 @@ interface QuestionTableProps {
   onDifficultyFilterChange: (d: string) => void;
   categoryFilter: string;
   onCategoryFilterChange: (c: string) => void;
+  taskTypeFilter: string;
+  onTaskTypeFilterChange: (t: string) => void;
   activeFilter: string;
   onActiveFilterChange: (a: string) => void;
   onRefresh: () => void;
@@ -42,13 +50,14 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
   searchQuery, onSearchChange,
   difficultyFilter, onDifficultyFilterChange,
   categoryFilter, onCategoryFilterChange,
+  taskTypeFilter, onTaskTypeFilterChange,
   activeFilter, onActiveFilterChange,
   onRefresh,
 }) => {
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editTask, setEditTask] = useState<DrillTask | null>(null);
-  const [editForm, setEditForm] = useState({ category: "", difficulty: "", task: "" });
+  const [editForm, setEditForm] = useState({ category: "", difficulty: "", task_type: "", task: "" });
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -75,7 +84,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
 
   const openEdit = (q: DrillTask) => {
     setEditTask(q);
-    setEditForm({ category: q.category, difficulty: q.difficulty, task: q.task });
+    setEditForm({ category: q.category, difficulty: q.difficulty, task_type: q.task_type ?? "", task: q.task });
   };
 
   const handleSaveEdit = async () => {
@@ -83,6 +92,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
     const { error } = await supabase.from("drill_tasks").update({
       category: editForm.category,
       difficulty: editForm.difficulty,
+      task_type: editForm.task_type || null,
       task: editForm.task,
     } as any).eq("id", editTask.id);
     if (error) {
@@ -93,6 +103,11 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
     }
     setEditTask(null);
   };
+
+  const editTaskTypes = TASK_TYPES[editForm.category] ?? [];
+
+  // Collect all task types for filter
+  const allTaskTypes = [...new Set(Object.values(TASK_TYPES).flat())];
 
   return (
     <div className="space-y-4">
@@ -113,6 +128,15 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
             <SelectItem value="all">Alle Kategorien</SelectItem>
             <SelectItem value="case_math">Case Math</SelectItem>
             <SelectItem value="mental_math">Mental Math</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={taskTypeFilter} onValueChange={onTaskTypeFilterChange}>
+          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Aufgabentyp" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle Typen</SelectItem>
+            {allTaskTypes.map((t) => (
+              <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={difficultyFilter} onValueChange={onDifficultyFilterChange}>
@@ -141,6 +165,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead>Category</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Difficulty</TableHead>
               <TableHead className="min-w-[300px]">Task</TableHead>
               <TableHead>Active</TableHead>
@@ -151,7 +176,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
           <TableBody>
             {questions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                   Keine Aufgaben gefunden.
                 </TableCell>
               </TableRow>
@@ -159,6 +184,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
               questions.map((q) => (
                 <TableRow key={q.id}>
                   <TableCell>{q.category}</TableCell>
+                  <TableCell className="text-xs">{q.task_type?.replace(/_/g, " ") ?? "–"}</TableCell>
                   <TableCell className="capitalize">{q.difficulty}</TableCell>
                   <TableCell className="max-w-[400px] truncate">{q.task}</TableCell>
                   <TableCell>
@@ -220,7 +246,7 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
           <div className="space-y-3">
             <div>
               <label className="text-sm font-medium text-foreground">Category</label>
-              <Select value={editForm.category} onValueChange={(v) => setEditForm((p) => ({ ...p, category: v }))}>
+              <Select value={editForm.category} onValueChange={(v) => setEditForm((p) => ({ ...p, category: v, task_type: "" }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="case_math">Case Math</SelectItem>
@@ -228,6 +254,19 @@ const QuestionTable: React.FC<QuestionTableProps> = ({
                 </SelectContent>
               </Select>
             </div>
+            {editTaskTypes.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-foreground">Type</label>
+                <Select value={editForm.task_type} onValueChange={(v) => setEditForm((p) => ({ ...p, task_type: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Aufgabentyp…" /></SelectTrigger>
+                  <SelectContent>
+                    {editTaskTypes.map((t) => (
+                      <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-foreground">Difficulty</label>
               <Select value={editForm.difficulty} onValueChange={(v) => setEditForm((p) => ({ ...p, difficulty: v }))}>

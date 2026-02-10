@@ -58,6 +58,10 @@ export interface ValidationError {
 
 const VALID_CATEGORIES = ["case_math", "mental_math"];
 const VALID_DIFFICULTIES = ["easy", "medium", "hard"];
+const VALID_TASK_TYPES = [
+  "profitability", "investment_roi", "break_even", "market_sizing",
+  "multiplication", "percentage", "division", "zero_management",
+];
 
 export function validateDrillTaskRow(row: Record<string, string>, idx: number): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -67,12 +71,15 @@ export function validateDrillTaskRow(row: Record<string, string>, idx: number): 
   if (!row.difficulty || !VALID_DIFFICULTIES.includes(row.difficulty)) {
     errors.push({ row: idx, field: "difficulty", message: `Ungültiger Wert: "${row.difficulty}". Erlaubt: ${VALID_DIFFICULTIES.join(", ")}` });
   }
+  if (row.task_type && !VALID_TASK_TYPES.includes(row.task_type)) {
+    errors.push({ row: idx, field: "task_type", message: `Ungültiger Wert: "${row.task_type}". Erlaubt: ${VALID_TASK_TYPES.join(", ")}` });
+  }
   if (!row.task?.trim()) {
     errors.push({ row: idx, field: "task", message: "Pflichtfeld fehlt" });
   }
   return errors;
 }
 
-export const DRILL_TASKS_CSV_TEMPLATE = `category,difficulty,task
-case_math,easy,"Ein Unternehmen hat 100k EUR Umsatz und 60k EUR Kosten. Wie hoch ist der Gewinn?"
-mental_math,medium,"25 × 16"`;
+export const DRILL_TASKS_CSV_TEMPLATE = `category,difficulty,task_type,task
+case_math,easy,profitability,"Ein Unternehmen hat 100k EUR Umsatz und 60k EUR Kosten. Wie hoch ist der Gewinn?"
+mental_math,medium,multiplication,"25 × 16"`;
