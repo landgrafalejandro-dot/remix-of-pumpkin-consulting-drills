@@ -136,19 +136,11 @@ const SprintDebrief: React.FC<SprintDebriefProps> = ({ stats, results, onRestart
 
               {/* Shortcut Tip */}
               <div className="bg-card/50 px-4 py-2 border-t border-border/30">
-                <div className="flex items-start gap-2">
-                  <span className="text-xs font-semibold text-primary">
-                    {result.task.shortcut.name}:
-                  </span>
-                  <p className="text-xs text-muted-foreground">
-                    {result.task.shortcut.description}
-                  </p>
-                </div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                <div className="space-y-1">
                   {result.task.shortcut.steps.map((step, stepIndex) => (
-                    <span key={stepIndex} className="text-xs text-muted-foreground">
+                    <p key={stepIndex} className="text-xs text-muted-foreground">
                       {parseStepText(step)}
-                    </span>
+                    </p>
                   ))}
                 </div>
               </div>

@@ -15,6 +15,9 @@ let taskCounter = 20000;
 let cachedTasks: { id: string; task: string; task_type: string; difficulty: string }[] = [];
 let cacheFilterKey = "";
 
+// Explanation cache: key = "task_type_difficulty"
+let explanationCache: Record<string, string> = {};
+
 /**
  * Map DB task_type values to frontend TaskType.
  */
@@ -128,7 +131,8 @@ export const fetchMentalMathTasks = async (
 
   if (cacheFilterKey === key && cachedTasks.length > 0) return;
 
-  let query = supabase
+  // Fetch tasks and explanations in parallel
+  let taskQuery = supabase
     .from("drill_tasks")
     .select("id, task, task_type, difficulty")
     .eq("category", "mental_math")
@@ -136,19 +140,30 @@ export const fetchMentalMathTasks = async (
     .in("task_type", dbTypes);
 
   if (difficulty !== "all") {
-    query = query.eq("difficulty", difficulty);
+    taskQuery = taskQuery.eq("difficulty", difficulty);
   }
 
-  const { data, error } = await query;
+  const [taskResult, explanationResult] = await Promise.all([
+    taskQuery,
+    supabase.from("mental_math_explanations").select("task_type, difficulty, explanation_text"),
+  ]);
 
-  if (error) {
-    console.error("Error fetching mental math tasks:", error.message);
+  if (taskResult.error) {
+    console.error("Error fetching mental math tasks:", taskResult.error.message);
     cachedTasks = [];
     return;
   }
 
-  cachedTasks = data ?? [];
+  cachedTasks = taskResult.data ?? [];
   cacheFilterKey = key;
+
+  // Cache explanations
+  if (explanationResult.data) {
+    for (const row of explanationResult.data) {
+      explanationCache[`${row.task_type}_${row.difficulty}`] = row.explanation_text;
+    }
+  }
+
   console.log(`Loaded ${cachedTasks.length} mental math tasks from DB`);
 };
 
@@ -186,13 +201,20 @@ export const getNextMentalMathTask = (): Task | null => {
 
       const frontendType = DB_TO_FRONTEND_TYPE[pick.task_type] || pick.task_type;
 
+      const explanationKey = `${pick.task_type}_${pick.difficulty}`;
+      const explanation = explanationCache[explanationKey] || null;
+
+      const steps: string[] = [];
+      if (explanation) {
+        steps.push(`💡 **Tipp:** ${explanation}`);
+      }
+      steps.push(`Aufgabe: **${pick.task}**`);
+      steps.push(`Ergebnis: **${formatAnswer(answer)}**`);
+
       const shortcut: ShortcutInfo = {
         name: "Lösung",
-        description: `Rechne: ${pick.task}`,
-        steps: [
-          `Aufgabe: **${pick.task}**`,
-          `Ergebnis: **${formatAnswer(answer)}**`,
-        ],
+        description: explanation || `Rechne: ${pick.task}`,
+        steps,
       };
 
       return {
@@ -245,6 +267,7 @@ export const clearMentalMathCache = () => {
   cachedTasks = [];
   cacheFilterKey = "";
   seenIds = [];
+  explanationCache = {};
 };
 
 /**
