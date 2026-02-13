@@ -142,6 +142,11 @@ const CaseMathConfig: React.FC<CaseMathConfigProps> = ({
         </div>
       </div>
 
+      {/* Interview Hint */}
+      <div className="mx-auto max-w-md rounded-lg border border-border bg-muted/50 px-4 py-3 text-center text-sm text-muted-foreground">
+        📝 Nutze Stift & Papier – kein Taschenrechner. So übst du unter realen Interview-Bedingungen.
+      </div>
+
       {/* Start Button */}
       <div className="flex justify-center pt-4">
         <DrillButton
