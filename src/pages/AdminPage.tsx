@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogIn, Plus, Trash2, Lightbulb, FileText } from "lucide-react";
+import { ArrowLeft, LogIn, Plus, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import CsvUpload from "@/components/admin/CsvUpload";
 import QuestionTable from "@/components/admin/QuestionTable";
-import ExplanationEditor from "@/components/admin/ExplanationEditor";
+
 import TemplateEditor from "@/components/admin/TemplateEditor";
 import { normalizeTaskString } from "@/lib/normalizeTaskString";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
@@ -313,31 +313,22 @@ const AdminPage: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Explanation Editor */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              Erklärungstexte (Mental Math)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ExplanationEditor />
-          </CardContent>
-        </Card>
-
-        {/* Template Editor */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
+        {/* Template Editor (collapsible) */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-start gap-2">
+              <FileText className="h-4 w-4 text-primary" />
               Erklärungstemplates (Match-Regeln)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TemplateEditor />
-          </CardContent>
-        </Card>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3">
+            <Card className="border-border">
+              <CardContent className="pt-6">
+                <TemplateEditor />
+              </CardContent>
+            </Card>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Task table */}
         <QuestionTable
