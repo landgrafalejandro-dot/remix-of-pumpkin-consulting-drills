@@ -233,73 +233,80 @@ const AdminPage: React.FC = () => {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-8">
-        {/* Bulk entry form */}
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Aufgaben eingeben</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-3">
-              <Select value={bulkCategory} onValueChange={(v) => { setBulkCategory(v); setBulkTaskType(""); }}>
-                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="case_math">Case Math</SelectItem>
-                  <SelectItem value="mental_math">Mental Math</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={bulkDifficulty} onValueChange={setBulkDifficulty}>
-                <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-              {availableTaskTypes.length > 0 && (
-                <Select value={bulkTaskType} onValueChange={setBulkTaskType}>
-                  <SelectTrigger className="w-[180px]"><SelectValue placeholder="Aufgabentyp…" /></SelectTrigger>
-                  <SelectContent>
-                    {availableTaskTypes.map((t) => (
-                      <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+        {/* Bulk entry form (collapsible) */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-start gap-2">
+              <Plus className="h-4 w-4 text-primary" />
+              Aufgaben eingeben
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3">
+            <Card className="border-border">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Select value={bulkCategory} onValueChange={(v) => { setBulkCategory(v); setBulkTaskType(""); }}>
+                    <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="case_math">Case Math</SelectItem>
+                      <SelectItem value="mental_math">Mental Math</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={bulkDifficulty} onValueChange={setBulkDifficulty}>
+                    <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {availableTaskTypes.length > 0 && (
+                    <Select value={bulkTaskType} onValueChange={setBulkTaskType}>
+                      <SelectTrigger className="w-[180px]"><SelectValue placeholder="Aufgabentyp…" /></SelectTrigger>
+                      <SelectContent>
+                        {availableTaskTypes.map((t) => (
+                          <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">{filledCount} / 20 Aufgaben ausgefüllt</p>
-              <div className="grid gap-2">
-                {bulkSlots.map((slot, i) => {
-                  const normalized = slot.trim() ? normalizeTaskString(slot.trim()) : "";
-                  const changed = normalized && normalized !== slot.trim();
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-6 text-right text-xs text-muted-foreground">{i + 1}</span>
-                      <Input
-                        placeholder={`Aufgabe ${i + 1}…`}
-                        value={slot}
-                        onChange={(e) => updateSlot(i, e.target.value)}
-                      />
-                      {changed && (
-                        <span className="shrink-0 text-xs text-muted-foreground">→ {normalized}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">{filledCount} / 20 Aufgaben ausgefüllt</p>
+                  <div className="grid gap-2">
+                    {bulkSlots.map((slot, i) => {
+                      const normalized = slot.trim() ? normalizeTaskString(slot.trim()) : "";
+                      const changed = normalized && normalized !== slot.trim();
+                      return (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="w-6 text-right text-xs text-muted-foreground">{i + 1}</span>
+                          <Input
+                            placeholder={`Aufgabe ${i + 1}…`}
+                            value={slot}
+                            onChange={(e) => updateSlot(i, e.target.value)}
+                          />
+                          {changed && (
+                            <span className="shrink-0 text-xs text-muted-foreground">→ {normalized}</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            <div className="flex gap-2">
-              <Button onClick={handleBulkSave} disabled={bulkSaving || filledCount === 0}>
-                <Plus className="mr-2 h-4 w-4" /> {bulkSaving ? "Speichere…" : `${filledCount} Aufgaben speichern`}
-              </Button>
-              <Button variant="outline" onClick={() => setBulkSlots(Array(20).fill(""))} disabled={filledCount === 0}>
-                <Trash2 className="mr-2 h-4 w-4" /> Leeren
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex gap-2">
+                  <Button onClick={handleBulkSave} disabled={bulkSaving || filledCount === 0}>
+                    <Plus className="mr-2 h-4 w-4" /> {bulkSaving ? "Speichere…" : `${filledCount} Aufgaben speichern`}
+                  </Button>
+                  <Button variant="outline" onClick={() => setBulkSlots(Array(20).fill(""))} disabled={filledCount === 0}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Leeren
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* CSV Import (collapsible) */}
         <Collapsible open={csvOpen} onOpenChange={setCsvOpen}>
