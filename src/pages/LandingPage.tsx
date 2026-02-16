@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
-import UserDashboard from "@/components/dashboard/UserDashboard";
 import { useUserEmail } from "@/hooks/useUserEmail";
 
 interface ModuleCardProps {
@@ -166,18 +165,22 @@ const LandingPage: React.FC = () => {
         </p>
       </header>
 
+      {/* Dashboard Link */}
+      {userEmail && (
+        <div className="flex justify-center px-4 pb-6">
+          <Link
+            to={`/dashboard?email=${encodeURIComponent(userEmail)}`}
+            className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-6 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/20 hover:shadow-lg hover:shadow-primary/10"
+          >
+            <BarChart3 className="h-5 w-5" />
+            Mein Dashboard
+            <span className="transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
+      )}
+
       {/* Module Grid */}
       <main className="flex flex-1 flex-col items-center px-4 pb-16">
-        {/* Personal Dashboard */}
-        {userEmail && (
-          <div className="mb-8 w-full max-w-5xl">
-            <h2 className="mb-4 text-xl font-semibold text-foreground">
-              Dein Fortschritt
-            </h2>
-            <UserDashboard userEmail={userEmail} />
-          </div>
-        )}
-
         <div className="grid w-full max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((module, index) => (
             <ModuleCard
