@@ -115,28 +115,28 @@ const SprintConfig: React.FC<SprintConfigProps> = ({
           <Target className="h-4 w-4" />
           <span className="text-sm font-medium">Aufgabentypen</span>
         </div>
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-3">
           <button
             onClick={selectAllTypes}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
               allSelected
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted/50"
             }`}
           >
-            Alle
+            <span className="text-lg font-bold">Alle</span>
           </button>
           {taskTypeOptions.map(({ type, label }) => (
             <button
               key={type}
               onClick={() => handleTypeToggle(type)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
                 selectedTypes.includes(type)
-                  ? "bg-primary/20 text-primary border border-primary/50"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 border border-transparent"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted/50"
               }`}
             >
-              {label}
+              <span className="text-lg font-bold">{label}</span>
             </button>
           ))}
         </div>

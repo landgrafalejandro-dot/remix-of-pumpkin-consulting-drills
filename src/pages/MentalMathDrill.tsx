@@ -179,9 +179,9 @@ const Index = () => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex flex-col items-center px-4 pt-12 pb-6">
-        <Link to="/" className="mb-4 transition-opacity hover:opacity-80">
+        <div className="mb-4">
           <DrillIcon />
-        </Link>
+        </div>
         <h1 className="mb-2 text-center text-3xl font-bold text-foreground md:text-4xl">
           Consulting Mental Math Drill
         </h1>
@@ -190,6 +190,12 @@ const Index = () => {
           {phase === "sprint" && "Löse so viele Aufgaben wie möglich!"}
           {phase === "debrief" && "Analysiere deine Ergebnisse."}
         </p>
+        <Link
+          to={userEmail ? `/?email=${encodeURIComponent(userEmail)}` : "/"}
+          className="mt-4 flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+        >
+          ← Zurück zum Hauptmenü
+        </Link>
       </header>
 
       {/* Main Content */}
