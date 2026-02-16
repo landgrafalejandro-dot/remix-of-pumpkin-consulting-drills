@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
+import DashboardPage from "./pages/DashboardPage";
 import MentalMathDrill from "./pages/MentalMathDrill";
 import CaseMathDrill from "./pages/CaseMathDrill";
 import AdminPage from "./pages/AdminPage";
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/mental-math-drill" element={<MentalMathDrill />} />
           <Route path="/case-math-drill" element={<CaseMathDrill />} />
           <Route path="/admin" element={<AdminPage />} />
