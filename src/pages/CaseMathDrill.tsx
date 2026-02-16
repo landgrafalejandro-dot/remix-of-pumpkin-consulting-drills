@@ -157,11 +157,9 @@ const CaseMathDrill = () => {
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <header className="flex flex-col items-center px-4 pt-12 pb-6">
-        <Link to="/" className="mb-4 transition-opacity hover:opacity-80">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
-            <FileText className="h-7 w-7 text-primary" />
-          </div>
-        </Link>
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
+          <FileText className="h-7 w-7 text-primary" />
+        </div>
         <h1 className="mb-2 text-center text-3xl font-bold text-foreground md:text-4xl">
           Case Math Drill
         </h1>
@@ -170,6 +168,12 @@ const CaseMathDrill = () => {
           {phase === "sprint" && "Analysiere das Problem und berechne die Lösung!"}
           {phase === "debrief" && "Analysiere deine Ergebnisse."}
         </p>
+        <Link
+          to={userEmail ? `/?email=${encodeURIComponent(userEmail)}` : "/"}
+          className="mt-4 flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+        >
+          ← Zurück zum Hauptmenü
+        </Link>
       </header>
 
       {/* Main Content */}
