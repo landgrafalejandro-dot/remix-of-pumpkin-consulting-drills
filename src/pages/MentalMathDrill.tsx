@@ -13,6 +13,8 @@ import {
   resetMentalMathSession,
   getMentalMathTaskCount,
 } from "@/lib/mentalMathFetcher";
+import { useUserEmail } from "@/hooks/useUserEmail";
+import { saveDrillSession } from "@/lib/sessionTracker";
 
 const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
   1: "easy",
@@ -21,6 +23,7 @@ const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
 };
 
 const Index = () => {
+  const userEmail = useUserEmail();
   // Configuration state
   const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
@@ -127,6 +130,23 @@ const Index = () => {
       generateNewTask();
     }, 200);
   }, [currentTask, phase, generateNewTask]);
+
+  // Save session when entering debrief
+  const prevPhaseRef = useRef<GamePhase>("config");
+  useEffect(() => {
+    if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
+      const acc = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
+      saveDrillSession({
+        userEmail,
+        drillType: "mental_math",
+        correctCount,
+        totalCount: results.length,
+        accuracyPercent: acc,
+        durationSeconds: duration,
+      });
+    }
+    prevPhaseRef.current = phase;
+  }, [phase]);
 
   // Restart the game
   const handleRestart = useCallback(() => {

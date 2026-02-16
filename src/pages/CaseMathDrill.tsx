@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useUserEmail } from "@/hooks/useUserEmail";
+import { saveDrillSession } from "@/lib/sessionTracker";
 import { FileText } from "lucide-react";
 import CaseMathConfig from "@/components/caseMath/CaseMathConfig";
 import CaseMathGame from "@/components/caseMath/CaseMathGame";
@@ -16,6 +18,7 @@ import {
 import { generateCaseMathTask, resetCaseMathHistory, checkAnswer } from "@/lib/caseMathGenerator";
 
 const CaseMathDrill = () => {
+  const userEmail = useUserEmail();
   // Configuration state
   const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
@@ -105,6 +108,23 @@ const CaseMathDrill = () => {
       generateNewTask();
     }, 200);
   }, [currentTask, phase, generateNewTask]);
+
+  // Save session when entering debrief
+  const prevPhaseRef = useRef<CaseMathPhase>("config");
+  useEffect(() => {
+    if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
+      const acc = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
+      saveDrillSession({
+        userEmail,
+        drillType: "case_math",
+        correctCount,
+        totalCount: results.length,
+        accuracyPercent: acc,
+        durationSeconds: duration,
+      });
+    }
+    prevPhaseRef.current = phase;
+  }, [phase]);
 
   // Restart the game
   const handleRestart = useCallback(() => {

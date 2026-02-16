@@ -62,6 +62,39 @@ export type Database = {
         }
         Relationships: []
       }
+      drill_sessions: {
+        Row: {
+          accuracy_percent: number
+          correct_count: number
+          created_at: string
+          drill_type: string
+          duration_seconds: number
+          id: string
+          total_count: number
+          user_email: string
+        }
+        Insert: {
+          accuracy_percent?: number
+          correct_count?: number
+          created_at?: string
+          drill_type: string
+          duration_seconds?: number
+          id?: string
+          total_count?: number
+          user_email: string
+        }
+        Update: {
+          accuracy_percent?: number
+          correct_count?: number
+          created_at?: string
+          drill_type?: string
+          duration_seconds?: number
+          id?: string
+          total_count?: number
+          user_email?: string
+        }
+        Relationships: []
+      }
       drill_tasks: {
         Row: {
           active: boolean
