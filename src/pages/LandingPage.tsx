@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { 
   ListTree, 
   Globe, 
@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import pumpkinLogo from "@/assets/pumpkin-logo.jpg";
+import UserDashboard from "@/components/dashboard/UserDashboard";
+import { useUserEmail } from "@/hooks/useUserEmail";
 
 interface ModuleCardProps {
   title: string;
@@ -17,6 +19,7 @@ interface ModuleCardProps {
   icon: React.ReactNode;
   isActive: boolean;
   href?: string;
+  emailParam?: string | null;
 }
 
 const ModuleCard: React.FC<ModuleCardProps> = ({ 
@@ -24,7 +27,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   description, 
   icon, 
   isActive, 
-  href 
+  href,
+  emailParam,
 }) => {
   const cardContent = (
     <div
@@ -87,8 +91,9 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   );
 
   if (isActive && href) {
+    const linkTo = emailParam ? `${href}?email=${encodeURIComponent(emailParam)}` : href;
     return (
-      <Link to={href} className="block">
+      <Link to={linkTo} className="block">
         {cardContent}
       </Link>
     );
@@ -139,6 +144,8 @@ const modules = [
 ];
 
 const LandingPage: React.FC = () => {
+  const userEmail = useUserEmail();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -161,6 +168,16 @@ const LandingPage: React.FC = () => {
 
       {/* Module Grid */}
       <main className="flex flex-1 flex-col items-center px-4 pb-16">
+        {/* Personal Dashboard */}
+        {userEmail && (
+          <div className="mb-8 w-full max-w-5xl">
+            <h2 className="mb-4 text-xl font-semibold text-foreground">
+              Dein Fortschritt
+            </h2>
+            <UserDashboard userEmail={userEmail} />
+          </div>
+        )}
+
         <div className="grid w-full max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((module, index) => (
             <ModuleCard
@@ -170,6 +187,7 @@ const LandingPage: React.FC = () => {
               icon={module.icon}
               isActive={module.isActive}
               href={module.href}
+              emailParam={userEmail}
             />
           ))}
         </div>
