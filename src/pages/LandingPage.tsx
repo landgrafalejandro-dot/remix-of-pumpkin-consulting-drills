@@ -75,7 +75,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       </h3>
 
       {/* Description */}
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground whitespace-pre-line">
         {description}
       </p>
 
@@ -103,6 +103,20 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 
 const modules = [
   {
+    title: "Mental Math",
+    description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.",
+    icon: <Brain className="h-8 w-8" />,
+    isActive: true,
+    href: "/mental-math-drill",
+  },
+  {
+    title: "Case Math (Textaufgaben)",
+    description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.\nBeta Version",
+    icon: <FileText className="h-8 w-8" />,
+    isActive: true,
+    href: "/case-math-drill",
+  },
+  {
     title: "Frameworks & Strukturierung",
     description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.",
     icon: <ListTree className="h-8 w-8" />,
@@ -119,20 +133,6 @@ const modules = [
     description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.",
     icon: <BarChart3 className="h-8 w-8" />,
     isActive: false,
-  },
-  {
-    title: "Case Math (Textaufgaben)",
-    description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.",
-    icon: <FileText className="h-8 w-8" />,
-    isActive: true,
-    href: "/case-math-drill",
-  },
-  {
-    title: "Mental Math",
-    description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.",
-    icon: <Brain className="h-8 w-8" />,
-    isActive: true,
-    href: "/mental-math-drill",
   },
   {
     title: "Creativity & Business Sense",
