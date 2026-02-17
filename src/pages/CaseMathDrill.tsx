@@ -110,17 +110,24 @@ const CaseMathDrill = () => {
   }, [currentTask, phase, generateNewTask]);
 
   // Save session + attempts when entering debrief
+  const sprintStartTime = useRef<number>(0);
   const prevPhaseRef = useRef<CaseMathPhase>("config");
   useEffect(() => {
+    if (phase === "sprint") {
+      sprintStartTime.current = Date.now();
+    }
     if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
+      const actualSeconds = Math.round((Date.now() - sprintStartTime.current) / 1000);
       const acc = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
+      const diffMap: Record<number, string> = { 1: "easy", 2: "medium", 3: "hard" };
+      const diffLabel = diffMap[difficulty] || "medium";
       saveDrillSession({
         userEmail,
         drillType: "case_math",
         correctCount,
         totalCount: results.length,
         accuracyPercent: acc,
-        durationSeconds: duration,
+        durationSeconds: actualSeconds,
       }).then((sessionId) => {
         saveDrillAttempts({
           userEmail,
@@ -130,6 +137,7 @@ const CaseMathDrill = () => {
             taskType: r.task.category,
             isCorrect: r.isCorrect,
             responseTimeMs: r.timeSpent,
+            difficulty: diffLabel,
           })),
         });
       });

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { DrillAttemptRow } from "@/lib/sessionTracker";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, ChevronRight } from "lucide-react";
+import AccuracyRing from "./AccuracyRing";
 
 const MENTAL_MATH_TYPES: Record<string, string> = {
   multiplication: "Multiplikation",
@@ -14,19 +15,32 @@ const MENTAL_MATH_TYPES: Record<string, string> = {
 const CASE_MATH_TYPES: Record<string, string> = {
   profitability: "Profitabilität",
   investment: "Investment (ROI)",
-  "investment_roi": "Investment (ROI)",
+  investment_roi: "Investment (ROI)",
   breakeven: "Break-even",
-  "break_even": "Break-even",
+  break_even: "Break-even",
   "market-sizing": "Market Sizing",
-  "market_sizing": "Market Sizing",
+  market_sizing: "Market Sizing",
 };
 
-type SortKey = "label" | "count" | "accuracy" | "avgTime";
+const DIFFICULTY_LABELS: Record<string, string> = {
+  easy: "Einfach",
+  medium: "Mittel",
+  hard: "Schwer",
+};
+
+type SortKey = "count" | "accuracy";
 type SortDir = "asc" | "desc";
 
 interface TaskTypeBreakdownProps {
   attempts: DrillAttemptRow[];
   module: "mental_math" | "case_math";
+}
+
+interface DifficultyData {
+  difficulty: string;
+  count: number;
+  correct: number;
+  accuracy: number;
 }
 
 interface RowData {
@@ -35,37 +49,55 @@ interface RowData {
   count: number;
   correct: number;
   accuracy: number;
-  avgTime: number;
+  difficulties: DifficultyData[];
 }
 
 const TaskTypeBreakdown: React.FC<TaskTypeBreakdownProps> = ({ attempts, module }) => {
   const [sortKey, setSortKey] = useState<SortKey>("count");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const typeMap = module === "mental_math" ? MENTAL_MATH_TYPES : CASE_MATH_TYPES;
 
-  // Group by task_type
-  const grouped: Record<string, { count: number; correct: number; totalTime: number }> = {};
+  // Group by task_type, then by difficulty
+  const grouped: Record<string, Record<string, { count: number; correct: number }>> = {};
   attempts.forEach((a) => {
     const key = a.task_type;
-    if (!grouped[key]) grouped[key] = { count: 0, correct: 0, totalTime: 0 };
-    grouped[key].count++;
-    if (a.is_correct) grouped[key].correct++;
-    grouped[key].totalTime += a.response_time_ms;
+    const diff = (a as any).difficulty || "medium";
+    if (!grouped[key]) grouped[key] = {};
+    if (!grouped[key][diff]) grouped[key][diff] = { count: 0, correct: 0 };
+    grouped[key][diff].count++;
+    if (a.is_correct) grouped[key][diff].correct++;
   });
 
-  const rows: RowData[] = Object.entries(grouped).map(([key, v]) => ({
-    key,
-    label: typeMap[key] || key,
-    count: v.count,
-    correct: v.correct,
-    accuracy: v.count > 0 ? Math.round((v.correct / v.count) * 100) : 0,
-    avgTime: v.count > 0 ? Math.round(v.totalTime / v.count / 1000 * 10) / 10 : 0,
-  }));
+  const rows: RowData[] = Object.entries(grouped).map(([key, diffs]) => {
+    const totalCount = Object.values(diffs).reduce((s, d) => s + d.count, 0);
+    const totalCorrect = Object.values(diffs).reduce((s, d) => s + d.correct, 0);
+
+    const difficulties: DifficultyData[] = Object.entries(diffs)
+      .map(([diff, v]) => ({
+        difficulty: diff,
+        count: v.count,
+        correct: v.correct,
+        accuracy: v.count > 0 ? Math.round((v.correct / v.count) * 100) : 0,
+      }))
+      .sort((a, b) => {
+        const order = { easy: 0, medium: 1, hard: 2 };
+        return (order[a.difficulty as keyof typeof order] ?? 1) - (order[b.difficulty as keyof typeof order] ?? 1);
+      });
+
+    return {
+      key,
+      label: typeMap[key] || key,
+      count: totalCount,
+      correct: totalCorrect,
+      accuracy: totalCount > 0 ? Math.round((totalCorrect / totalCount) * 100) : 0,
+      difficulties,
+    };
+  });
 
   rows.sort((a, b) => {
     const mul = sortDir === "asc" ? 1 : -1;
-    if (sortKey === "label") return mul * a.label.localeCompare(b.label);
     return mul * (a[sortKey] - b[sortKey]);
   });
 
@@ -76,6 +108,15 @@ const TaskTypeBreakdown: React.FC<TaskTypeBreakdownProps> = ({ attempts, module 
       setSortKey(key);
       setSortDir("desc");
     }
+  };
+
+  const toggleExpand = (key: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   const SortIcon = ({ col }: { col: SortKey }) => {
@@ -96,39 +137,79 @@ const TaskTypeBreakdown: React.FC<TaskTypeBreakdownProps> = ({ attempts, module 
       <div className="bg-muted/50 px-4 py-3 border-b border-border">
         <h4 className="text-sm font-semibold text-foreground">Performance nach Aufgabentyp</h4>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2 cursor-pointer select-none" onClick={() => toggleSort("label")}>
-                <span className="flex items-center gap-1">Typ <SortIcon col="label" /></span>
-              </th>
-              <th className="px-4 py-2 cursor-pointer select-none text-right" onClick={() => toggleSort("count")}>
-                <span className="flex items-center justify-end gap-1">Anzahl <SortIcon col="count" /></span>
-              </th>
-              <th className="px-4 py-2 cursor-pointer select-none text-right" onClick={() => toggleSort("accuracy")}>
-                <span className="flex items-center justify-end gap-1">Accuracy <SortIcon col="accuracy" /></span>
-              </th>
-              <th className="px-4 py-2 cursor-pointer select-none text-right" onClick={() => toggleSort("avgTime")}>
-                <span className="flex items-center justify-end gap-1">Ø Zeit <SortIcon col="avgTime" /></span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.key} className="border-b border-border/50 last:border-b-0 hover:bg-muted/30">
-                <td className="px-4 py-3 font-medium text-foreground">{r.label}</td>
-                <td className="px-4 py-3 text-right text-muted-foreground">{r.count}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className={r.accuracy >= 80 ? "text-success font-semibold" : r.accuracy >= 50 ? "text-foreground" : "text-destructive font-semibold"}>
-                    {r.accuracy}%
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right text-muted-foreground">{r.avgTime}s</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {/* Header */}
+      <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-6 py-3 border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <span>Kategorie</span>
+        <span
+          className="cursor-pointer select-none flex items-center gap-1 justify-end w-32"
+          onClick={() => toggleSort("count")}
+        >
+          Beantwortet <SortIcon col="count" />
+        </span>
+        <span
+          className="cursor-pointer select-none flex items-center gap-1 justify-end w-20"
+          onClick={() => toggleSort("accuracy")}
+        >
+          Accuracy <SortIcon col="accuracy" />
+        </span>
+      </div>
+
+      {/* Rows */}
+      <div>
+        {rows.map((r) => {
+          const isExpanded = expandedRows.has(r.key);
+          const hasMultipleDiffs = r.difficulties.length > 1;
+
+          return (
+            <div key={r.key}>
+              {/* Main row */}
+              <div
+                className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-6 py-5 border-b border-border/50 last:border-b-0 hover:bg-muted/30 transition-colors ${hasMultipleDiffs ? "cursor-pointer" : ""}`}
+                onClick={() => hasMultipleDiffs && toggleExpand(r.key)}
+              >
+                <div className="flex items-center gap-2">
+                  {hasMultipleDiffs && (
+                    isExpanded
+                      ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      : <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="text-base font-medium text-foreground">{r.label}</span>
+                </div>
+                <div className="w-32 text-right">
+                  {r.count > 0 ? (
+                    <span className="text-base text-muted-foreground">{r.count}</span>
+                  ) : (
+                    <span className="text-base text-muted-foreground/50">–</span>
+                  )}
+                </div>
+                <div className="w-20 flex justify-end">
+                  <AccuracyRing percentage={r.accuracy} disabled={r.count === 0} />
+                </div>
+              </div>
+
+              {/* Difficulty sub-rows */}
+              {isExpanded && r.difficulties.map((d) => (
+                <div
+                  key={`${r.key}-${d.difficulty}`}
+                  className="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-6 py-3 border-b border-border/30 bg-muted/20"
+                >
+                  <div className="pl-10">
+                    <span className="text-sm text-muted-foreground">
+                      {DIFFICULTY_LABELS[d.difficulty] || d.difficulty}
+                    </span>
+                  </div>
+                  <div className="w-32 text-right">
+                    <span className="text-sm text-muted-foreground">{d.count}</span>
+                  </div>
+                  <div className="w-20 flex justify-end">
+                    <AccuracyRing percentage={d.accuracy} disabled={d.count === 0} size={40} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
