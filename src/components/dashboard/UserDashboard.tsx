@@ -99,6 +99,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ userEmail }) => {
         totalMinutes={totalMinutes}
         totalTasks={totalTasks}
         accuracyPercent={overallAccuracy}
+        variant="summary"
       />
 
       {/* Module Tabs */}

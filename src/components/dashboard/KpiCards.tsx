@@ -6,6 +6,7 @@ interface KpiCardsProps {
   totalMinutes: number;
   totalTasks: number;
   accuracyPercent: number;
+  variant?: "summary" | "module";
 }
 
 const KpiCards: React.FC<KpiCardsProps> = ({
@@ -13,7 +14,10 @@ const KpiCards: React.FC<KpiCardsProps> = ({
   totalMinutes,
   totalTasks,
   accuracyPercent,
+  variant = "module",
 }) => {
+  const isSummary = variant === "summary";
+
   const cards = [
     { icon: <Target className="h-5 w-5" />, label: "Sessions", value: sessions.toString() },
     { icon: <Clock className="h-5 w-5" />, label: "Trainiert", value: `${totalMinutes} Min` },
@@ -26,11 +30,15 @@ const KpiCards: React.FC<KpiCardsProps> = ({
       {cards.map((c) => (
         <div
           key={c.label}
-          className="flex flex-col items-center rounded-xl border border-border bg-card p-4 text-center"
+          className={`flex flex-col items-center rounded-xl border text-center ${
+            isSummary
+              ? "border-primary/40 bg-primary/10 p-5"
+              : "border-border bg-card p-4"
+          }`}
         >
-          <div className="mb-2 text-primary">{c.icon}</div>
-          <p className="text-xl font-bold text-foreground">{c.value}</p>
-          <p className="text-xs text-muted-foreground">{c.label}</p>
+          <div className={`mb-2 ${isSummary ? "text-primary" : "text-muted-foreground"}`}>{c.icon}</div>
+          <p className={`font-bold text-foreground ${isSummary ? "text-2xl" : "text-xl"}`}>{c.value}</p>
+          <p className={`text-muted-foreground ${isSummary ? "text-sm font-medium" : "text-xs"}`}>{c.label}</p>
         </div>
       ))}
     </div>
