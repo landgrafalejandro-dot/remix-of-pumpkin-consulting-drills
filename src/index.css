@@ -8,58 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Dark theme by default - Consulting Mental Math Drill */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    /* Refined Dark Theme */
+    --background: 240 33% 4%;          /* #0A0A0F */
+    --foreground: 0 0% 98%;            /* #FAFAFA */
 
-    --card: 0 0% 11%;
-    --card-foreground: 0 0% 100%;
+    --card: 240 20% 8%;                /* #12121A */
+    --card-foreground: 0 0% 98%;       /* #FAFAFA */
 
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 240 20% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary: Warm Orange-Yellow */
-    --primary: 36 100% 50%;
-    --primary-foreground: 0 0% 7%;
+    /* Primary: Warm Amber */
+    --primary: 43 96% 56%;             /* #F59E0B */
+    --primary-foreground: 240 33% 4%;
 
-    /* Secondary: Medium Gray for inactive buttons */
-    --secondary: 0 0% 22%;
-    --secondary-foreground: 0 0% 85%;
+    /* Secondary accent (lighter amber for gradients) */
+    --secondary: 240 17% 12%;          /* #1A1A24 */
+    --secondary-foreground: 0 0% 66%;  /* #A1A1AA */
 
-    /* Muted: For descriptions and placeholders */
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    /* Muted */
+    --muted: 240 20% 8%;
+    --muted-foreground: 240 4% 46%;    /* #71717A */
 
-    /* Accent: Slightly lighter gray */
-    --accent: 0 0% 18%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Elevated surfaces */
+    --accent: 240 17% 12%;             /* #1A1A24 */
+    --accent-foreground: 0 0% 98%;
 
-    /* Destructive: Red for errors */
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 100%;
+    /* Destructive / Error */
+    --destructive: 0 84% 60%;          /* #EF4444 */
+    --destructive-foreground: 0 0% 98%;
 
-    /* Success: Green for correct answers */
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 100%;
+    /* Success */
+    --success: 142 71% 45%;            /* #22C55E */
+    --success-foreground: 0 0% 98%;
 
-    /* Disabled: Darker gray */
-    --disabled: 0 0% 14%;
-    --disabled-foreground: 0 0% 40%;
+    /* Warning */
+    --warning: 25 95% 53%;             /* #F97316 */
+    --warning-foreground: 0 0% 98%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 36 100% 50%;
+    /* Disabled */
+    --disabled: 240 17% 10%;
+    --disabled-foreground: 240 4% 46%;
+
+    --border: 0 0% 100% / 0.08;
+    --input: 240 20% 8%;
+    --ring: 43 96% 56%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 36 100% 50%;
-    --sidebar-primary-foreground: 0 0% 7%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 36 100% 50%;
+    /* Accent glow for special effects */
+    --accent-glow: 43 96% 56% / 0.15;
+    /* Secondary amber for gradients */
+    --accent-secondary: 45 97% 56%;    /* #FBBF24 */
+
+    --sidebar-background: 240 33% 4%;
+    --sidebar-foreground: 0 0% 66%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 240 33% 4%;
+    --sidebar-accent: 240 17% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 100% / 0.08;
+    --sidebar-ring: 43 96% 56%;
   }
 }
 
