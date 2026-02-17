@@ -2,15 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   ListTree, Globe, BarChart3, FileText, Brain, Lightbulb,
-  Lock, Clock, CheckCircle, Flame, ArrowRight, Target, Zap,
-  Trophy, Bell,
+  Lock, Clock, CheckCircle, Flame, ArrowRight, Target,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
-import { useWeeklyActivity } from "@/hooks/useWeeklyActivity";
 
 type ModuleStatus = "active" | "beta" | "coming_soon";
 
@@ -119,17 +117,11 @@ const durationLabel = (s: number): string => {
 
 const LandingPage: React.FC = () => {
   const userEmail = useUserEmail();
-  const { streak, points, level } = useUserStats(userEmail);
+  const { streak, totalSolved } = useUserStats(userEmail);
   const { activities } = useRecentActivity(userEmail, 5);
-  const weeklyData = useWeeklyActivity(userEmail);
-  const maxWeekly = Math.max(...weeklyData.map((d) => d.count), 1);
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
-
-  // Milestones
-  const nextLevelPoints = [0, 100, 300, 600, 1000, 1500, 2000, 3000, 5000][level] || 5000;
-  const levelProgress = Math.min(100, Math.round((points / nextLevelPoints) * 100));
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -154,12 +146,7 @@ const LandingPage: React.FC = () => {
             <div className="h-4 w-px bg-border" />
             <div className="flex items-center gap-2 text-sm">
               <Target className="h-4 w-4 text-primary" />
-              <span className="font-medium text-foreground">{points.toLocaleString("de-DE")} Punkte</span>
-            </div>
-            <div className="h-4 w-px bg-border" />
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-medium text-foreground">Lv. {level}</span>
+              <span className="font-medium text-foreground">{totalSolved} Gelöste Aufgaben</span>
             </div>
           </div>
         )}
