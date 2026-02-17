@@ -37,16 +37,14 @@ const SprintGame: React.FC<SprintGameProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* Timer with End Button */}
-      <div className="flex w-full items-center gap-4">
-        <div className="flex-1">
-          <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
-        </div>
+      {/* Timer centered, End button right */}
+      <div className="relative flex w-full items-center justify-center">
+        <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
         <DrillButton
           variant="inactive"
           size="sm"
           onClick={onEnd}
-          className="text-muted-foreground hover:text-destructive hover:border-destructive"
+          className="absolute right-0 text-muted-foreground hover:text-destructive hover:border-destructive"
         >
           <X className="h-4 w-4 mr-1" />
           Beenden
