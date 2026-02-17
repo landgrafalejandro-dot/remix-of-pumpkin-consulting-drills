@@ -40,13 +40,6 @@ const NavHeader: React.FC<NavHeaderProps> = ({ showStats = true }) => {
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Stats</span>
             </Link>
-            <Link
-              to={buildLink("/settings")}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </Link>
           </nav>
         )}
       </div>
