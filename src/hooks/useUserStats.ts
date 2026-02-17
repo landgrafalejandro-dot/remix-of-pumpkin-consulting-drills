@@ -5,6 +5,7 @@ interface UserStats {
   streak: number;
   points: number;
   level: number;
+  totalSolved: number;
   loading: boolean;
 }
 
@@ -56,12 +57,13 @@ export const useUserStats = (userEmail: string | null): UserStats => {
     streak: 0,
     points: 0,
     level: 1,
+    totalSolved: 0,
     loading: true,
   });
 
   useEffect(() => {
     if (!userEmail) {
-      setStats({ streak: 0, points: 0, level: 1, loading: false });
+      setStats({ streak: 0, points: 0, level: 1, totalSolved: 0, loading: false });
       return;
     }
 
@@ -70,10 +72,12 @@ export const useUserStats = (userEmail: string | null): UserStats => {
     fetchDrillSessions(userEmail).then((sessions) => {
       if (cancelled) return;
       const points = calcPoints(sessions);
+      const totalSolved = sessions.reduce((sum, s) => sum + s.total_count, 0);
       setStats({
         streak: calcStreak(sessions),
         points,
         level: calcLevel(points),
+        totalSolved,
         loading: false,
       });
     });
