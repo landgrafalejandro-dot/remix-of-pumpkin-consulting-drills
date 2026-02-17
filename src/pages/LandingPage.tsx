@@ -9,6 +9,7 @@ import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { useModuleStats } from "@/hooks/useModuleStats";
 
 type ModuleStatus = "active" | "beta" | "coming_soon";
 
@@ -19,7 +20,8 @@ interface ModuleCardProps {
   status: ModuleStatus;
   href?: string;
   emailParam?: string | null;
-  stats?: { avgTime: string; accuracy: string; streak: string };
+  stats?: { avgTime: string; accuracy: string; solved: string };
+  drillType?: string;
 }
 
 const ModuleCard: React.FC<ModuleCardProps> = ({
@@ -67,8 +69,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
             <span className="text-secondary-foreground">{stats.accuracy}</span>
           </div>
           <div className="flex items-center gap-1.5 text-label">
-            <Flame className="h-3.5 w-3.5 text-primary" />
-            <span className="text-secondary-foreground">{stats.streak}</span>
+            <Target className="h-3.5 w-3.5 text-primary" />
+            <span className="text-secondary-foreground">{stats.solved}</span>
           </div>
         </div>
       )}
@@ -92,8 +94,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 };
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [
-  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", stats: { avgTime: "2.3s", accuracy: "94%", streak: "12" } },
-  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "beta", href: "/case-math-drill", stats: { avgTime: "45s", accuracy: "78%", streak: "5" } },
+  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
+  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "beta", href: "/case-math-drill", drillType: "case_math" },
   { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "coming_soon" },
   { title: "Market Sizing", description: "Schätze Marktgrößen mit logischen Top-Down und Bottom-Up Ansätzen.", icon: <Globe className="h-8 w-8" />, status: "coming_soon" },
   { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "coming_soon" },
@@ -119,6 +121,7 @@ const LandingPage: React.FC = () => {
   const userEmail = useUserEmail();
   const { streak, totalSolved } = useUserStats(userEmail);
   const { activities } = useRecentActivity(userEmail, 5);
+  const moduleStats = useModuleStats(userEmail);
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
@@ -175,7 +178,12 @@ const LandingPage: React.FC = () => {
         <div className="w-full max-w-dashboard">
           <div className="grid w-full gap-section-gap sm:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, i) => (
-              <ModuleCard key={i} {...module} emailParam={userEmail} />
+              <ModuleCard
+                key={i}
+                {...module}
+                emailParam={userEmail}
+                stats={module.drillType ? moduleStats[module.drillType] : undefined}
+              />
             ))}
           </div>
 
