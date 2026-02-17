@@ -14,7 +14,7 @@ import {
   getMentalMathTaskCount,
 } from "@/lib/mentalMathFetcher";
 import { useUserEmail } from "@/hooks/useUserEmail";
-import { saveDrillSession } from "@/lib/sessionTracker";
+import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 
 const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
   1: "easy",
@@ -131,7 +131,7 @@ const Index = () => {
     }, 200);
   }, [currentTask, phase, generateNewTask]);
 
-  // Save session when entering debrief
+  // Save session + attempts when entering debrief
   const prevPhaseRef = useRef<GamePhase>("config");
   useEffect(() => {
     if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
@@ -143,6 +143,17 @@ const Index = () => {
         totalCount: results.length,
         accuracyPercent: acc,
         durationSeconds: duration,
+      }).then((sessionId) => {
+        saveDrillAttempts({
+          userEmail,
+          drillType: "mental_math",
+          sessionId,
+          attempts: results.map((r) => ({
+            taskType: r.task.type,
+            isCorrect: r.isCorrect,
+            responseTimeMs: r.timeSpent,
+          })),
+        });
       });
     }
     prevPhaseRef.current = phase;

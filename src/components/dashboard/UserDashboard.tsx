@@ -1,37 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { fetchDrillSessions, DrillSessionRow } from "@/lib/sessionTracker";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import { TrendingUp, Target, Clock, BarChart3 } from "lucide-react";
+  fetchDrillSessions,
+  fetchDrillAttempts,
+  DrillSessionRow,
+  DrillAttemptRow,
+} from "@/lib/sessionTracker";
+import { BarChart3 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import TimeFilter, { TimeRange, getDateSince } from "./TimeFilter";
+import KpiCards from "./KpiCards";
+import TaskTypeBreakdown from "./TaskTypeBreakdown";
+import AccuracyChart from "./AccuracyChart";
 
 interface UserDashboardProps {
   userEmail: string;
 }
 
-interface ChartPoint {
-  date: string;
-  mental_math?: number;
-  case_math?: number;
-}
-
 const UserDashboard: React.FC<UserDashboardProps> = ({ userEmail }) => {
+  const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [sessions, setSessions] = useState<DrillSessionRow[]>([]);
+  const [attempts, setAttempts] = useState<DrillAttemptRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDrillSessions(userEmail).then((data) => {
-      setSessions(data);
+    setLoading(true);
+    const since = getDateSince(timeRange);
+    Promise.all([
+      fetchDrillSessions(userEmail, since),
+      fetchDrillAttempts(userEmail, since),
+    ]).then(([s, a]) => {
+      setSessions(s);
+      setAttempts(a);
       setLoading(false);
     });
-  }, [userEmail]);
+  }, [userEmail, timeRange]);
 
   if (loading) {
     return (
@@ -41,162 +43,91 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ userEmail }) => {
     );
   }
 
-  if (sessions.length === 0) {
-    return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <BarChart3 className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-        <h3 className="mb-2 text-lg font-semibold text-foreground">
-          Noch keine Sessions
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Starte einen Drill, um deinen Fortschritt zu tracken!
-        </p>
-      </div>
-    );
-  }
-
-  // Compute summary stats
-  const mentalMath = sessions.filter((s) => s.drill_type === "mental_math");
-  const caseMath = sessions.filter((s) => s.drill_type === "case_math");
-
-  const avgAccuracy = (rows: DrillSessionRow[]) =>
-    rows.length > 0
-      ? Math.round(rows.reduce((sum, r) => sum + r.accuracy_percent, 0) / rows.length)
-      : 0;
-
+  // General KPIs
+  const totalSessions = sessions.length;
   const totalTasks = sessions.reduce((sum, s) => sum + s.total_count, 0);
   const totalCorrect = sessions.reduce((sum, s) => sum + s.correct_count, 0);
   const totalMinutes = Math.round(
     sessions.reduce((sum, s) => sum + s.duration_seconds, 0) / 60
   );
+  const overallAccuracy =
+    totalTasks > 0 ? Math.round((totalCorrect / totalTasks) * 100) : 0;
 
-  // Build chart data: accuracy over time, grouped by date
-  const dateMap: Record<string, { mental_math: number[]; case_math: number[] }> = {};
-  sessions.forEach((s) => {
-    const date = new Date(s.created_at).toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-    if (!dateMap[date]) dateMap[date] = { mental_math: [], case_math: [] };
-    if (s.drill_type === "mental_math") {
-      dateMap[date].mental_math.push(s.accuracy_percent);
-    } else {
-      dateMap[date].case_math.push(s.accuracy_percent);
-    }
-  });
+  const hasNoData = totalSessions === 0 && attempts.length === 0;
 
-  const chartData: ChartPoint[] = Object.entries(dateMap).map(([date, vals]) => {
-    const point: ChartPoint = { date };
-    if (vals.mental_math.length > 0) {
-      point.mental_math = Math.round(
-        vals.mental_math.reduce((a, b) => a + b, 0) / vals.mental_math.length
-      );
-    }
-    if (vals.case_math.length > 0) {
-      point.case_math = Math.round(
-        vals.case_math.reduce((a, b) => a + b, 0) / vals.case_math.length
-      );
-    }
-    return point;
-  });
+  if (hasNoData) {
+    return (
+      <div className="space-y-4">
+        <TimeFilter value={timeRange} onChange={setTimeRange} />
+        <div className="rounded-2xl border border-border bg-card p-8 text-center">
+          <BarChart3 className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Noch keine Sessions
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Starte einen Drill, um deinen Fortschritt zu tracken!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Module-specific helpers
+  const moduleSessions = (m: string) => sessions.filter((s) => s.drill_type === m);
+  const moduleAttempts = (m: string) => attempts.filter((a) => a.drill_type === m);
+
+  const moduleKpi = (m: string) => {
+    const ms = moduleSessions(m);
+    const tasks = ms.reduce((sum, s) => sum + s.total_count, 0);
+    const correct = ms.reduce((sum, s) => sum + s.correct_count, 0);
+    return {
+      sessions: ms.length,
+      totalMinutes: Math.round(ms.reduce((sum, s) => sum + s.duration_seconds, 0) / 60),
+      totalTasks: tasks,
+      accuracyPercent: tasks > 0 ? Math.round((correct / tasks) * 100) : 0,
+    };
+  };
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard
-          icon={<Target className="h-5 w-5" />}
-          label="Sessions"
-          value={sessions.length.toString()}
-        />
-        <StatCard
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="Ø Accuracy"
-          value={`${avgAccuracy(sessions)}%`}
-        />
-        <StatCard
-          icon={<BarChart3 className="h-5 w-5" />}
-          label="Aufgaben"
-          value={`${totalCorrect}/${totalTasks}`}
-        />
-        <StatCard
-          icon={<Clock className="h-5 w-5" />}
-          label="Trainiert"
-          value={`${totalMinutes} Min`}
-        />
-      </div>
+      {/* Time Filter */}
+      <TimeFilter value={timeRange} onChange={setTimeRange} />
 
-      {/* Drill-specific stats */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {mentalMath.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h4 className="mb-1 text-sm font-semibold text-foreground">Mental Math</h4>
-            <p className="text-2xl font-bold text-primary">{avgAccuracy(mentalMath)}%</p>
-            <p className="text-xs text-muted-foreground">
-              {mentalMath.length} Sessions · Ø Accuracy
-            </p>
-          </div>
-        )}
-        {caseMath.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h4 className="mb-1 text-sm font-semibold text-foreground">Case Math</h4>
-            <p className="text-2xl font-bold text-primary">{avgAccuracy(caseMath)}%</p>
-            <p className="text-xs text-muted-foreground">
-              {caseMath.length} Sessions · Ø Accuracy
-            </p>
-          </div>
-        )}
-      </div>
+      {/* General KPIs */}
+      <KpiCards
+        sessions={totalSessions}
+        totalMinutes={totalMinutes}
+        totalTasks={totalTasks}
+        accuracyPercent={overallAccuracy}
+      />
 
-      {/* Accuracy Chart */}
-      {chartData.length > 1 && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <h4 className="mb-4 text-sm font-semibold text-foreground">
-            Accuracy über Zeit
-          </h4>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="date" className="text-xs" tick={{ fontSize: 12 }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="mental_math"
-                name="Mental Math"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-                connectNulls
-              />
-              <Line
-                type="monotone"
-                dataKey="case_math"
-                name="Case Math"
-                stroke="hsl(var(--accent-foreground))"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-                connectNulls
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      {/* Module Tabs */}
+      <Tabs defaultValue="mental_math" className="space-y-4">
+        <TabsList className="w-full grid grid-cols-2">
+          <TabsTrigger value="mental_math">Mental Math</TabsTrigger>
+          <TabsTrigger value="case_math">Case Math</TabsTrigger>
+        </TabsList>
+
+        {(["mental_math", "case_math"] as const).map((mod) => {
+          const kpi = moduleKpi(mod);
+          const modAttempts = moduleAttempts(mod);
+
+          return (
+            <TabsContent key={mod} value={mod} className="space-y-4">
+              {/* Module KPIs */}
+              <KpiCards {...kpi} />
+
+              {/* Task Type Breakdown */}
+              <TaskTypeBreakdown attempts={modAttempts} module={mod} />
+
+              {/* Chart */}
+              <AccuracyChart sessions={sessions} module={mod} timeRange={timeRange} />
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
 };
-
-const StatCard: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}> = ({ icon, label, value }) => (
-  <div className="flex flex-col items-center rounded-xl border border-border bg-card p-4 text-center">
-    <div className="mb-2 text-primary">{icon}</div>
-    <p className="text-xl font-bold text-foreground">{value}</p>
-    <p className="text-xs text-muted-foreground">{label}</p>
-  </div>
-);
 
 export default UserDashboard;

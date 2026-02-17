@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useUserEmail } from "@/hooks/useUserEmail";
-import { saveDrillSession } from "@/lib/sessionTracker";
+import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 import { FileText } from "lucide-react";
 import CaseMathConfig from "@/components/caseMath/CaseMathConfig";
 import CaseMathGame from "@/components/caseMath/CaseMathGame";
@@ -109,7 +109,7 @@ const CaseMathDrill = () => {
     }, 200);
   }, [currentTask, phase, generateNewTask]);
 
-  // Save session when entering debrief
+  // Save session + attempts when entering debrief
   const prevPhaseRef = useRef<CaseMathPhase>("config");
   useEffect(() => {
     if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
@@ -121,6 +121,17 @@ const CaseMathDrill = () => {
         totalCount: results.length,
         accuracyPercent: acc,
         durationSeconds: duration,
+      }).then((sessionId) => {
+        saveDrillAttempts({
+          userEmail,
+          drillType: "case_math",
+          sessionId,
+          attempts: results.map((r) => ({
+            taskType: r.task.category,
+            isCorrect: r.isCorrect,
+            responseTimeMs: r.timeSpent,
+          })),
+        });
       });
     }
     prevPhaseRef.current = phase;

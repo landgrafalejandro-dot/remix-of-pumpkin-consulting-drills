@@ -62,6 +62,47 @@ export type Database = {
         }
         Relationships: []
       }
+      drill_attempts: {
+        Row: {
+          created_at: string
+          drill_type: string
+          id: string
+          is_correct: boolean
+          response_time_ms: number
+          session_id: string | null
+          task_type: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string
+          drill_type: string
+          id?: string
+          is_correct: boolean
+          response_time_ms?: number
+          session_id?: string | null
+          task_type: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string
+          drill_type?: string
+          id?: string
+          is_correct?: boolean
+          response_time_ms?: number
+          session_id?: string | null
+          task_type?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drill_attempts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "drill_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drill_sessions: {
         Row: {
           accuracy_percent: number
