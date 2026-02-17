@@ -10,6 +10,7 @@ const StatsPage: React.FC = () => {
   const { streak, points, level } = useUserStats(userEmail);
   const { activities } = useRecentActivity(userEmail, 50);
 
+  const totalSolved = activities.reduce((sum, a) => sum + a.totalCount, 0);
   const totalHours = activities.reduce((sum, a) => sum + a.durationSeconds, 0) / 3600;
   const avgAccuracy = activities.length > 0
     ? Math.round(activities.reduce((sum, a) => sum + a.accuracyPercent, 0) / activities.length)
@@ -51,7 +52,7 @@ const StatsPage: React.FC = () => {
               {/* KPI Cards */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {[
-                  { value: points.toLocaleString("de-DE"), label: "Punkte gesamt", icon: <Target className="h-5 w-5 text-primary" /> },
+                  { value: totalSolved.toLocaleString("de-DE"), label: "Gelöste Aufgaben", icon: <Target className="h-5 w-5 text-primary" /> },
                   { value: `${totalHours.toFixed(1)}h`, label: "Training", icon: <Clock className="h-5 w-5 text-primary" /> },
                   { value: `${streak}`, label: "Tage Streak", icon: <Flame className="h-5 w-5 text-primary" /> },
                   { value: `${avgAccuracy}%`, label: "Genauigkeit (Ø)", icon: <BarChart3 className="h-5 w-5 text-primary" /> },
