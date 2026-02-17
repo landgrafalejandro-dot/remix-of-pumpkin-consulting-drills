@@ -74,6 +74,29 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        logo: ['Space Grotesk', 'sans-serif'],
+      },
+      fontSize: {
+        'h1': ['48px', { lineHeight: '1.1', fontWeight: '700' }],
+        'h2': ['32px', { lineHeight: '1.2', fontWeight: '600' }],
+        'h3': ['24px', { lineHeight: '1.3', fontWeight: '600' }],
+        'body': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+        'label': ['12px', { lineHeight: '1.4', fontWeight: '500' }],
+        'stats': ['48px', { lineHeight: '1', fontWeight: '600' }],
+        'timer': ['64px', { lineHeight: '1', fontWeight: '700' }],
+        'logo': ['28px', { lineHeight: '1.2', fontWeight: '700' }],
+      },
+      maxWidth: {
+        'drill': '900px',
+        'dashboard': '1200px',
+      },
+      spacing: {
+        'card-padding': '32px',
+        'section-gap': '24px',
+      },
+      boxShadow: {
+        'active': '0 0 40px rgba(245, 158, 11, 0.1)',
       },
       borderRadius: {
         lg: "var(--radius)",
