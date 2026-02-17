@@ -132,17 +132,23 @@ const Index = () => {
   }, [currentTask, phase, generateNewTask]);
 
   // Save session + attempts when entering debrief
+  const sprintStartTime = useRef<number>(0);
   const prevPhaseRef = useRef<GamePhase>("config");
   useEffect(() => {
+    if (phase === "sprint") {
+      sprintStartTime.current = Date.now();
+    }
     if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
+      const actualSeconds = Math.round((Date.now() - sprintStartTime.current) / 1000);
       const acc = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
+      const diffLabel = DIFFICULTY_MAP[difficulty];
       saveDrillSession({
         userEmail,
         drillType: "mental_math",
         correctCount,
         totalCount: results.length,
         accuracyPercent: acc,
-        durationSeconds: duration,
+        durationSeconds: actualSeconds,
       }).then((sessionId) => {
         saveDrillAttempts({
           userEmail,
@@ -152,6 +158,7 @@ const Index = () => {
             taskType: r.task.type,
             isCorrect: r.isCorrect,
             responseTimeMs: r.timeSpent,
+            difficulty: diffLabel,
           })),
         });
       });

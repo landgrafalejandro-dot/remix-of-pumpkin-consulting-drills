@@ -44,6 +44,7 @@ export const saveDrillAttempts = async (params: {
     taskType: string;
     isCorrect: boolean;
     responseTimeMs: number;
+    difficulty?: string;
   }>;
 }): Promise<void> => {
   if (params.attempts.length === 0) return;
@@ -55,6 +56,7 @@ export const saveDrillAttempts = async (params: {
     is_correct: a.isCorrect,
     response_time_ms: a.responseTimeMs,
     session_id: params.sessionId,
+    difficulty: a.difficulty || "medium",
   }));
 
   const { error } = await supabase.from("drill_attempts").insert(rows);
@@ -109,6 +111,7 @@ export interface DrillAttemptRow {
   response_time_ms: number;
   session_id: string | null;
   created_at: string;
+  difficulty?: string;
 }
 
 /**
