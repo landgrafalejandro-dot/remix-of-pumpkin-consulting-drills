@@ -111,7 +111,7 @@ const modules = [
   },
   {
     title: "Case Math (Textaufgaben)",
-    description: <>Löse realistische Rechenaufgaben aus echten Case-Interviews.<br/><span className="font-bold">Beta Version</span></>,
+    description: <>Löse realistische Rechenaufgaben aus echten Case-Interviews.<br/><span className="font-bold text-primary">Beta Version</span></>,
     icon: <FileText className="h-8 w-8" />,
     isActive: true,
     href: "/case-math-drill",
