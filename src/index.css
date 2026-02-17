@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&family=Space+Grotesk:wght@700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,7 +56,10 @@ All colors MUST be HSL.
     --input: 240 20% 8%;
     --ring: 43 96% 56%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
+    --radius-button: 0.75rem;
+    --radius-input: 0.5rem;
+    --shadow-active: 0 0 40px rgba(245, 158, 11, 0.1);
 
     /* Accent glow for special effects */
     --accent-glow: 43 96% 56% / 0.15;
