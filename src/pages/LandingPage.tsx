@@ -14,7 +14,7 @@ import { useUserEmail } from "@/hooks/useUserEmail";
 
 interface ModuleCardProps {
   title: string;
-  description: string;
+  description: React.ReactNode;
   icon: React.ReactNode;
   isActive: boolean;
   href?: string;
@@ -111,7 +111,7 @@ const modules = [
   },
   {
     title: "Case Math (Textaufgaben)",
-    description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.\nBeta Version",
+    description: <>Löse realistische Rechenaufgaben aus echten Case-Interviews.<br/><span className="font-bold">Beta Version</span></>,
     icon: <FileText className="h-8 w-8" />,
     isActive: true,
     href: "/case-math-drill",
