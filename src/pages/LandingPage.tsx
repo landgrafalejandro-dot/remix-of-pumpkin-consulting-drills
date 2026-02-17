@@ -81,9 +81,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
         </div>
       )}
       {isComingSoon && (
-        <button className="z-20 rounded-lg border border-border bg-secondary px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground">
-          <Bell className="mr-1 inline h-3 w-3" /> Notify Me
-        </button>
+        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
       )}
     </div>
   );
