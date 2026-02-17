@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import DrillIcon from "@/components/DrillIcon";
+import NavHeader from "@/components/NavHeader";
 import SprintConfig from "@/components/sprint/SprintConfig";
 import SprintGame from "@/components/sprint/SprintGame";
 import SprintDebrief from "@/components/sprint/SprintDebrief";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/mentalMathFetcher";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
+import { Brain, ArrowLeft } from "lucide-react";
 
 const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
   1: "easy",
@@ -24,53 +25,41 @@ const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
 
 const Index = () => {
   const userEmail = useUserEmail();
-  // Configuration state
   const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
   const [selectedTypes, setSelectedTypes] = useState<TaskType[]>(["multiplication", "percentage", "division", "zeros"]);
-
-  // Game state
   const [phase, setPhase] = useState<GamePhase>("config");
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [flashState, setFlashState] = useState<"none" | "correct" | "incorrect">("none");
   const [isLoading, setIsLoading] = useState(false);
-
-  // Results tracking
   const [results, setResults] = useState<SprintResult[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
-
-  // Refs for timing
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const taskStartTime = useRef<number>(0);
   const flashTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Generate next task from DB
+  const buildLink = (path: string) =>
+    userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
+
   const generateNewTask = useCallback(() => {
     const task = getNextMentalMathTask();
     if (task) {
       setCurrentTask(task);
       taskStartTime.current = Date.now();
-    } else {
-      console.warn("No tasks available from DB");
     }
   }, []);
 
-  // Start the sprint
   const handleStart = useCallback(async () => {
     setIsLoading(true);
     resetMentalMathSession();
-
-    // Fetch tasks from DB
     await fetchMentalMathTasks(selectedTypes, DIFFICULTY_MAP[difficulty]);
-
     const count = getMentalMathTaskCount();
     if (count === 0) {
       setIsLoading(false);
       alert("Keine Aufgaben für diese Kombination in der Datenbank gefunden.");
       return;
     }
-
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
@@ -78,8 +67,6 @@ const Index = () => {
     setFlashState("none");
     setIsLoading(false);
     generateNewTask();
-
-    // Start the countdown timer
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
@@ -92,38 +79,21 @@ const Index = () => {
     }, 1000);
   }, [duration, generateNewTask, selectedTypes, difficulty]);
 
-  // End the sprint early
   const handleEndEarly = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (flashTimeout.current) clearTimeout(flashTimeout.current);
     setPhase("debrief");
   }, []);
 
-  // Handle answer submission
   const handleSubmit = useCallback((userAnswer: string) => {
     if (!currentTask || phase !== "sprint") return;
-
     const timeSpent = Date.now() - taskStartTime.current;
     const isPercentageResult = currentTask.type === "percentage" || currentTask.type === "growth";
     const isCorrect = checkAnswer(userAnswer, currentTask.answer, isPercentageResult);
-
-    const result: SprintResult = {
-      task: currentTask,
-      userAnswer,
-      isCorrect,
-      timeSpent,
-    };
-
+    const result: SprintResult = { task: currentTask, userAnswer, isCorrect, timeSpent };
     setResults(prev => [...prev, result]);
-
-    if (isCorrect) {
-      setCorrectCount(prev => prev + 1);
-    }
-
-    // Flash feedback
+    if (isCorrect) setCorrectCount(prev => prev + 1);
     setFlashState(isCorrect ? "correct" : "incorrect");
-
-    // Clear flash and load next task after 200ms
     if (flashTimeout.current) clearTimeout(flashTimeout.current);
     flashTimeout.current = setTimeout(() => {
       setFlashState("none");
@@ -131,34 +101,22 @@ const Index = () => {
     }, 200);
   }, [currentTask, phase, generateNewTask]);
 
-  // Save session + attempts when entering debrief
   const sprintStartTime = useRef<number>(0);
   const prevPhaseRef = useRef<GamePhase>("config");
   useEffect(() => {
-    if (phase === "sprint") {
-      sprintStartTime.current = Date.now();
-    }
+    if (phase === "sprint") sprintStartTime.current = Date.now();
     if (phase === "debrief" && prevPhaseRef.current === "sprint" && userEmail && results.length > 0) {
       const actualSeconds = Math.round((Date.now() - sprintStartTime.current) / 1000);
       const acc = results.length > 0 ? Math.round((correctCount / results.length) * 100) : 0;
       const diffLabel = DIFFICULTY_MAP[difficulty];
       saveDrillSession({
-        userEmail,
-        drillType: "mental_math",
-        correctCount,
-        totalCount: results.length,
-        accuracyPercent: acc,
-        durationSeconds: actualSeconds,
+        userEmail, drillType: "mental_math", correctCount, totalCount: results.length,
+        accuracyPercent: acc, durationSeconds: actualSeconds,
       }).then((sessionId) => {
         saveDrillAttempts({
-          userEmail,
-          drillType: "mental_math",
-          sessionId,
+          userEmail, drillType: "mental_math", sessionId,
           attempts: results.map((r) => ({
-            taskType: r.task.type,
-            isCorrect: r.isCorrect,
-            responseTimeMs: r.timeSpent,
-            difficulty: diffLabel,
+            taskType: r.task.type, isCorrect: r.isCorrect, responseTimeMs: r.timeSpent, difficulty: diffLabel,
           })),
         });
       });
@@ -166,7 +124,6 @@ const Index = () => {
     prevPhaseRef.current = phase;
   }, [phase]);
 
-  // Restart the game
   const handleRestart = useCallback(() => {
     setPhase("config");
     setCurrentTask(null);
@@ -176,7 +133,6 @@ const Index = () => {
     setFlashState("none");
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -184,7 +140,6 @@ const Index = () => {
     };
   }, []);
 
-  // Calculate stats for debrief
   const stats: SprintStats = {
     totalAttempted: results.length,
     correctCount,
@@ -195,72 +150,78 @@ const Index = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="flex flex-col items-center px-4 pt-12 pb-6">
-        <div className="mb-4">
-          <DrillIcon />
-        </div>
-        <h1 className="mb-2 text-center text-3xl font-bold text-foreground md:text-4xl">
-          Consulting Mental Math Drill
-        </h1>
-        <p className="max-w-md text-center text-muted-foreground">
-          {phase === "config" && "Trainiere deine Rechengeschwindigkeit unter Zeitdruck."}
-          {phase === "sprint" && "Löse so viele Aufgaben wie möglich!"}
-          {phase === "debrief" && "Analysiere deine Ergebnisse."}
-        </p>
-        <Link
-          to={userEmail ? `/?email=${encodeURIComponent(userEmail)}` : "/"}
-          className="mt-4 flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-        >
-          ← Zurück zum Hauptmenü
-        </Link>
-      </header>
+      {phase === "config" ? (
+        <NavHeader showStats={false} />
+      ) : phase === "sprint" ? (
+        /* Minimal header during sprint */
+        <header className="flex items-center justify-between border-b border-border px-6 py-3">
+          <span className="font-logo text-logo text-foreground">pumpkin.</span>
+          <button
+            onClick={handleEndEarly}
+            className="flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+          >
+            Beenden ✕
+          </button>
+        </header>
+      ) : null}
 
-      {/* Main Content */}
-      <main className="flex flex-1 flex-col items-center px-4 pb-12">
-        <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 shadow-xl">
-          {phase === "config" && (
-            <>
+      {phase === "config" && (
+        <>
+          <section className="flex flex-col items-center px-4 pt-8 pb-4">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+              <Brain className="h-7 w-7 text-primary" />
+            </div>
+            <h1 className="mb-2 text-center text-h2 text-foreground">Mental Math Drill</h1>
+            <p className="max-w-md text-center text-body text-secondary-foreground">
+              Trainiere deine Rechengeschwindigkeit unter Zeitdruck.
+            </p>
+            <Link to={buildLink("/")} className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="h-4 w-4" /> Zurück zum Dashboard
+            </Link>
+          </section>
+          <main className="flex flex-1 flex-col items-center px-4 pb-12">
+            <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
               <SprintConfig
-                duration={duration}
-                onDurationChange={setDuration}
-                difficulty={difficulty}
-                onDifficultyChange={setDifficulty}
-                selectedTypes={selectedTypes}
-                onTypesChange={setSelectedTypes}
+                duration={duration} onDurationChange={setDuration}
+                difficulty={difficulty} onDifficultyChange={setDifficulty}
+                selectedTypes={selectedTypes} onTypesChange={setSelectedTypes}
                 onStart={handleStart}
               />
               {isLoading && (
-                <p className="mt-4 text-center text-sm text-muted-foreground">
-                  Lade Aufgaben aus der Datenbank…
-                </p>
+                <p className="mt-4 text-center text-sm text-muted-foreground">Lade Aufgaben aus der Datenbank…</p>
               )}
-            </>
-          )}
+            </div>
+          </main>
+        </>
+      )}
 
-          {phase === "sprint" && (
+      {phase === "sprint" && (
+        <main className="flex flex-1 flex-col items-center px-4 py-8">
+          <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
             <SprintGame
-              task={currentTask}
-              timeRemaining={timeRemaining}
-              totalDuration={duration}
-              difficulty={difficulty}
-              correctCount={correctCount}
-              totalAttempted={results.length}
-              flashState={flashState}
-              onSubmit={handleSubmit}
-              onEnd={handleEndEarly}
+              task={currentTask} timeRemaining={timeRemaining} totalDuration={duration}
+              difficulty={difficulty} correctCount={correctCount} totalAttempted={results.length}
+              flashState={flashState} onSubmit={handleSubmit} onEnd={handleEndEarly}
             />
-          )}
+          </div>
+        </main>
+      )}
 
-          {phase === "debrief" && (
-            <SprintDebrief
-              stats={stats}
-              results={results}
-              onRestart={handleRestart}
-            />
-          )}
-        </div>
-      </main>
+      {phase === "debrief" && (
+        <>
+          <NavHeader showStats={false} />
+          <section className="flex flex-col items-center px-4 pt-8 pb-4">
+            <Link to={buildLink("/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="h-4 w-4" /> Zurück zum Dashboard
+            </Link>
+          </section>
+          <main className="flex flex-1 flex-col items-center px-4 pb-12">
+            <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
+              <SprintDebrief stats={stats} results={results} onRestart={handleRestart} />
+            </div>
+          </main>
+        </>
+      )}
     </div>
   );
 };
