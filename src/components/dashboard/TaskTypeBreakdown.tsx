@@ -20,6 +20,10 @@ const CASE_MATH_TYPES: Record<string, string> = {
   break_even: "Break-even",
 };
 
+const MARKET_SIZING_TYPES: Record<string, string> = {
+  market_sizing: "Market Sizing",
+};
+
 const DIFFICULTY_LABELS: Record<string, string> = {
   easy: "Einfach",
   medium: "Mittel",
@@ -31,7 +35,7 @@ type SortDir = "asc" | "desc";
 
 interface TaskTypeBreakdownProps {
   attempts: DrillAttemptRow[];
-  module: "mental_math" | "case_math";
+  module: "mental_math" | "case_math" | "market_sizing";
 }
 
 interface DifficultyData {
@@ -55,7 +59,7 @@ const TaskTypeBreakdown: React.FC<TaskTypeBreakdownProps> = ({ attempts, module 
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const typeMap = module === "mental_math" ? MENTAL_MATH_TYPES : CASE_MATH_TYPES;
+  const typeMap = module === "mental_math" ? MENTAL_MATH_TYPES : module === "market_sizing" ? MARKET_SIZING_TYPES : CASE_MATH_TYPES;
 
   // Group by task_type, then by difficulty
   const grouped: Record<string, Record<string, { count: number; correct: number }>> = {};

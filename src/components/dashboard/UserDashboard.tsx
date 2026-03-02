@@ -104,12 +104,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ userEmail }) => {
 
       {/* Module Tabs */}
       <Tabs defaultValue="mental_math" className="space-y-4">
-        <TabsList className="w-full grid grid-cols-2">
+        <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="mental_math">Mental Math</TabsTrigger>
           <TabsTrigger value="case_math">Case Math</TabsTrigger>
+          <TabsTrigger value="market_sizing">Market Sizing</TabsTrigger>
         </TabsList>
 
-        {(["mental_math", "case_math"] as const).map((mod) => {
+        {(["mental_math", "case_math", "market_sizing"] as const).map((mod) => {
           const kpi = moduleKpi(mod);
           const modAttempts = moduleAttempts(mod);
 

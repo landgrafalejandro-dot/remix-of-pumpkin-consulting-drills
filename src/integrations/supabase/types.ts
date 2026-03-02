@@ -211,6 +211,166 @@ export type Database = {
         }
         Relationships: []
       }
+      market_sizing_cases: {
+        Row: {
+          active: boolean
+          allowed_methods: string
+          category: string
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          expected_order_of_magnitude_max: number | null
+          expected_order_of_magnitude_min: number | null
+          id: string
+          industry_tag: string
+          key_assumptions_examples: string | null
+          prompt: string
+          reference_structure: string | null
+          region: string
+          target_metric: string
+          unit_hint: string | null
+        }
+        Insert: {
+          active?: boolean
+          allowed_methods?: string
+          category?: string
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          expected_order_of_magnitude_max?: number | null
+          expected_order_of_magnitude_min?: number | null
+          id?: string
+          industry_tag: string
+          key_assumptions_examples?: string | null
+          prompt: string
+          reference_structure?: string | null
+          region?: string
+          target_metric: string
+          unit_hint?: string | null
+        }
+        Update: {
+          active?: boolean
+          allowed_methods?: string
+          category?: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          expected_order_of_magnitude_max?: number | null
+          expected_order_of_magnitude_min?: number | null
+          id?: string
+          industry_tag?: string
+          key_assumptions_examples?: string | null
+          prompt?: string
+          reference_structure?: string | null
+          region?: string
+          target_metric?: string
+          unit_hint?: string | null
+        }
+        Relationships: []
+      }
+      market_sizing_evaluations: {
+        Row: {
+          created_at: string
+          feedback_json: Json
+          flagged: boolean
+          id: string
+          scores_json: Json
+          submission_id: string
+          total_score: number
+        }
+        Insert: {
+          created_at?: string
+          feedback_json?: Json
+          flagged?: boolean
+          id?: string
+          scores_json?: Json
+          submission_id: string
+          total_score?: number
+        }
+        Update: {
+          created_at?: string
+          feedback_json?: Json
+          flagged?: boolean
+          id?: string
+          scores_json?: Json
+          submission_id?: string
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_sizing_evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "market_sizing_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_sizing_rubric: {
+        Row: {
+          created_at: string
+          id: string
+          rubric_json: Json
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rubric_json: Json
+          version: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rubric_json?: Json
+          version?: string
+        }
+        Relationships: []
+      }
+      market_sizing_submissions: {
+        Row: {
+          answer_text: string
+          case_id: string
+          created_at: string
+          final_estimate_unit: string | null
+          final_estimate_value: number | null
+          id: string
+          input_mode: string
+          session_id: string | null
+          time_spent_sec: number
+          user_email: string
+        }
+        Insert: {
+          answer_text: string
+          case_id: string
+          created_at?: string
+          final_estimate_unit?: string | null
+          final_estimate_value?: number | null
+          id?: string
+          input_mode?: string
+          session_id?: string | null
+          time_spent_sec?: number
+          user_email: string
+        }
+        Update: {
+          answer_text?: string
+          case_id?: string
+          created_at?: string
+          final_estimate_unit?: string | null
+          final_estimate_value?: number | null
+          id?: string
+          input_mode?: string
+          session_id?: string | null
+          time_spent_sec?: number
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_sizing_submissions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "market_sizing_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mental_math_explanation_templates: {
         Row: {
           active: boolean
