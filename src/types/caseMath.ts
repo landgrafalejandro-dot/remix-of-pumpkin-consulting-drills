@@ -1,8 +1,7 @@
 export type CaseMathCategory = 
   | "profitability" 
   | "investment" 
-  | "breakeven" 
-  | "market-sizing";
+  | "breakeven";
 
 export interface CaseMathShortcut {
   name: string;
