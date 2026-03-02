@@ -79,7 +79,11 @@ const MarketSizingDrill: React.FC = () => {
   const handleSubmit = useCallback(async (
     answerText: string, estimateValue: number | null, estimateUnit: string
   ) => {
-    if (!currentCase || !userEmail) return;
+    if (!currentCase) return;
+    if (!userEmail) {
+      toast.error("Kein Nutzer erkannt. Bitte öffne die Seite mit ?email=... Parameter.");
+      return;
+    }
     setIsEvaluating(true);
     setPhase("evaluating");
 
