@@ -28,7 +28,7 @@ export const useModuleStats = (
 
       const result: Record<string, ModuleStats> = {};
 
-      for (const mod of ["mental_math", "case_math"] as const) {
+      for (const mod of ["mental_math", "case_math", "market_sizing"] as const) {
         const modSessions = sessions.filter((s) => s.drill_type === mod);
         const modAttempts = attempts.filter((a) => a.drill_type === mod);
 

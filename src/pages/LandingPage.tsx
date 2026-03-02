@@ -97,7 +97,7 @@ const modules: Omit<ModuleCardProps, "emailParam">[] = [
   { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
   { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "beta", href: "/case-math-drill", drillType: "case_math" },
   { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "coming_soon" },
-  { title: "Market Sizing", description: "Schätze Marktgrößen mit logischen Top-Down und Bottom-Up Ansätzen.", icon: <Globe className="h-8 w-8" />, status: "coming_soon" },
+  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-8 w-8" />, status: "beta", href: "/market-sizing-drill", drillType: "market_sizing" },
   { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "coming_soon" },
   { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-8 w-8" />, status: "coming_soon" },
 ];
@@ -196,15 +196,17 @@ const LandingPage: React.FC = () => {
                 {activities.map((a, i) => (
                   <div key={i} className="flex items-center gap-4 border-b border-border/50 px-6 py-4 last:border-b-0">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                      {a.drillType === "mental_math" ? (
+                    {a.drillType === "mental_math" ? (
                         <Brain className="h-4 w-4 text-primary" />
+                      ) : a.drillType === "market_sizing" ? (
+                        <Globe className="h-4 w-4 text-primary" />
                       ) : (
                         <FileText className="h-4 w-4 text-primary" />
                       )}
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-foreground">
-                        {a.drillType === "mental_math" ? "Mental Math" : "Case Math"}
+                        {a.drillType === "mental_math" ? "Mental Math" : a.drillType === "market_sizing" ? "Market Sizing" : "Case Math"}
                       </p>
                       <p className="text-label text-muted-foreground">{durationLabel(a.durationSeconds)}</p>
                     </div>

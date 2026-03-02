@@ -7,6 +7,7 @@ import LandingPage from "./pages/LandingPage";
 import DashboardPage from "./pages/DashboardPage";
 import MentalMathDrill from "./pages/MentalMathDrill";
 import CaseMathDrill from "./pages/CaseMathDrill";
+import MarketSizingDrill from "./pages/MarketSizingDrill";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import EmbedRedirect from "./pages/EmbedRedirect";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/mental-math-drill" element={<MentalMathDrill />} />
           <Route path="/case-math-drill" element={<CaseMathDrill />} />
+          <Route path="/market-sizing-drill" element={<MarketSizingDrill />} />
           <Route path="/embed" element={<EmbedRedirect />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

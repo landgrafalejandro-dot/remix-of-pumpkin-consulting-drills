@@ -14,7 +14,7 @@ import { TimeRange } from "./TimeFilter";
 
 interface AccuracyChartProps {
   sessions: DrillSessionRow[];
-  module: "mental_math" | "case_math";
+  module: "mental_math" | "case_math" | "market_sizing";
   timeRange: TimeRange;
 }
 
