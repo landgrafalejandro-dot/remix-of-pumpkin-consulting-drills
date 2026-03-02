@@ -18,8 +18,6 @@ const CASE_MATH_TYPES: Record<string, string> = {
   investment_roi: "Investment (ROI)",
   breakeven: "Break-even",
   break_even: "Break-even",
-  "market-sizing": "Market Sizing",
-  market_sizing: "Market Sizing",
 };
 
 const DIFFICULTY_LABELS: Record<string, string> = {
