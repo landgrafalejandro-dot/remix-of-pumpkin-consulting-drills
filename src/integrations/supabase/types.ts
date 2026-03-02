@@ -142,6 +142,7 @@ export type Database = {
       drill_tasks: {
         Row: {
           active: boolean
+          answer_value: number | null
           category: Database["public"]["Enums"]["drill_category"]
           created_at: string
           difficulty: Database["public"]["Enums"]["difficulty_level"]
@@ -149,9 +150,11 @@ export type Database = {
           rand_key: number
           task: string
           task_type: string | null
+          tolerance: number
         }
         Insert: {
           active?: boolean
+          answer_value?: number | null
           category: Database["public"]["Enums"]["drill_category"]
           created_at?: string
           difficulty: Database["public"]["Enums"]["difficulty_level"]
@@ -159,9 +162,11 @@ export type Database = {
           rand_key?: number
           task: string
           task_type?: string | null
+          tolerance?: number
         }
         Update: {
           active?: boolean
+          answer_value?: number | null
           category?: Database["public"]["Enums"]["drill_category"]
           created_at?: string
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
@@ -169,6 +174,7 @@ export type Database = {
           rand_key?: number
           task?: string
           task_type?: string | null
+          tolerance?: number
         }
         Relationships: []
       }

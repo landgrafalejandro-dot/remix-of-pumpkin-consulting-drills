@@ -16,6 +16,7 @@ export interface CaseMathTask {
   question: string;
   highlightedQuestion: React.ReactNode;
   answer: number;
+  tolerance: number;
   shortcut: CaseMathShortcut;
   difficulty: number;
 }
