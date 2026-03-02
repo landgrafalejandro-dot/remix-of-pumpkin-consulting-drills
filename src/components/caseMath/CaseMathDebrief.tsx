@@ -148,12 +148,17 @@ const CaseMathDebrief: React.FC<CaseMathDebriefProps> = ({ stats, results, onRes
                 </span>
               </div>
 
-              {/* Consulting Tip (only if available) */}
-              {(result.task.shortcut.name || result.task.shortcut.formula || result.task.shortcut.tip) && (
+              {/* Explanation from template or shortcut */}
+              {(result.explanation || result.task.shortcut.name || result.task.shortcut.formula || result.task.shortcut.tip) && (
                 <div className="bg-card/50 px-4 py-3 border-t border-border/30">
                   <div className="flex items-start gap-2">
                     <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <div>
+                      {result.explanation && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-primary">Lösung:</span> {result.explanation}
+                        </p>
+                      )}
                       {result.task.shortcut.name && (
                         <p className="text-xs font-semibold text-primary mb-1">
                           {result.task.shortcut.name}

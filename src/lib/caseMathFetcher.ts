@@ -112,6 +112,8 @@ export const getNextCaseMathTask = (): CaseMathTask | null => {
         tolerance: pick.tolerance,
         shortcut: { name: "", formula: "", tip: "" },
         difficulty: diffNum,
+        dbTaskType: pick.task_type,
+        dbDifficulty: pick.difficulty,
       };
     }
   }

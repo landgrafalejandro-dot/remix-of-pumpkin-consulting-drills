@@ -18,6 +18,8 @@ export interface CaseMathTask {
   tolerance: number;
   shortcut: CaseMathShortcut;
   difficulty: number;
+  dbTaskType?: string;
+  dbDifficulty?: string;
 }
 
 export interface CaseMathResult {
@@ -25,6 +27,7 @@ export interface CaseMathResult {
   userAnswer: string;
   isCorrect: boolean;
   timeSpent: number;
+  explanation?: string;
 }
 
 export interface CaseMathStats {

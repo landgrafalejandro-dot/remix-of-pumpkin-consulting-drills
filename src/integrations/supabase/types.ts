@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      case_math_explanation_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text: string
+          id: string
+          match_rule: string
+          priority: number
+          task_type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text: string
+          id?: string
+          match_rule: string
+          priority?: number
+          task_type: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          explanation_text?: string
+          id?: string
+          match_rule?: string
+          priority?: number
+          task_type?: string
+        }
+        Relationships: []
+      }
       case_math_questions: {
         Row: {
           active: boolean

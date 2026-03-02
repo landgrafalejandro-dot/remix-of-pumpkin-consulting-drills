@@ -11,6 +11,7 @@ import { DifficultyLevel } from "@/components/DifficultySelector";
 import { SprintDuration } from "@/types/drill";
 import { CaseMathTask, CaseMathCategory, CaseMathResult, CaseMathStats, CaseMathPhase } from "@/types/caseMath";
 import { fetchCaseMathTasks, getNextCaseMathTask, resetCaseMathSession, checkCaseMathAnswer } from "@/lib/caseMathFetcher";
+import { loadCaseMathExplanationTemplates, getCaseMathExplanation } from "@/lib/caseMathExplanationMatcher";
 
 const CaseMathDrill = () => {
   const userEmail = useUserEmail();
@@ -38,7 +39,10 @@ const CaseMathDrill = () => {
 
   const handleStart = useCallback(async () => {
     const diffMap: Record<DifficultyLevel, "easy" | "medium" | "hard"> = { 1: "easy", 2: "medium", 3: "hard" };
-    await fetchCaseMathTasks(selectedCategories, diffMap[difficulty]);
+    await Promise.all([
+      fetchCaseMathTasks(selectedCategories, diffMap[difficulty]),
+      loadCaseMathExplanationTemplates(),
+    ]);
     resetCaseMathSession();
     setPhase("sprint");
     setTimeRemaining(duration);
@@ -68,7 +72,10 @@ const CaseMathDrill = () => {
     if (!currentTask || phase !== "sprint") return;
     const timeSpent = Date.now() - taskStartTime.current;
     const isCorrect = checkCaseMathAnswer(userAnswer, currentTask.answer, currentTask.tolerance || 0);
-    const result: CaseMathResult = { task: currentTask, userAnswer, isCorrect, timeSpent };
+    const explanation = currentTask.dbTaskType && currentTask.dbDifficulty
+      ? getCaseMathExplanation(currentTask.question, currentTask.dbTaskType, currentTask.dbDifficulty) ?? undefined
+      : undefined;
+    const result: CaseMathResult = { task: currentTask, userAnswer, isCorrect, timeSpent, explanation };
     setResults(prev => [...prev, result]);
     if (isCorrect) setCorrectCount(prev => prev + 1);
     setFlashState(isCorrect ? "correct" : "incorrect");
