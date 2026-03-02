@@ -43,7 +43,6 @@ const categoryLabels: Record<string, string> = {
   profitability: "Profitabilität",
   investment: "Investment",
   breakeven: "Break-even",
-  "market-sizing": "Market Sizing",
 };
 
 const CaseMathDebrief: React.FC<CaseMathDebriefProps> = ({ stats, results, onRestart }) => {

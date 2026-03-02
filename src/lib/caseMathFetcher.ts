@@ -12,14 +12,12 @@ const FRONTEND_TO_DB: Record<CaseMathCategory, string> = {
   profitability: "profitability",
   investment: "investment_roi",
   breakeven: "break_even",
-  "market-sizing": "market_sizing",
 };
 
 const DB_TO_FRONTEND: Record<string, CaseMathCategory> = {
   profitability: "profitability",
   investment_roi: "investment",
   break_even: "breakeven",
-  market_sizing: "market-sizing",
 };
 
 interface CachedTask {

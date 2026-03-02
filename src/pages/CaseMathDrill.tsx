@@ -16,7 +16,7 @@ const CaseMathDrill = () => {
   const userEmail = useUserEmail();
   const [duration, setDuration] = useState<SprintDuration>(300);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(1);
-  const [selectedCategories, setSelectedCategories] = useState<CaseMathCategory[]>(["profitability", "investment", "breakeven", "market-sizing"]);
+  const [selectedCategories, setSelectedCategories] = useState<CaseMathCategory[]>(["profitability", "investment", "breakeven"]);
   const [phase, setPhase] = useState<CaseMathPhase>("config");
   const [currentTask, setCurrentTask] = useState<CaseMathTask | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);

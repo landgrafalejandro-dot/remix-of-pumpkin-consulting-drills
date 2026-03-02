@@ -31,7 +31,6 @@ const categoryOptions: { category: CaseMathCategory; label: string }[] = [
   { category: "profitability", label: "Profitabilität" },
   { category: "investment", label: "Investment (ROI)" },
   { category: "breakeven", label: "Break-even" },
-  { category: "market-sizing", label: "Market Sizing" },
 ];
 
 const CaseMathConfig: React.FC<CaseMathConfigProps> = ({
