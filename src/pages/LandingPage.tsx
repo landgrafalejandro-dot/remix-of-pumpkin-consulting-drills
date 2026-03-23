@@ -95,11 +95,11 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [
   { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
-  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "beta", href: "/case-math-drill", drillType: "case_math" },
-  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "beta", href: "/frameworks-drill", drillType: "frameworks" },
-  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-8 w-8" />, status: "beta", href: "/market-sizing-drill", drillType: "market_sizing" },
-  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "beta", href: "/chart-drill", drillType: "charts" },
-  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-8 w-8" />, status: "beta", href: "/creativity-drill", drillType: "creativity" },
+  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "active", href: "/case-math-drill", drillType: "case_math" },
+  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
+  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-8 w-8" />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
+  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "active", href: "/chart-drill", drillType: "charts" },
+  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-8 w-8" />, status: "active", href: "/creativity-drill", drillType: "creativity" },
 ];
 
 const timeAgo = (dateStr: string): string => {
