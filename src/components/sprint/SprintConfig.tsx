@@ -21,9 +21,9 @@ const durationOptions: { value: SprintDuration; label: string; description: stri
 ];
 
 const difficultyLevels: { level: DifficultyLevel; label: string; description: string }[] = [
-  { level: 1, label: "Einfach", description: "Glatte Zahlen" },
-  { level: 2, label: "Mittel", description: "Zwischenschritte" },
-  { level: 3, label: "Schwer", description: "Dezimalzahlen" },
+  { level: 1, label: "Einfach", description: "Sofort im Kopf" },
+  { level: 2, label: "Mittel", description: "Mit Shortcut lösbar" },
+  { level: 3, label: "Schwer", description: "Stift & Papier" },
 ];
 
 const taskTypeOptions: { type: TaskType; label: string }[] = [

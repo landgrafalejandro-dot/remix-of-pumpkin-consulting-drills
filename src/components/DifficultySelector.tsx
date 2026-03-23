@@ -9,20 +9,20 @@ interface DifficultySelectorProps {
 }
 
 const difficultyLevels: { level: DifficultyLevel; label: string; description: string }[] = [
-  { 
-    level: 1, 
-    label: "Einfach", 
-    description: "Glatte Zahlen, Nullen-Management" 
+  {
+    level: 1,
+    label: "Einfach",
+    description: "Sofort im Kopf lösbar"
   },
-  { 
-    level: 2, 
-    label: "Mittel", 
-    description: "Zahlen auf 5/25, Zwischenschritte" 
+  {
+    level: 2,
+    label: "Mittel",
+    description: "Mit Shortcut lösbar"
   },
-  { 
-    level: 3, 
-    label: "Schwer", 
-    description: "Dezimalzahlen, krumme Faktoren" 
+  {
+    level: 3,
+    label: "Schwer",
+    description: "Stift & Papier nötig"
   },
 ];
 

@@ -19,6 +19,7 @@ export interface Task {
   answer: number;
   shortcut: ShortcutInfo;
   difficulty: number;
+  tolerance?: number;
 }
 
 export interface FeedbackState {
