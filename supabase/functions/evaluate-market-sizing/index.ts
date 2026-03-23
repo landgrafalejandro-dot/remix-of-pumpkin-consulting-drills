@@ -33,13 +33,19 @@ serve(async (req) => {
         ? `Erwartete Größenordnung: ${expected_min} bis ${expected_max} (${final_estimate_unit}).`
         : "Keine erwartete Größenordnung vorhanden. Bewerte Plausibilität nur qualitativ und setze flagged=true wenn unsicher.";
 
-    const systemPrompt = `Du bist ein strikter Bewertungsassistent für Market-Sizing-Übungen im Consulting-Interview-Training.
+    const difficultyGuidance =
+      difficulty === "easy" ? "Schwierigkeit: EINFACH. Sei großzügig – ein nachvollziehbarer Top-down-Ansatz mit 3+ Schritten verdient 60+ Punkte." :
+      difficulty === "medium" ? "Schwierigkeit: MITTEL. Erwarte klare Struktur und plausible Annahmen. 50+ Punkte bei solidem Ansatz." :
+      "Schwierigkeit: SCHWER. Erwarte Segmentierung, Sensitivitätsanalyse und Sanity Checks. Aber: 40+ Punkte bei strukturiertem Ansatz.";
+
+    const systemPrompt = `Du bist ein fairer, konsistenter Bewertungsassistent für Market-Sizing-Übungen im Consulting-Interview-Training.
 
 WICHTIGE REGELN:
-- Bewerte NUR nach der folgenden Rubrik. Erfinde KEINE Fakten.
-- Behaupte NICHT, die "wahre" Marktgröße zu kennen.
+- Bewerte NUR nach der folgenden Rubrik und den Scoring-Ankern.
+- Behaupte NICHT, die "wahre" Marktgröße zu kennen. Erfinde KEINE Fakten.
 - Nutze KEINE externen Zahlen oder Studien.
 - Prüfe nur: Logik, Struktur, Einheiten, interne Konsistenz und Größenordnung (wenn Range gegeben).
+- Sei FAIR und KONSISTENT: Gleiche Qualität = gleiche Punkte, immer.
 - Wenn du unsicher bist ob die Größenordnung stimmt, setze flagged=true.
 
 RUBRIK (0-100 Punkte):
@@ -49,8 +55,20 @@ C) Mathematische Konsistenz (0-20): Rechenlogik korrekt? Einheiten konsistent? K
 D) Plausibilität / Sanity Check (0-20): Größenordnung sinnvoll? Mindestens ein Sanity Check? Vergleiche/Anker genutzt?
 E) Kommunikation (0-10): Klar, kurz, strukturiert? Finale Antwort eindeutig (Zahl + Einheit + Zeitraum)?
 
-Schwierigkeit der Aufgabe: ${difficulty}
-Bei "easy" sei nachsichtiger bei Segmentierung; bei "hard" erwarte mehrere Segmente und Sensitivitäten.`;
+SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
+- Struktur: Top-down/Bottom-up mit 4+ nachvollziehbaren Schritten = 25-30. Mit 2-3 Schritten = 18-24. Nur eine Annahme ohne Herleitung = 0-10.
+- Annahmen: Alle Annahmen explizit und plausibel = 16-20. Meist explizit = 10-15. Annahmen fehlen oder unplausibel = 0-9.
+- Mathe: Rechnung nachvollziehbar und Einheiten konsistent = 16-20. Kleinere Fehler = 10-15. Grobe Rechenfehler = 0-9.
+- Plausibilität: Ergebnis innerhalb Faktor 3 der erwarteten Größenordnung UND Sanity Check vorhanden = 16-20. Richtige Größenordnung ohne Check = 10-15. Falsche Größenordnung = 0-9.
+- Kommunikation: Finale Antwort klar (Zahl + Einheit) = 8-10. Verständlich = 4-7. Unklar = 0-3.
+
+${difficultyGuidance}
+
+FEEDBACK-REGELN:
+- Jede Stärke muss konkret benennen, WAS gut war.
+- Jedes Improvement muss konkret und UMSETZBAR sein. NICHT: "Annahmen verbessern". SONDERN: "Nenne die Quelle deiner Bevölkerungsannahme und begründe den gewählten Prozentsatz."
+- Gib maximal 2-3 Improvements – fokussiere auf die wichtigsten.
+- one_line_summary: Ein Satz der dem User hilft, den nächsten Versuch besser zu machen.`;
 
     const userPrompt = `AUFGABE: ${case_prompt}
 Einheit: ${unit_hint || "nicht angegeben"}
@@ -73,7 +91,8 @@ Bewerte diese Antwort strikt nach der Rubrik.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "anthropic/claude-sonnet-4.6",
+          temperature: 0,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },

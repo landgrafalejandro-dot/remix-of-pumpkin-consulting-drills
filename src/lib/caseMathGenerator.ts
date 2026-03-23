@@ -59,7 +59,7 @@ const profitabilityTemplates: TemplateGen[] = [
     const ind = choice(industries);
     return {
       question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}** und Kosten von **${fmtEur(cost)}**. Wie hoch ist der Gewinn?`,
-      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz − Kosten",
+      answer, tolerance: answer * 0.005, tip: "Formel: Gewinn = Umsatz − Kosten. Tipp: Ziehe die Kosten einfach vom Umsatz ab. Bei großen Zahlen erst die Einheit (Mio/k) beibehalten, dann rechnen.",
     };
   },
   // Margin-based
@@ -70,9 +70,10 @@ const profitabilityTemplates: TemplateGen[] = [
     const margin = diff === 1 ? choice([10, 20, 25, 50]) : diff === 2 ? choice([10, 15, 20, 25]) : choice([12, 18, 22, 35]);
     const answer = rev * margin / 100;
     const ind = choice(industries);
+    const marginTrick = margin === 10 ? "10% = Komma verschieben" : margin === 20 ? "20% = ÷5" : margin === 25 ? "25% = ÷4" : margin === 50 ? "50% = ÷2" : `${margin}% in Bausteine zerlegen`;
     return {
       question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}**. Die Gewinnmarge beträgt **${margin}%**. Wie hoch ist der Gewinn?`,
-      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz × Marge",
+      answer, tolerance: answer * 0.005, tip: `Formel: Gewinn = Umsatz × Marge. Trick: ${marginTrick}. Berechne zuerst den Prozentwert, das ist dein Gewinn.`,
     };
   },
   // Multi-segment (medium/hard)
@@ -84,7 +85,7 @@ const profitabilityTemplates: TemplateGen[] = [
       const answer = rev * (1 - cogs) - opex;
       return {
         question: `Umsatz **${fmtEur(rev)}**, Herstellkosten **${cogs * 100}%** vom Umsatz, operative Kosten **${fmtEur(opex)}**. Wie hoch ist der operative Gewinn?`,
-        answer, tolerance: answer * 0.005, tip: "Operativer Gewinn = Umsatz × (1 − Herstellkosten%) − OpEx",
+        answer, tolerance: answer * 0.005, tip: `Formel: Op. Gewinn = Umsatz × (1 − ${cogs * 100}%) − OpEx. Schritt 1: Rohertrag = Umsatz × ${(1 - cogs) * 100}%. Schritt 2: Davon OpEx abziehen.`,
       };
     }
     const segments = diff === 2 ? 2 : 3;
@@ -101,7 +102,7 @@ const profitabilityTemplates: TemplateGen[] = [
     total -= overhead;
     return {
       question: `Ein Unternehmen hat **${segments} Bereiche**: ${parts.join(", ")}. Overhead: **${fmtEur(overhead)}**. Wie hoch ist der Gesamtgewinn?`,
-      answer: total, tolerance: Math.abs(total) * 0.01, tip: "Gewinn je Bereich = Umsatz × Marge, dann alle addieren − Overhead",
+      answer: total, tolerance: Math.abs(total) * 0.01, tip: "Formel: Gewinn = Σ(Umsatz × Marge je Bereich) − Overhead. Tipp: Rechne jeden Bereich einzeln aus, addiere die Ergebnisse, dann Overhead abziehen. Achtung: Negative Margen bedeuten Verlust!",
     };
   },
   // Customers x Price
@@ -114,7 +115,7 @@ const profitabilityTemplates: TemplateGen[] = [
     const ind = choice(industries);
     return {
       question: `Ein ${ind} hat **${fmt(customers)} Kunden**, die je **${fmtEur(price)} pro Jahr** zahlen. Die Kosten betragen **${costPct}%** vom Umsatz. Wie hoch ist der Gewinn?`,
-      answer, tolerance: Math.abs(answer) * 0.01, tip: "Umsatz = Kunden × Preis, dann Gewinn = Umsatz × (1 − Kosten%)",
+      answer, tolerance: Math.abs(answer) * 0.01, tip: "Formel: Umsatz = Kunden × Preis. Gewinn = Umsatz × (1 − Kosten%). Tipp: Erst Umsatz berechnen, dann den Kostenanteil abziehen. Bei 60% Kosten bleiben 40% Gewinn.",
     };
   },
 ];
@@ -137,7 +138,7 @@ const investmentTemplates: TemplateGen[] = [
     const answer = (totalProfit / invest) * 100;
     return {
       question: `Investition: **${fmtEur(invest)}**. Gewinn: **${fmtEur(profitPa)} pro Jahr**${years > 1 ? ` über **${years} Jahre**` : ""}. Wie hoch ist der ROI in %?`,
-      answer, tolerance: 0.5, tip: "ROI = (Gesamtgewinn ÷ Investition) × 100",
+      answer, tolerance: 0.5, tip: `Formel: ROI = (Gesamtgewinn ÷ Investition) × 100.${years > 1 ? ` Schritt 1: Gesamtgewinn = ${fmtEur(profitPa)} × ${years} = ${fmtEur(totalProfit)}.` : ""} Dann durch Investition teilen und × 100 für Prozent.`,
     };
   },
   // Payback period
@@ -151,7 +152,7 @@ const investmentTemplates: TemplateGen[] = [
     const answer = invest / cashflow;
     return {
       question: `Investition: **${fmtEur(invest)}**. Jährlicher Rückfluss: **${fmtEur(cashflow)}**. Nach wie vielen Jahren ist die Investition zurückgezahlt?`,
-      answer, tolerance: 0.05, tip: "Payback = Investition ÷ jährlicher Rückfluss",
+      answer, tolerance: 0.05, tip: "Formel: Payback = Investition ÷ jährlicher Rückfluss. Tipp: Einfach teilen – wie oft passt der Rückfluss in die Investition? Das Ergebnis ist die Anzahl Jahre.",
     };
   },
   // Marketing ROI
@@ -169,7 +170,7 @@ const investmentTemplates: TemplateGen[] = [
     const answer = ((totalRev - cost) / cost) * 100;
     return {
       question: `Eine Kampagne kostet **${fmtEur(cost)}** und bringt **${fmt(newCustomers)} neue Kunden**. Jeder Kunde bringt **${fmtEur(avgRevenue)} Umsatz**. Wie hoch ist der ROI in %?`,
-      answer, tolerance: 1, tip: "ROI = ((Umsatz − Kosten) ÷ Kosten) × 100",
+      answer, tolerance: 1, tip: "Formel: ROI = ((Umsatz − Kosten) ÷ Kosten) × 100. Schritt 1: Umsatz = Kunden × Umsatz/Kunde. Schritt 2: Gewinn = Umsatz − Kampagnenkosten. Schritt 3: Gewinn ÷ Kosten × 100 = ROI.",
     };
   },
   // Cost per customer
@@ -183,7 +184,7 @@ const investmentTemplates: TemplateGen[] = [
     const answer = totalBudget / newCustomers;
     return {
       question: `Gesamtbudget für Kundengewinnung: **${fmtEur(totalBudget)}**. Damit wurden **${fmt(newCustomers)} Neukunden** gewonnen. Wie viel kostet ein Neukunde?`,
-      answer, tolerance: answer * 0.01, tip: "Kosten pro Kunde = Gesamtbudget ÷ Anzahl Neukunden",
+      answer, tolerance: answer * 0.01, tip: "Formel: Kosten pro Kunde = Gesamtbudget ÷ Neukunden. Das ist eine einfache Division. Tipp: Bei großen Zahlen erst kürzen (z.B. 200.000 ÷ 1.000 = 200).",
     };
   },
 ];
@@ -208,7 +209,7 @@ const breakevenTemplates: TemplateGen[] = [
     const answer = fix / (price - safeVarCost);
     return {
       question: `Fixkosten: **${fmtEur(fix)}**. Preis pro Stück: **${fmtEur(price)}**, variable Kosten: **${fmtEur(safeVarCost)}**. Wie viele Stück müssen verkauft werden für den Break-even?`,
-      answer: Math.ceil(answer), tolerance: 1, tip: "Break-even = Fixkosten ÷ (Preis − variable Kosten)",
+      answer: Math.ceil(answer), tolerance: 1, tip: "Formel: Break-even Stück = Fixkosten ÷ Deckungsbeitrag. Deckungsbeitrag = Preis − variable Kosten. Tipp: Wie viel verdienst du pro Stück? Teile die Fixkosten durch diesen Betrag.",
     };
   },
   // Subscription break-even
@@ -228,7 +229,7 @@ const breakevenTemplates: TemplateGen[] = [
     const business = choice(["Abo-Service", "Streaming-Dienst", "SaaS-Produkt", "Fitness-App"]);
     return {
       question: `Ein ${business} hat Fixkosten von **${fmtEur(fix)} pro Jahr**. Kunden zahlen **${fmtEur(monthlyFee)}/Monat**, variable Kosten: **${fmtEur(safeVar)}/Monat**. Wie viele Kunden braucht man für den Break-even?`,
-      answer, tolerance: 1, tip: "Beitrag/Kunde/Jahr = (Monatspreis − var. Kosten) × 12, dann Fixkosten ÷ Beitrag",
+      answer, tolerance: 1, tip: "Formel: Kunden = Fixkosten ÷ Jahresbeitrag pro Kunde. Schritt 1: Monatlicher Beitrag = Monatspreis − var. Kosten. Schritt 2: × 12 = Jahresbeitrag. Schritt 3: Fixkosten ÷ Jahresbeitrag = Kundenanzahl.",
     };
   },
   // Revenue-based break-even
@@ -243,7 +244,7 @@ const breakevenTemplates: TemplateGen[] = [
     const ind = choice(industries);
     return {
       question: `Ein ${ind} hat Fixkosten von **${fmtEur(fix)}**. Variable Kosten: **${varPct}%** vom Umsatz. Wie hoch muss der Umsatz für den Break-even sein?`,
-      answer, tolerance: answer * 0.01, tip: "Break-even Umsatz = Fixkosten ÷ (1 − variable Kosten%)",
+      answer, tolerance: answer * 0.01, tip: `Formel: Break-even Umsatz = Fixkosten ÷ (1 − ${varPct}%). Tipp: 1 − ${varPct}% = ${100 - varPct}% = der Anteil, der zur Fixkostendeckung beiträgt. Fixkosten durch diesen Anteil teilen.`,
     };
   },
   // Break-even with price change (medium/hard)
@@ -261,7 +262,7 @@ const breakevenTemplates: TemplateGen[] = [
     const answer = Math.ceil(fix / (newPrice - safeVarCost));
     return {
       question: `Preis aktuell **${fmtEur(currentPrice)}**, variable Kosten **${fmtEur(safeVarCost)}**, Fixkosten **${fmtEur(fix)}**. Der Preis wird um **${fmtEur(priceIncrease)}** erhöht. Wie viele Stück für den Break-even?`,
-      answer, tolerance: 1, tip: "Neuer DB = (Preis + Erhöhung) − var. Kosten, dann Fixkosten ÷ DB",
+      answer, tolerance: 1, tip: `Formel: Break-even = Fixkosten ÷ neuer Deckungsbeitrag. Neuer DB = (${fmtEur(currentPrice)} + ${fmtEur(priceIncrease)}) − ${fmtEur(safeVarCost)} = ${fmtEur(newPrice - safeVarCost)}. Tipp: Der alte Preis und die aktuelle Stückzahl sind irrelevant!`,
     };
   },
 ];

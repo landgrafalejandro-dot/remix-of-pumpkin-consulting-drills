@@ -50,20 +50,53 @@ function buildSystemPrompt(drillType: string, difficulty: string): string {
     drillType === "charts" ? "Diagramm-Interpretation" :
     "Kreativitätsübung";
 
-  return `Du bist ein strikter Bewertungsassistent für ${drillLabel}-Übungen im Consulting-Interview-Training.
+  const scoringAnchors =
+    drillType === "frameworks" ? `
+SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
+- Framework-Wahl: Richtiges Framework klar benannt = 20-25. Passendes Framework aber nicht benannt = 12-19. Falsches/kein Framework = 0-11.
+- Struktur & MECE: 3+ MECE-Äste mit Unterpunkten = 20-25. 2-3 Äste, teilweise MECE = 12-19. Keine klare Struktur = 0-11.
+- Vollständigkeit: Alle wesentlichen Aspekte abgedeckt = 20-25. Wichtigste Punkte da, Lücken = 12-19. Nur oberflächlich = 0-11.
+- Priorisierung: Klare Priorisierung mit Begründung = 12-15. Priorisierung ohne Begründung = 6-11. Keine Priorisierung = 0-5.
+- Kommunikation: Klar und prägnant = 8-10. Verständlich = 4-7. Unstrukturiert = 0-3.` :
+    drillType === "charts" ? `
+SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
+- Daten-Ablesung: Zahlen korrekt gelesen und benannt = 20-25. Größtenteils korrekt = 12-19. Falsche/fehlende Werte = 0-11.
+- Trend-Analyse: Trends erkannt und quantifiziert = 20-25. Trends erkannt ohne Quantifizierung = 12-19. Trends nicht erkannt = 0-11.
+- Business-Implikationen: Konkrete Handlungsempfehlungen = 20-25. Allgemeine Schlussfolgerungen = 12-19. Keine Implikationen = 0-11.
+- Analysetiefe: Vergleiche, Ursachen, Zusammenhänge = 12-15. Grundlegende Analyse = 6-11. Nur Beschreibung = 0-5.
+- Kommunikation: Klar und prägnant = 8-10. Verständlich = 4-7. Unstrukturiert = 0-3.` : `
+SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
+- Originalität: Unerwarteter, kreativer Ansatz = 20-25. Solide Idee mit eigenem Dreh = 12-19. Naheliegend/generisch = 0-11.
+- Machbarkeit: Konkret umsetzbar mit klaren Schritten = 20-25. Grundsätzlich machbar = 12-19. Unrealistisch = 0-11.
+- Business Impact: Quantifizierter Impact = 20-25. Qualitativer Impact erklärt = 12-19. Kein Impact genannt = 0-11.
+- Struktur: Logisch aufgebaut mit allen Aspekten = 12-15. Grundstruktur erkennbar = 6-11. Unstrukturiert = 0-5.
+- Kommunikation: Überzeugend und klar = 8-10. Verständlich = 4-7. Unklar = 0-3.`;
+
+  const difficultyGuidance =
+    difficulty === "easy" ? "Schwierigkeit: EINFACH. Sei großzügig – ein grundlegend richtiger Ansatz verdient 60+ Punkte. Erwarte keine Tiefe." :
+    difficulty === "medium" ? "Schwierigkeit: MITTEL. Erwarte solide Struktur und mehrere Aspekte. 50+ Punkte bei erkennbar gutem Ansatz." :
+    "Schwierigkeit: SCHWER. Erwarte Tiefe, Nuancen und Priorisierung. Aber auch hier: 40+ Punkte bei erkennbarem, strukturiertem Ansatz.";
+
+  return `Du bist ein fairer, konsistenter Bewertungsassistent für ${drillLabel}-Übungen im Consulting-Interview-Training.
 
 WICHTIGE REGELN:
-- Bewerte NUR nach der folgenden Rubrik. Erfinde KEINE Fakten.
-- Nutze KEINE externen Zahlen, Studien oder Daten.
+- Bewerte NUR nach der folgenden Rubrik und den Scoring-Ankern.
+- Erfinde KEINE Fakten. Nutze KEINE externen Zahlen oder Studien.
 - Prüfe nur: Logik, Struktur, Qualität der Argumentation, interne Konsistenz.
-- Wenn die Antwort unklar oder unvollständig ist, bewerte strenger.
+- Sei FAIR und KONSISTENT: Gleiche Qualität = gleiche Punkte, immer.
 - Wenn du unsicher bist ob die Qualität ausreicht, setze flagged=true.
 
 RUBRIK (0-100 Punkte):
 ${rubricText}
+${scoringAnchors}
 
-Schwierigkeit der Aufgabe: ${difficulty}
-Bei "easy" sei nachsichtiger bei Tiefe und Komplexität; bei "hard" erwarte umfassende, tiefgehende Antworten.`;
+${difficultyGuidance}
+
+FEEDBACK-REGELN:
+- Jede Stärke muss konkret benennen, WAS gut war (z.B. "Gute MECE-Struktur mit 4 klar abgegrenzten Ästen").
+- Jedes Improvement muss konkret und UMSETZBAR sein. NICHT: "Struktur verbessern". SONDERN: "Füge einen Ast für externe Faktoren (Markt, Wettbewerb) hinzu."
+- Gib maximal 2-3 Improvements – fokussiere auf die wichtigsten.
+- one_line_summary: Ein Satz der dem User hilft, den nächsten Versuch besser zu machen.`;
 }
 
 function buildToolSchema(drillType: string) {
@@ -190,7 +223,8 @@ Bewerte diese Antwort strikt nach der Rubrik.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "anthropic/claude-sonnet-4.6",
+          temperature: 0,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
