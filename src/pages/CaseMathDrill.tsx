@@ -10,8 +10,7 @@ import CaseMathDebrief from "@/components/caseMath/CaseMathDebrief";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { SprintDuration } from "@/types/drill";
 import { CaseMathTask, CaseMathCategory, CaseMathResult, CaseMathStats, CaseMathPhase } from "@/types/caseMath";
-import { fetchCaseMathTasks, getNextCaseMathTask, resetCaseMathSession, checkCaseMathAnswer } from "@/lib/caseMathFetcher";
-import { loadCaseMathExplanationTemplates, getCaseMathExplanation } from "@/lib/caseMathExplanationMatcher";
+import { generateCaseMathTask, resetCaseMathGenerator, checkCaseMathAnswer } from "@/lib/caseMathGenerator";
 
 const CaseMathDrill = () => {
   const userEmail = useUserEmail();
@@ -32,18 +31,13 @@ const CaseMathDrill = () => {
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
 
   const generateNewTask = useCallback(() => {
-    const task = getNextCaseMathTask();
+    const task = generateCaseMathTask(selectedCategories, difficulty);
     setCurrentTask(task);
     taskStartTime.current = Date.now();
-  }, []);
+  }, [selectedCategories, difficulty]);
 
-  const handleStart = useCallback(async () => {
-    const diffMap: Record<DifficultyLevel, "easy" | "medium" | "hard"> = { 1: "easy", 2: "medium", 3: "hard" };
-    await Promise.all([
-      fetchCaseMathTasks(selectedCategories, diffMap[difficulty]),
-      loadCaseMathExplanationTemplates(),
-    ]);
-    resetCaseMathSession();
+  const handleStart = useCallback(() => {
+    resetCaseMathGenerator();
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
@@ -60,7 +54,7 @@ const CaseMathDrill = () => {
         return prev - 1;
       });
     }, 1000);
-  }, [duration, generateNewTask, selectedCategories, difficulty]);
+  }, [duration, generateNewTask]);
 
   const handleEndEarly = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -72,9 +66,7 @@ const CaseMathDrill = () => {
     if (!currentTask || phase !== "sprint") return;
     const timeSpent = Date.now() - taskStartTime.current;
     const isCorrect = checkCaseMathAnswer(userAnswer, currentTask.answer, currentTask.tolerance || 0);
-    const explanation = currentTask.dbTaskType && currentTask.dbDifficulty
-      ? getCaseMathExplanation(currentTask.question, currentTask.dbTaskType, currentTask.dbDifficulty) ?? undefined
-      : undefined;
+    const explanation = currentTask.shortcut?.tip || undefined;
     const result: CaseMathResult = { task: currentTask, userAnswer, isCorrect, timeSpent, explanation };
     setResults(prev => [...prev, result]);
     if (isCorrect) setCorrectCount(prev => prev + 1);

@@ -69,12 +69,27 @@ const CreativityDrill: React.FC = () => {
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
 
-  const loadNextCase = useCallback(() => {
+  const loadNextCase = useCallback(async () => {
+    // Try AI-generated case first
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-creativity-case", {
+        body: { difficulty, industry: category !== "all" ? category : undefined },
+      });
+      if (!error && data?.prompt) {
+        setCurrentCase(data as TextDrillCase);
+        taskStartTime.current = Date.now();
+        setPhase("answering");
+        return;
+      }
+    } catch {
+      // Fallback to DB
+    }
+    // DB fallback
     const next = getNextTextDrillCase(drillConfig.tableName);
     setCurrentCase(next);
     taskStartTime.current = Date.now();
     setPhase("answering");
-  }, []);
+  }, [difficulty, category]);
 
   const handleStart = useCallback(async () => {
     await fetchTextDrillCases(drillConfig.tableName, difficulty, drillConfig.categoryField, category);

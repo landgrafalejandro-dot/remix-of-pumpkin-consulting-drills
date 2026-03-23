@@ -6,13 +6,7 @@ import SprintGame from "@/components/sprint/SprintGame";
 import SprintDebrief from "@/components/sprint/SprintDebrief";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } from "@/types/drill";
-import { checkAnswer } from "@/lib/taskGenerator";
-import {
-  fetchMentalMathTasks,
-  getNextMentalMathTask,
-  resetMentalMathSession,
-  getMentalMathTaskCount,
-} from "@/lib/mentalMathFetcher";
+import { generateTask, checkAnswer, resetTaskHistory } from "@/lib/taskGenerator";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 import { Brain, ArrowLeft } from "lucide-react";
@@ -32,7 +26,6 @@ const Index = () => {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [flashState, setFlashState] = useState<"none" | "correct" | "incorrect">("none");
-  const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<SprintResult[]>([]);
   const [correctCount, setCorrectCount] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -43,29 +36,23 @@ const Index = () => {
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
 
   const generateNewTask = useCallback(() => {
-    const task = getNextMentalMathTask();
-    if (task) {
-      setCurrentTask(task);
-      taskStartTime.current = Date.now();
-    }
-  }, []);
+    // Pick a random type from selected types (filter out "all")
+    const types = selectedTypes.filter(t => t !== "all");
+    const type = types.length > 0
+      ? types[Math.floor(Math.random() * types.length)]
+      : "multiplication";
+    const task = generateTask(type, difficulty);
+    setCurrentTask(task);
+    taskStartTime.current = Date.now();
+  }, [selectedTypes, difficulty]);
 
-  const handleStart = useCallback(async () => {
-    setIsLoading(true);
-    resetMentalMathSession();
-    await fetchMentalMathTasks(selectedTypes, DIFFICULTY_MAP[difficulty]);
-    const count = getMentalMathTaskCount();
-    if (count === 0) {
-      setIsLoading(false);
-      alert("Keine Aufgaben für diese Kombination in der Datenbank gefunden.");
-      return;
-    }
+  const handleStart = useCallback(() => {
+    resetTaskHistory();
     setPhase("sprint");
     setTimeRemaining(duration);
     setResults([]);
     setCorrectCount(0);
     setFlashState("none");
-    setIsLoading(false);
     generateNewTask();
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
@@ -77,7 +64,7 @@ const Index = () => {
         return prev - 1;
       });
     }, 1000);
-  }, [duration, generateNewTask, selectedTypes, difficulty]);
+  }, [duration, generateNewTask]);
 
   const handleEndEarly = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -187,9 +174,6 @@ const Index = () => {
                 selectedTypes={selectedTypes} onTypesChange={setSelectedTypes}
                 onStart={handleStart}
               />
-              {isLoading && (
-                <p className="mt-4 text-center text-sm text-muted-foreground">Lade Aufgaben aus der Datenbank…</p>
-              )}
             </div>
           </main>
         </>
