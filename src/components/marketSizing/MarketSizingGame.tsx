@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
+import { AudioRecorder } from "@/components/ui/AudioRecorder";
 import { X, Send, Info, ChevronDown, ChevronUp, Award } from "lucide-react";
 
 interface MarketSizingGameProps {
@@ -128,9 +129,15 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
       {/* Answer Textarea */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-foreground">
-          Deine Lösung (Struktur, Annahmen, Rechenschritte)
-        </label>
+        <div className="mb-2 flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">
+            Deine Lösung (Struktur, Annahmen, Rechenschritte)
+          </label>
+          <AudioRecorder
+            onTranscript={(text) => setAnswerText((prev) => prev ? prev + "\n" + text : text)}
+            disabled={isEvaluating}
+          />
+        </div>
         <textarea
           ref={textareaRef}
           value={answerText}
