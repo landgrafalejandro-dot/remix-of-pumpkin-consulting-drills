@@ -24,7 +24,7 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -43,9 +43,9 @@ serve(async (req) => {
       );
     }
 
-    if (!LOVABLE_API_KEY) {
+    if (!OPENROUTER_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
+        JSON.stringify({ error: "OPENROUTER_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -65,14 +65,15 @@ serve(async (req) => {
     const prompt = `Du bist ein Mental-Math-Coach für Consulting-Interviews. Schreibe genau 1–2 Sätze auf Deutsch: einen kurzen, praxisnahen Shortcut/Tipp, wie man Aufgaben vom Typ "${typeLabels[task_type] || task_type}" auf Schwierigkeitsstufe "${diffLabels[difficulty] || difficulty}" im Kopf löst. Keine konkrete Beispielrechnung, nur die Methode. Keine Floskeln, keine langen Texte. Direkt den Tipp schreiben.`;
 
     const aiResponse = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: prompt }],
           stream: false,
         }),

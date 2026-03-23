@@ -8,6 +8,9 @@ import DashboardPage from "./pages/DashboardPage";
 import MentalMathDrill from "./pages/MentalMathDrill";
 import CaseMathDrill from "./pages/CaseMathDrill";
 import MarketSizingDrill from "./pages/MarketSizingDrill";
+import FrameworksDrill from "./pages/FrameworksDrill";
+import ChartDrill from "./pages/ChartDrill";
+import CreativityDrill from "./pages/CreativityDrill";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import EmbedRedirect from "./pages/EmbedRedirect";
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/mental-math-drill" element={<MentalMathDrill />} />
           <Route path="/case-math-drill" element={<CaseMathDrill />} />
           <Route path="/market-sizing-drill" element={<MarketSizingDrill />} />
+          <Route path="/frameworks-drill" element={<FrameworksDrill />} />
+          <Route path="/chart-drill" element={<ChartDrill />} />
+          <Route path="/creativity-drill" element={<CreativityDrill />} />
           <Route path="/embed" element={<EmbedRedirect />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
