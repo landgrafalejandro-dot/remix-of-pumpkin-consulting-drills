@@ -80,10 +80,6 @@ const MarketSizingDrill: React.FC = () => {
     answerText: string, estimateValue: number | null, estimateUnit: string
   ) => {
     if (!currentCase) return;
-    if (!userEmail) {
-      toast.error("Kein Nutzer erkannt. Bitte öffne die Seite mit ?email=... Parameter.");
-      return;
-    }
     setIsEvaluating(true);
     setPhase("evaluating");
 
@@ -93,7 +89,7 @@ const MarketSizingDrill: React.FC = () => {
     const submissionId = await submitMarketSizingAnswer({
       caseId: currentCase.id,
       sessionId: sessionIdRef.current,
-      userEmail,
+      userEmail: userEmail || "anonymous",
       answerText,
       finalEstimateValue: estimateValue,
       finalEstimateUnit: estimateUnit,

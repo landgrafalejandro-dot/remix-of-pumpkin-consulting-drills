@@ -125,10 +125,6 @@ const CreativityDrill: React.FC = () => {
 
   const handleSubmit = useCallback(async (answerText: string) => {
     if (!currentCase) return;
-    if (!userEmail) {
-      toast.error("Kein Nutzer erkannt. Bitte öffne die Seite mit ?email=... Parameter.");
-      return;
-    }
     setIsEvaluating(true);
     setPhase("evaluating");
 
@@ -138,7 +134,7 @@ const CreativityDrill: React.FC = () => {
       drillType: drillConfig.drillType,
       caseId: currentCase.id,
       sessionId: sessionIdRef.current,
-      userEmail,
+      userEmail: userEmail || "anonymous",
       answerText,
       timeSpentSec,
     });
