@@ -47,7 +47,14 @@ const drillConfig: DrillConfig = {
     { key: "structure", label: "Struktur", max: 15 },
     { key: "communication", label: "Kommunikation", max: 10 },
   ],
-  placeholder: "1) Kernidee: ...\n2) Zielgruppe: ...\n3) Umsetzung: ...\n4) Business Impact: ...\n5) Risiken & Mitigation: ...",
+  placeholder: "Kernidee: ...\n\nZielgruppe: ...\n\nUmsetzung:\n  1. ...\n  2. ...\n\nBusiness Impact: ...\n\nRisiken & Mitigation: ...",
+  structureGuide: [
+    "Kernidee klar formulieren — Was ist die Lösung in einem Satz?",
+    "Zielgruppe definieren — Wer profitiert? Warum gerade diese Gruppe?",
+    "Umsetzung skizzieren — Erste Schritte, Pilotansatz, Ressourcen",
+    "Business Impact — Umsatz, Kosten, Wettbewerbsvorteil quantifizieren",
+    "Risiken & Mitigation — Was kann schiefgehen und wie absichern?",
+  ],
 };
 
 const CreativityDrill: React.FC = () => {
@@ -61,23 +68,32 @@ const CreativityDrill: React.FC = () => {
   const [results, setResults] = useState<TextDrillResult[]>([]);
   const [currentResult, setCurrentResult] = useState<TextDrillResult | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const taskStartTime = useRef<number>(0);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const sprintStartTime = useRef<number>(0);
+  const usedPrompts = useRef<string[]>([]);
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
 
   const loadNextCase = useCallback(async () => {
+    setIsGenerating(true);
     // Try AI-generated case first
     try {
       const { data, error } = await supabase.functions.invoke("generate-creativity-case", {
-        body: { difficulty, industry: category !== "all" ? category : undefined },
+        body: {
+          difficulty,
+          industry: category !== "all" ? category : undefined,
+          avoid_topics: usedPrompts.current.slice(-5),
+        },
       });
       if (!error && data?.prompt) {
+        usedPrompts.current.push(data.prompt);
         setCurrentCase(data as TextDrillCase);
         taskStartTime.current = Date.now();
+        setIsGenerating(false);
         setPhase("answering");
         return;
       }
@@ -88,6 +104,7 @@ const CreativityDrill: React.FC = () => {
     const next = getNextTextDrillCase(drillConfig.tableName);
     setCurrentCase(next);
     taskStartTime.current = Date.now();
+    setIsGenerating(false);
     setPhase("answering");
   }, [difficulty, category]);
 
@@ -95,6 +112,7 @@ const CreativityDrill: React.FC = () => {
     await fetchTextDrillCases(drillConfig.tableName, difficulty, drillConfig.categoryField, category);
     resetTextDrillSession(drillConfig.tableName);
     sessionIdRef.current = crypto.randomUUID();
+    usedPrompts.current = [];
     setResults([]);
     setCurrentResult(null);
     setTimeRemaining(duration);
@@ -291,15 +309,22 @@ const CreativityDrill: React.FC = () => {
       {(phase === "answering" || phase === "evaluating") && (
         <main className="flex flex-1 flex-col items-center px-4 py-8">
           <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
-            <TextDrillGame
-              config={drillConfig}
-              currentCase={currentCase}
-              timeRemaining={timeRemaining}
-              totalDuration={duration}
-              onSubmit={handleSubmit}
-              onEnd={handleEnd}
-              isEvaluating={isEvaluating}
-            />
+            {isGenerating ? (
+              <div className="flex flex-col items-center gap-4 py-16">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+                <p className="text-sm text-muted-foreground">KI generiert eine neue Aufgabe...</p>
+              </div>
+            ) : (
+              <TextDrillGame
+                config={drillConfig}
+                currentCase={currentCase}
+                timeRemaining={timeRemaining}
+                totalDuration={duration}
+                onSubmit={handleSubmit}
+                onEnd={handleEnd}
+                isEvaluating={isEvaluating}
+              />
+            )}
           </div>
         </main>
       )}

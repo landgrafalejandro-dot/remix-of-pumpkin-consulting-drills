@@ -20,7 +20,7 @@ serve(async (req) => {
       );
     }
 
-    const { difficulty, industry } = await req.json();
+    const { difficulty, industry, avoid_topics } = await req.json();
 
     const diffLabels: Record<string, string> = {
       easy: "einfach – klares Problem, eine Branche, offensichtlicher Lösungsansatz",
@@ -52,7 +52,11 @@ Wichtig:
 - Alles auf Deutsch
 - Realistische, aktuelle Szenarien (keine Science-Fiction)
 - Das Problem muss offen genug sein für verschiedene Lösungsansätze
-- Keine generischen Probleme – sei spezifisch (nenne Firmennamen/-typen, Zahlen, Regionen)`;
+- Keine generischen Probleme – sei spezifisch (nenne Firmennamen/-typen, Zahlen, Regionen)${
+      Array.isArray(avoid_topics) && avoid_topics.length > 0
+        ? `\n\nVERMEIDE folgende bereits gestellte Themen (wähle ein komplett anderes Szenario):\n${avoid_topics.map((t: string) => `- ${t.slice(0, 80)}`).join("\n")}`
+        : ""
+    }`;
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
