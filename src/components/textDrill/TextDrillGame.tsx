@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { TextDrillCase, DrillConfig } from "@/types/textDrill";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
-import { X, Send, Info } from "lucide-react";
+import { X, Send, Info, ChevronDown, ChevronUp, Award } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -145,7 +145,17 @@ const TextDrillGame: React.FC<TextDrillGameProps> = ({
   config, currentCase, timeRemaining, totalDuration, onSubmit, onEnd, isEvaluating,
 }) => {
   const [answerText, setAnswerText] = useState("");
+  const [rubrikOpen, setRubrikOpen] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasSeenRubrik = useRef(false);
+
+  // Collapse rubric after first case
+  useEffect(() => {
+    if (currentCase && hasSeenRubrik.current) {
+      setRubrikOpen(false);
+    }
+    if (currentCase) hasSeenRubrik.current = true;
+  }, [currentCase?.id]);
 
   useEffect(() => {
     if (currentCase) {
@@ -199,6 +209,47 @@ const TextDrillGame: React.FC<TextDrillGameProps> = ({
             chartType={currentCase.category || "bar"}
             chartTitle={currentCase.chart_title}
           />
+        </div>
+      )}
+
+      {/* Rubric & Structure Guide */}
+      {config.rubricLabels.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <button
+            onClick={() => setRubrikOpen((o) => !o)}
+            className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              Bewertungskriterien
+            </span>
+            {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {rubrikOpen && (
+            <div className="border-t border-border px-4 pb-4 pt-3">
+              <div className="flex flex-wrap gap-3">
+                {config.rubricLabels.map(({ key, label, max }) => (
+                  <div key={key} className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
+                    <span className="font-medium text-foreground">{label}</span>
+                    <span className="text-muted-foreground">({max} Pkt)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {config.structureGuide && config.structureGuide.length > 0 && (
+        <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">So strukturierst du deine Antwort:</p>
+          <ol className="space-y-1">
+            {config.structureGuide.map((step, i) => (
+              <li key={i} className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground/70">{i + 1}.</span>{" "}{step}
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 

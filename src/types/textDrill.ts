@@ -43,4 +43,5 @@ export interface DrillConfig {
   startButtonText: string;
   rubricLabels: { key: string; label: string; max: number }[];
   placeholder: string; // textarea placeholder
+  structureGuide?: string[]; // step-by-step guide shown above textarea
 }

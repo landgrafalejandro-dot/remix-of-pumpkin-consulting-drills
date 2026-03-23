@@ -380,7 +380,7 @@ const generatePercentageL3 = (): GenResult => {
     const mult = unit === "k" ? 1000 : 1_000_000;
     const part = (pctAnswer / 100) * total * mult;
     return {
-      question: `Welcher Prozentsatz ist ${fmtAbbrev(part)} von ${fmtAbbrev(total * mult)}?`,
+      question: `${fmtAbbrev(part)} ÷ ${fmtAbbrev(total * mult)} × 100`,
       answer: pctAnswer,
       shortcut: {
         name: "Umkehr-Prozent",
@@ -394,9 +394,8 @@ const generatePercentageL3 = (): GenResult => {
   const isGrowth = Math.random() > 0.3;
   const oldVal = choice([200, 350, 500, 680, 850, 1000, 1200]) * (choice(["k", "Mio"]) === "k" ? 1000 : 1_000_000);
   const newVal = isGrowth ? Math.round(oldVal * (1 + pctChange / 100)) : Math.round(oldVal * (1 - pctChange / 100));
-  const verb = isGrowth ? "stieg" : "sank";
   return {
-    question: `Umsatz ${verb} von ${fmtAbbrev(oldVal)} auf ${fmtAbbrev(newVal)}. Veränderung in %?`,
+    question: `(${fmtAbbrev(newVal)} − ${fmtAbbrev(oldVal)}) ÷ ${fmtAbbrev(oldVal)} × 100`,
     answer: isGrowth ? pctChange : -pctChange,
     tolerance: 0.5,
     shortcut: {
@@ -807,7 +806,7 @@ const generateGrowthL3 = (): GenResult => {
     const year2 = Math.round(year1 * factor * 100) / 100;
     const answer = year2 * mult;
     return {
-      question: `${base} Mio wächst 2 Jahre um ${rate}% p.a. → Endwert?`,
+      question: `${base} Mio × ${String(factor).replace(".", ",")}²`,
       answer,
       tolerance: Math.abs(answer) * 0.02,
       shortcut: {
@@ -829,7 +828,7 @@ const generateGrowthL3 = (): GenResult => {
     const factor = 1 + rate / 100;
     const endVal = Math.round(base * Math.pow(factor, years) * 100) / 100;
     return {
-      question: `Von ${base} Mio auf ${String(endVal).replace(".", ",")} Mio in ${years} Jahren → CAGR in %?`,
+      question: `²√(${String(endVal).replace(".", ",")} ÷ ${base}) − 1 = ? %`,
       answer: rate,
       tolerance: 1,
       shortcut: {
@@ -853,7 +852,7 @@ const generateGrowthL3 = (): GenResult => {
   const tax = (taxRate / 100) * ebit;
   const answer = ebit - tax;
   return {
-    question: `Umsatz ${formatNumber(revenue)} ${revUnit}, ${margin}% Marge, ${taxRate}% Steuern → Nettogewinn?`,
+    question: `${formatNumber(revenue)} ${revUnit} × ${margin}% × (1 − ${taxRate}%)`,
     answer,
     tolerance: Math.abs(answer) * 0.02,
     shortcut: {

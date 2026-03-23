@@ -47,7 +47,13 @@ const drillConfig: DrillConfig = {
     { key: "prioritization", label: "Priorisierung", max: 15 },
     { key: "communication", label: "Kommunikation", max: 10 },
   ],
-  placeholder: "1) Framework: ...\n2) Hauptäste:\n   a) ...\n   b) ...\n3) Priorisierung: ...\n4) Key Insights: ...",
+  placeholder: "Framework: Profitability Tree\n\nHauptäste:\n  1. Revenue-Seite\n     - Preis pro Einheit\n     - Absatzmenge / Kanäle\n  2. Kosten-Seite\n     - Variable Kosten (Material, Logistik)\n     - Fixkosten (Personal, Miete)\n\nPriorisierung: Kostenanalyse zuerst, da ...\n\nKey Insight: ...",
+  structureGuide: [
+    "Framework benennen — Welches passt? (z.B. Profitability Tree, 3C, Porter's 5 Forces)",
+    "3–4 Hauptäste auflisten — MECE-Struktur mit Einrückung",
+    "Je Ast 2–3 Unterpunkte oder Analysefragen",
+    "Priorisierung — Welcher Ast ist der wichtigste Hebel und warum?",
+  ],
 };
 
 const FrameworksDrill: React.FC = () => {
