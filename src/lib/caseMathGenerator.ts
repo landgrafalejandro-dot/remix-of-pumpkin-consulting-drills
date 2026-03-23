@@ -51,41 +51,40 @@ type TemplateGen = (diff: number) => { question: string; answer: number; toleran
 const profitabilityTemplates: TemplateGen[] = [
   // Simple: Revenue - Costs
   (diff) => {
-    const revs = diff === 1 ? [5, 8, 10, 12, 15, 20] : diff === 2 ? [7.5, 12.5, 18, 22, 35] : [13.7, 27.3, 42.5, 68];
+    const revs = diff === 1 ? [1, 2, 5, 10, 20] : diff === 2 ? [3, 5, 8, 12, 15] : [7.5, 12.5, 18, 35];
     const rev = choice(revs) * 1_000_000;
-    const costPct = diff === 1 ? choice([60, 70, 75, 80]) : diff === 2 ? choice([62, 68, 73, 78]) : choice([64.5, 71, 76.3]);
+    const costPct = diff === 1 ? choice([50, 60, 70, 80]) : diff === 2 ? choice([60, 65, 70, 75]) : choice([62, 68, 73, 78]);
     const cost = rev * costPct / 100;
     const answer = rev - cost;
     const ind = choice(industries);
     return {
-      question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}** und Kosten von **${fmtEur(cost)}**. Wie hoch ist der Gewinn in €?`,
-      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz - Kosten",
+      question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}** und Kosten von **${fmtEur(cost)}**. Wie hoch ist der Gewinn?`,
+      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz − Kosten",
     };
   },
   // Margin-based
   (diff) => {
-    const rev = diff === 1 ? choice([500_000, 800_000, 1_000_000, 2_000_000])
-      : diff === 2 ? choice([750_000, 1_200_000, 3_500_000, 4_800_000])
-      : choice([1_350_000, 2_750_000, 6_200_000]);
-    const margin = diff === 1 ? choice([10, 15, 20, 25]) : diff === 2 ? choice([12, 18, 22, 35]) : choice([14.5, 17, 23.5]);
+    const rev = diff === 1 ? choice([500_000, 1_000_000, 2_000_000, 5_000_000])
+      : diff === 2 ? choice([1_000_000, 2_000_000, 3_000_000, 5_000_000])
+      : choice([1_500_000, 3_500_000, 6_000_000]);
+    const margin = diff === 1 ? choice([10, 20, 25, 50]) : diff === 2 ? choice([10, 15, 20, 25]) : choice([12, 18, 22, 35]);
     const answer = rev * margin / 100;
-    const period = choice(["monatlichen", "jährlichen", "quartalsweisen"]);
     const ind = choice(industries);
     return {
-      question: `Ein ${ind} erzielt einen ${period} Umsatz von **${fmtEur(rev)}**. Die Gewinnmarge beträgt **${margin}%**. Wie hoch ist der ${period.replace("en", "e")} Gewinn in €?`,
-      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz x Marge",
+      question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}**. Die Gewinnmarge beträgt **${margin}%**. Wie hoch ist der Gewinn?`,
+      answer, tolerance: answer * 0.005, tip: "Gewinn = Umsatz × Marge",
     };
   },
   // Multi-segment (medium/hard)
   (diff) => {
     if (diff === 1) {
-      const rev = choice([4, 6, 8, 10]) * 1_000_000;
+      const rev = choice([2, 4, 5, 10]) * 1_000_000;
       const cogs = choice([40, 50, 60]) / 100;
-      const opex = choice([1, 1.5, 2]) * 1_000_000;
+      const opex = choice([1, 2]) * 1_000_000;
       const answer = rev * (1 - cogs) - opex;
       return {
-        question: `Umsatz **${fmtEur(rev)}**, COGS **${cogs * 100}%** vom Umsatz, operative Kosten **${fmtEur(opex)}**. Wie hoch ist der operative Gewinn in €?`,
-        answer, tolerance: answer * 0.005, tip: "Operativer Gewinn = Umsatz x (1 - COGS%) - OpEx",
+        question: `Umsatz **${fmtEur(rev)}**, Herstellkosten **${cogs * 100}%** vom Umsatz, operative Kosten **${fmtEur(opex)}**. Wie hoch ist der operative Gewinn?`,
+        answer, tolerance: answer * 0.005, tip: "Operativer Gewinn = Umsatz × (1 − Herstellkosten%) − OpEx",
       };
     }
     const segments = diff === 2 ? 2 : 3;
@@ -93,30 +92,29 @@ const profitabilityTemplates: TemplateGen[] = [
     let total = 0;
     const parts: string[] = [];
     for (let i = 0; i < segments; i++) {
-      const rev = choice(diff === 2 ? [5, 8, 10, 12] : [4, 7, 9, 12, 15]) * 1_000_000;
-      const margin = choice(diff === 2 ? [10, 15, 20, 25, -5] : [8, 12, 18, 25, -10, -5]);
+      const rev = choice(diff === 2 ? [5, 10, 15, 20] : [5, 8, 10, 12, 15]) * 1_000_000;
+      const margin = choice(diff === 2 ? [10, 15, 20, 25] : [10, 15, 20, 25, -5, -10]);
       total += rev * margin / 100;
       parts.push(`${names[i]} (Umsatz **${fmtEur(rev)}**, Marge **${margin}%**)`);
     }
-    const overhead = choice([1, 1.5, 2, 2.5]) * 1_000_000;
+    const overhead = choice([1, 2, 3]) * 1_000_000;
     total -= overhead;
     return {
-      question: `Ein Unternehmen hat **${segments} Geschäftsbereiche**: ${parts.join(", ")}. Overhead-Kosten: **${fmtEur(overhead)}**. Wie hoch ist der Gesamtgewinn in €?`,
-      answer: total, tolerance: Math.abs(total) * 0.01, tip: "Gewinn je Segment aufsummieren, dann Overhead abziehen",
+      question: `Ein Unternehmen hat **${segments} Bereiche**: ${parts.join(", ")}. Overhead: **${fmtEur(overhead)}**. Wie hoch ist der Gesamtgewinn?`,
+      answer: total, tolerance: Math.abs(total) * 0.01, tip: "Gewinn je Bereich = Umsatz × Marge, dann alle addieren − Overhead",
     };
   },
-  // SaaS unit economics
+  // Customers x Price
   (diff) => {
-    const customers = diff === 1 ? choice([1000, 2000, 5000]) : diff === 2 ? choice([3000, 5000, 8000]) : choice([4500, 7500, 12000]);
-    const arpu = diff === 1 ? choice([100, 200, 500]) : diff === 2 ? choice([150, 240, 480]) : choice([175, 320, 560]);
-    const grossMargin = diff === 1 ? choice([70, 80]) : diff === 2 ? choice([65, 75]) : choice([68, 72]);
-    const opex = diff === 1 ? choice([200_000, 300_000, 500_000]) : diff === 2 ? choice([1_500_000, 2_500_000]) : choice([3_200_000, 4_800_000]);
-    const revenue = customers * arpu;
-    const grossProfit = revenue * grossMargin / 100;
-    const answer = grossProfit - opex;
+    const customers = diff === 1 ? choice([100, 200, 500, 1000]) : diff === 2 ? choice([500, 1000, 2000, 5000]) : choice([3000, 5000, 8000]);
+    const price = diff === 1 ? choice([50, 100, 200, 500]) : diff === 2 ? choice([80, 120, 200, 300]) : choice([150, 250, 480]);
+    const costPct = diff === 1 ? choice([50, 60, 70]) : diff === 2 ? choice([55, 65, 75]) : choice([60, 68, 72]);
+    const revenue = customers * price;
+    const answer = revenue * (1 - costPct / 100);
+    const ind = choice(industries);
     return {
-      question: `Ein SaaS-Unternehmen hat **${fmt(customers)} Kunden** mit einem durchschnittlichen Jahresumsatz von **${fmtEur(arpu)} pro Kunde**. Die Bruttomarge beträgt **${grossMargin}%** und die operativen Kosten belaufen sich auf **${fmtEur(opex)}**. Wie hoch ist der operative Gewinn in €?`,
-      answer, tolerance: Math.abs(answer) * 0.01, tip: "Umsatz = Kunden x ARPU, dann Bruttomarge abziehen, dann OpEx",
+      question: `Ein ${ind} hat **${fmt(customers)} Kunden**, die je **${fmtEur(price)} pro Jahr** zahlen. Die Kosten betragen **${costPct}%** vom Umsatz. Wie hoch ist der Gewinn?`,
+      answer, tolerance: Math.abs(answer) * 0.01, tip: "Umsatz = Kunden × Preis, dann Gewinn = Umsatz × (1 − Kosten%)",
     };
   },
 ];
@@ -129,66 +127,63 @@ const investmentTemplates: TemplateGen[] = [
   // Simple ROI
   (diff) => {
     const invest = diff === 1 ? choice([100_000, 200_000, 500_000, 1_000_000])
-      : diff === 2 ? choice([250_000, 500_000, 750_000])
-      : choice([350_000, 850_000, 1_500_000]);
-    const profitPa = diff === 1 ? choice([25_000, 50_000, 100_000])
-      : diff === 2 ? choice([60_000, 125_000, 175_000])
-      : choice([85_000, 150_000, 225_000]);
+      : diff === 2 ? choice([200_000, 500_000, 1_000_000])
+      : choice([500_000, 750_000, 1_500_000]);
+    const profitPa = diff === 1 ? choice([50_000, 100_000, 200_000])
+      : diff === 2 ? choice([50_000, 100_000, 150_000])
+      : choice([80_000, 150_000, 250_000]);
     const years = diff === 1 ? 1 : diff === 2 ? choice([2, 3]) : choice([3, 5]);
     const totalProfit = profitPa * years;
     const answer = (totalProfit / invest) * 100;
     return {
-      question: `Du investierst **${fmtEur(invest)}** und erzielst ${years > 1 ? `nach ${years} Jahren einen Gewinn von **${fmtEur(profitPa)} pro Jahr**` : `einen Jahresgewinn von **${fmtEur(profitPa)}**`}. Wie hoch ist der ROI${years > 1 ? ` nach ${years} Jahren` : ""} in %?`,
-      answer, tolerance: 0.5, tip: `ROI = (Gesamtgewinn / Investition) x 100`,
+      question: `Investition: **${fmtEur(invest)}**. Gewinn: **${fmtEur(profitPa)} pro Jahr**${years > 1 ? ` über **${years} Jahre**` : ""}. Wie hoch ist der ROI in %?`,
+      answer, tolerance: 0.5, tip: "ROI = (Gesamtgewinn ÷ Investition) × 100",
     };
   },
   // Payback period
   (diff) => {
     const invest = diff === 1 ? choice([500_000, 1_000_000, 2_000_000])
-      : diff === 2 ? choice([750_000, 1_200_000, 3_000_000])
-      : choice([1_800_000, 4_500_000]);
+      : diff === 2 ? choice([500_000, 1_000_000, 1_500_000])
+      : choice([1_500_000, 3_000_000]);
     const cashflow = diff === 1 ? choice([100_000, 250_000, 500_000])
-      : diff === 2 ? choice([150_000, 300_000, 400_000])
-      : choice([225_000, 375_000, 600_000]);
+      : diff === 2 ? choice([200_000, 300_000, 500_000])
+      : choice([250_000, 400_000, 600_000]);
     const answer = invest / cashflow;
     return {
-      question: `Investition: **${fmtEur(invest)}**. Jährlicher Cashflow: **${fmtEur(cashflow)}**. Nach wie vielen Jahren ist die Investition amortisiert?`,
-      answer, tolerance: 0.05, tip: "Payback = Investition / jährlicher Cashflow",
+      question: `Investition: **${fmtEur(invest)}**. Jährlicher Rückfluss: **${fmtEur(cashflow)}**. Nach wie vielen Jahren ist die Investition zurückgezahlt?`,
+      answer, tolerance: 0.05, tip: "Payback = Investition ÷ jährlicher Rückfluss",
     };
   },
   // Marketing ROI
   (diff) => {
-    const cost = diff === 1 ? choice([50_000, 80_000, 100_000])
-      : diff === 2 ? choice([60_000, 120_000, 200_000])
-      : choice([75_000, 150_000, 250_000]);
+    const cost = diff === 1 ? choice([50_000, 100_000])
+      : diff === 2 ? choice([100_000, 200_000])
+      : choice([150_000, 250_000]);
     const newCustomers = diff === 1 ? choice([1000, 2000, 5000])
-      : diff === 2 ? choice([1500, 3000, 4000])
-      : choice([2500, 4500, 6000]);
-    const clv = diff === 1 ? choice([50, 80, 100, 120])
-      : diff === 2 ? choice([75, 110, 150])
-      : choice([85, 135, 180]);
-    const totalRev = newCustomers * clv;
+      : diff === 2 ? choice([2000, 5000])
+      : choice([3000, 5000, 8000]);
+    const avgRevenue = diff === 1 ? choice([50, 100, 200])
+      : diff === 2 ? choice([80, 100, 150])
+      : choice([75, 120, 180]);
+    const totalRev = newCustomers * avgRevenue;
     const answer = ((totalRev - cost) / cost) * 100;
     return {
-      question: `Eine Marketingkampagne kostet **${fmtEur(cost)}**. Sie generiert **${fmt(newCustomers)} neue Kunden** mit einem durchschnittlichen CLV von **${fmtEur(clv)}**. Wie hoch ist der ROI in %?`,
-      answer, tolerance: 1, tip: "ROI = ((Umsatz - Kosten) / Kosten) x 100",
+      question: `Eine Kampagne kostet **${fmtEur(cost)}** und bringt **${fmt(newCustomers)} neue Kunden**. Jeder Kunde bringt **${fmtEur(avgRevenue)} Umsatz**. Wie hoch ist der ROI in %?`,
+      answer, tolerance: 1, tip: "ROI = ((Umsatz − Kosten) ÷ Kosten) × 100",
     };
   },
-  // CAC calculation
+  // Cost per customer
   (diff) => {
-    const marketingBudget = diff === 1 ? choice([100_000, 200_000, 500_000])
-      : diff === 2 ? choice([150_000, 350_000, 600_000])
-      : choice([250_000, 450_000, 800_000]);
-    const salesBudget = diff === 1 ? choice([50_000, 100_000, 200_000])
-      : diff === 2 ? choice([80_000, 150_000, 250_000])
-      : choice([120_000, 220_000, 400_000]);
+    const totalBudget = diff === 1 ? choice([100_000, 200_000, 500_000])
+      : diff === 2 ? choice([200_000, 300_000, 500_000])
+      : choice([300_000, 500_000, 800_000]);
     const newCustomers = diff === 1 ? choice([500, 1000, 2000])
-      : diff === 2 ? choice([750, 1500, 2500])
-      : choice([1200, 2200, 3500]);
-    const answer = (marketingBudget + salesBudget) / newCustomers;
+      : diff === 2 ? choice([1000, 2000, 2500])
+      : choice([1500, 2500, 4000]);
+    const answer = totalBudget / newCustomers;
     return {
-      question: `Marketing-Budget: **${fmtEur(marketingBudget)}**, Vertriebskosten: **${fmtEur(salesBudget)}**. Damit wurden **${fmt(newCustomers)} Neukunden** gewonnen. Wie hoch sind die Customer Acquisition Costs (CAC) pro Kunde in €?`,
-      answer, tolerance: answer * 0.01, tip: "CAC = (Marketing + Vertrieb) / Neukunden",
+      question: `Gesamtbudget für Kundengewinnung: **${fmtEur(totalBudget)}**. Damit wurden **${fmt(newCustomers)} Neukunden** gewonnen. Wie viel kostet ein Neukunde?`,
+      answer, tolerance: answer * 0.01, tip: "Kosten pro Kunde = Gesamtbudget ÷ Anzahl Neukunden",
     };
   },
 ];
@@ -200,77 +195,73 @@ const investmentTemplates: TemplateGen[] = [
 const breakevenTemplates: TemplateGen[] = [
   // Simple break-even units
   (diff) => {
-    const fix = diff === 1 ? choice([30_000, 50_000, 60_000, 100_000])
-      : diff === 2 ? choice([45_000, 75_000, 120_000])
-      : choice([85_000, 150_000, 220_000]);
-    const price = diff === 1 ? choice([20, 30, 50, 100])
-      : diff === 2 ? choice([25, 35, 60, 90])
-      : choice([28, 45, 72, 110]);
-    const varCost = diff === 1 ? choice([5, 10, 15, 20])
-      : diff === 2 ? choice([8, 14, 22, 36])
-      : choice([11, 18, 30, 48]);
-    // Ensure price > varCost
+    const fix = diff === 1 ? choice([10_000, 20_000, 50_000, 100_000])
+      : diff === 2 ? choice([30_000, 50_000, 100_000])
+      : choice([80_000, 150_000, 200_000]);
+    const price = diff === 1 ? choice([20, 50, 100])
+      : diff === 2 ? choice([25, 40, 50, 80])
+      : choice([30, 45, 70, 90]);
+    const varCost = diff === 1 ? choice([5, 10, 20])
+      : diff === 2 ? choice([10, 15, 20])
+      : choice([12, 18, 30]);
     const safeVarCost = Math.min(varCost, price - 1);
     const answer = fix / (price - safeVarCost);
-    const period = choice(["pro Monat", "pro Quartal"]);
     return {
-      question: `Fixkosten: **${fmtEur(fix)} ${period}**. Verkaufspreis pro Einheit: **${fmtEur(price)}**, variable Kosten: **${fmtEur(safeVarCost)}**. Wie viele Einheiten müssen ${period} verkauft werden, um den Break-even zu erreichen?`,
-      answer: Math.ceil(answer), tolerance: 1, tip: "Break-even = Fixkosten / (Preis - variable Kosten)",
+      question: `Fixkosten: **${fmtEur(fix)}**. Preis pro Stück: **${fmtEur(price)}**, variable Kosten: **${fmtEur(safeVarCost)}**. Wie viele Stück müssen verkauft werden für den Break-even?`,
+      answer: Math.ceil(answer), tolerance: 1, tip: "Break-even = Fixkosten ÷ (Preis − variable Kosten)",
     };
   },
   // Subscription break-even
   (diff) => {
-    const fix = diff === 1 ? choice([60_000, 100_000, 120_000])
-      : diff === 2 ? choice([80_000, 150_000, 240_000])
-      : choice([180_000, 360_000, 500_000]);
-    const monthlyFee = diff === 1 ? choice([10, 15, 20, 30])
-      : diff === 2 ? choice([12, 19, 25, 40])
-      : choice([14, 22, 35, 49]);
-    const monthlyVar = diff === 1 ? choice([2, 3, 5])
-      : diff === 2 ? choice([3, 5, 8])
-      : choice([4, 7, 12]);
+    const fix = diff === 1 ? choice([60_000, 120_000])
+      : diff === 2 ? choice([100_000, 200_000])
+      : choice([200_000, 360_000, 500_000]);
+    const monthlyFee = diff === 1 ? choice([10, 20, 30, 50])
+      : diff === 2 ? choice([15, 20, 25, 40])
+      : choice([18, 25, 35, 49]);
+    const monthlyVar = diff === 1 ? choice([2, 5, 10])
+      : diff === 2 ? choice([3, 5, 10])
+      : choice([5, 8, 12]);
     const safeVar = Math.min(monthlyVar, monthlyFee - 1);
     const annualContrib = (monthlyFee - safeVar) * 12;
     const answer = Math.ceil(fix / annualContrib);
     const business = choice(["Abo-Service", "Streaming-Dienst", "SaaS-Produkt", "Fitness-App"]);
     return {
-      question: `Ein ${business} hat Fixkosten von **${fmtEur(fix)}/Jahr**. Jeder Kunde zahlt **${fmtEur(monthlyFee)}/Monat** und verursacht variable Kosten von **${fmtEur(safeVar)}/Monat**. Wie viele Kunden braucht das Unternehmen, um den Break-even pro Jahr zu erreichen?`,
-      answer, tolerance: 1, tip: "Jahresbeitrag pro Kunde = (Monatspreis - variable Kosten) x 12, dann Fixkosten / Beitrag",
+      question: `Ein ${business} hat Fixkosten von **${fmtEur(fix)} pro Jahr**. Kunden zahlen **${fmtEur(monthlyFee)}/Monat**, variable Kosten: **${fmtEur(safeVar)}/Monat**. Wie viele Kunden braucht man für den Break-even?`,
+      answer, tolerance: 1, tip: "Beitrag/Kunde/Jahr = (Monatspreis − var. Kosten) × 12, dann Fixkosten ÷ Beitrag",
     };
   },
   // Revenue-based break-even
   (diff) => {
-    const fix = diff === 1 ? choice([200_000, 400_000, 500_000])
-      : diff === 2 ? choice([350_000, 600_000, 800_000])
-      : choice([750_000, 1_200_000, 1_800_000]);
-    const varPct = diff === 1 ? choice([30, 40, 50])
-      : diff === 2 ? choice([35, 45, 55])
-      : choice([38, 47, 58]);
+    const fix = diff === 1 ? choice([200_000, 500_000, 1_000_000])
+      : diff === 2 ? choice([300_000, 500_000, 800_000])
+      : choice([500_000, 1_000_000, 1_500_000]);
+    const varPct = diff === 1 ? choice([25, 40, 50])
+      : diff === 2 ? choice([30, 40, 50])
+      : choice([35, 45, 55]);
     const answer = fix / (1 - varPct / 100);
     const ind = choice(industries);
     return {
-      question: `Ein ${ind} hat Fixkosten von **${fmtEur(fix)}**. Die variablen Kosten betragen **${varPct}%** vom Umsatz. Wie hoch muss der Umsatz sein, um den Break-even zu erreichen (in €)?`,
-      answer, tolerance: answer * 0.01, tip: "Break-even Umsatz = Fixkosten / (1 - variable Kosten %)",
+      question: `Ein ${ind} hat Fixkosten von **${fmtEur(fix)}**. Variable Kosten: **${varPct}%** vom Umsatz. Wie hoch muss der Umsatz für den Break-even sein?`,
+      answer, tolerance: answer * 0.01, tip: "Break-even Umsatz = Fixkosten ÷ (1 − variable Kosten%)",
     };
   },
   // Break-even with price change (medium/hard)
   (diff) => {
-    const currentUnits = diff === 1 ? choice([5000, 8000, 10000])
-      : diff === 2 ? choice([6000, 9000, 12000])
-      : choice([7500, 11000, 15000]);
-    const currentPrice = diff === 1 ? choice([40, 50, 80])
-      : diff === 2 ? choice([45, 65, 90])
+    const currentPrice = diff === 1 ? choice([40, 50, 100])
+      : diff === 2 ? choice([50, 60, 80])
       : choice([55, 75, 95]);
-    const varCost = Math.round(currentPrice * (diff === 1 ? 0.4 : diff === 2 ? 0.45 : 0.5));
-    const fix = diff === 1 ? choice([100_000, 150_000])
-      : diff === 2 ? choice([120_000, 200_000])
-      : choice([180_000, 280_000]);
-    const priceIncrease = choice([5, 10, 15, 20]);
+    const varCost = diff === 1 ? choice([10, 20]) : diff === 2 ? choice([20, 25, 30]) : choice([25, 35, 45]);
+    const safeVarCost = Math.min(varCost, currentPrice - 5);
+    const fix = diff === 1 ? choice([100_000, 200_000])
+      : diff === 2 ? choice([100_000, 150_000, 200_000])
+      : choice([150_000, 250_000]);
+    const priceIncrease = choice([5, 10, 20]);
     const newPrice = currentPrice + priceIncrease;
-    const answer = Math.ceil(fix / (newPrice - varCost));
+    const answer = Math.ceil(fix / (newPrice - safeVarCost));
     return {
-      question: `Ein Unternehmen verkauft aktuell **${fmt(currentUnits)} Einheiten** zu **${fmtEur(currentPrice)}**. Variable Kosten: **${fmtEur(varCost)}/Stück**, Fixkosten: **${fmtEur(fix)}**. Wenn der Preis um **${fmtEur(priceIncrease)}** erhöht wird: Wie viele Einheiten müssen dann für den Break-even verkauft werden?`,
-      answer, tolerance: 1, tip: "Neuer Deckungsbeitrag = (Alter Preis + Erhöhung) - variable Kosten, dann Fixkosten / DB",
+      question: `Preis aktuell **${fmtEur(currentPrice)}**, variable Kosten **${fmtEur(safeVarCost)}**, Fixkosten **${fmtEur(fix)}**. Der Preis wird um **${fmtEur(priceIncrease)}** erhöht. Wie viele Stück für den Break-even?`,
+      answer, tolerance: 1, tip: "Neuer DB = (Preis + Erhöhung) − var. Kosten, dann Fixkosten ÷ DB",
     };
   },
 ];

@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import SprintInput from "@/components/sprint/SprintInput";
 import { CaseMathTask } from "@/types/caseMath";
 import { DifficultyLevel } from "@/components/DifficultySelector";
 import { DrillButton } from "@/components/ui/drill-button";
-import { X } from "lucide-react";
+import { X, Calculator } from "lucide-react";
 
 interface CaseMathGameProps {
   task: CaseMathTask | null;
@@ -50,6 +50,13 @@ const CaseMathGame: React.FC<CaseMathGameProps> = ({
   onSubmit,
   onEnd,
 }) => {
+  const [showFormula, setShowFormula] = useState(false);
+
+  // Reset formula visibility on new task
+  useEffect(() => {
+    setShowFormula(false);
+  }, [task?.id]);
+
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Timer with End Button */}
@@ -91,6 +98,25 @@ const CaseMathGame: React.FC<CaseMathGameProps> = ({
           <p className="text-center text-lg leading-relaxed text-foreground md:text-xl">
             {parseHighlights(task.question)}
           </p>
+
+          {/* Formula Toggle */}
+          {task.shortcut?.tip && (
+            <div className="mt-4 flex flex-col items-center gap-2">
+              {!showFormula ? (
+                <button
+                  onClick={() => setShowFormula(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Calculator className="h-3.5 w-3.5" />
+                  Formel anzeigen
+                </button>
+              ) : (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
+                  {task.shortcut.tip}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
