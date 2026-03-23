@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
-import { X, Send, Info } from "lucide-react";
+import { X, Send, Info, ChevronDown, ChevronUp, Award } from "lucide-react";
 
 interface MarketSizingGameProps {
   currentCase: MarketSizingCase | null;
@@ -19,13 +19,17 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   const [answerText, setAnswerText] = useState("");
   const [estimateValue, setEstimateValue] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
+  const [rubrikOpen, setRubrikOpen] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasSeenRubrik = useRef(false);
 
   useEffect(() => {
     if (currentCase) {
       setAnswerText("");
       setEstimateValue("");
       setEstimateUnit(currentCase.unit_hint || "");
+      if (hasSeenRubrik.current) setRubrikOpen(false);
+      hasSeenRubrik.current = true;
       textareaRef.current?.focus();
     }
   }, [currentCase?.id]);
@@ -71,6 +75,55 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
             <span>Methode: {currentCase.allowed_methods.replace(/,/g, " / ")}</span>
           </div>
         )}
+      </div>
+
+      {/* Rubric */}
+      <div className="rounded-xl border border-border bg-card">
+        <button
+          onClick={() => setRubrikOpen((o) => !o)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            Bewertungskriterien
+          </span>
+          {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        {rubrikOpen && (
+          <div className="border-t border-border px-4 pb-4 pt-3">
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: "Struktur & MECE", pts: 30 },
+                { label: "Annahmen", pts: 20 },
+                { label: "Math. Konsistenz", pts: 20 },
+                { label: "Plausibilität", pts: 20 },
+                { label: "Kommunikation", pts: 10 },
+              ].map(({ label, pts }) => (
+                <div key={label} className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
+                  <span className="font-medium text-foreground">{label}</span>
+                  <span className="text-muted-foreground">({pts} Pkt)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Structure Guide */}
+      <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">So strukturierst du deine Schätzung:</p>
+        <ol className="space-y-1">
+          {[
+            "Methode wählen — Top-down, Bottom-up oder Mix",
+            "Ausgangsgröße festlegen — z.B. Bevölkerung, Haushalte, Unternehmen",
+            "Schritt für Schritt einengen — Zielgruppe × Nutzungsrate × Preis × Frequenz",
+            "Sanity Check — Ergebnis mit bekannten Vergleichswerten prüfen",
+          ].map((step, i) => (
+            <li key={i} className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground/70">{i + 1}.</span>{" "}{step}
+            </li>
+          ))}
+        </ol>
       </div>
 
       {/* Answer Textarea */}
