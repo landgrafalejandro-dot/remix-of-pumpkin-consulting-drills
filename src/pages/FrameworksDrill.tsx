@@ -39,7 +39,7 @@ const drillConfig: DrillConfig = {
     { value: "hard", label: "Schwer", desc: "Mehrstufig, Trade-offs" },
   ],
   hintText: "Wähle das passende Framework und baue eine strukturierte Analyse. Die KI bewertet deine Antwort nach fester Rubrik.",
-  startButtonText: "Start Frameworks \u2192",
+  startButtonText: "Case starten \u2192",
   rubricLabels: [
     { key: "framework_choice", label: "Framework-Wahl", max: 25 },
     { key: "structure_mece", label: "Struktur & MECE", max: 25 },
@@ -54,6 +54,8 @@ const drillConfig: DrillConfig = {
     "Je Ast 2–3 Unterpunkte oder Analysefragen",
     "Priorisierung — Welcher Ast ist der wichtigste Hebel und warum?",
   ],
+  sprintMode: false,
+  timeReferenceMinutes: 5,
 };
 
 const FrameworksDrill: React.FC = () => {
@@ -69,8 +71,11 @@ const FrameworksDrill: React.FC = () => {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const taskStartTime = useRef<number>(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const sprintStartTime = useRef<number>(0);
+
+  const isSprint = drillConfig.sprintMode !== false;
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
@@ -88,20 +93,29 @@ const FrameworksDrill: React.FC = () => {
     sessionIdRef.current = crypto.randomUUID();
     setResults([]);
     setCurrentResult(null);
-    setTimeRemaining(duration);
+    setElapsedSeconds(0);
     sprintStartTime.current = Date.now();
     loadNextCase();
 
-    timerRef.current = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [duration, difficulty, category, loadNextCase]);
+    if (isSprint) {
+      // Sprint mode: countdown timer
+      setTimeRemaining(duration);
+      timerRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      // Quality mode: count up silently
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds(Math.round((Date.now() - sprintStartTime.current) / 1000));
+      }, 1000);
+    }
+  }, [duration, difficulty, category, loadNextCase, isSprint]);
 
   const handleEnd = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -109,10 +123,10 @@ const FrameworksDrill: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (timeRemaining === 0 && phase === "answering" && results.length > 0) {
+    if (isSprint && timeRemaining === 0 && phase === "answering" && results.length > 0) {
       setPhase("debrief");
     }
-  }, [timeRemaining, phase]);
+  }, [timeRemaining, phase, isSprint]);
 
   const handleSubmit = useCallback(async (answerText: string) => {
     if (!currentCase) return;
@@ -183,12 +197,13 @@ const FrameworksDrill: React.FC = () => {
   }, [currentCase, userEmail, difficulty]);
 
   const handleNext = useCallback(() => {
-    if (timeRemaining <= 0) {
+    if (!isSprint || timeRemaining <= 0) {
+      if (timerRef.current) clearInterval(timerRef.current);
       setPhase("debrief");
     } else {
       loadNextCase();
     }
-  }, [timeRemaining, loadNextCase]);
+  }, [timeRemaining, loadNextCase, isSprint]);
 
   const handleFinish = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);

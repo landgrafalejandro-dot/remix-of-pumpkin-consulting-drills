@@ -27,29 +27,31 @@ const TextDrillConfig: React.FC<TextDrillConfigProps> = ({
 }) => {
   return (
     <div className="flex flex-col gap-8 py-4">
-      {/* Duration */}
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="text-sm font-medium">Zeit pro Aufgabe</span>
+      {/* Duration (only in sprint mode) */}
+      {config.sprintMode !== false && (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm font-medium">Sprint-Dauer</span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {durationOptions.map(({ value, label, desc }) => (
+              <button
+                key={value}
+                onClick={() => onDurationChange(value)}
+                className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
+                  duration === value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                <span className="text-lg font-bold">{label}</span>
+                <span className="mt-1 text-xs opacity-80">{desc}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap justify-center gap-3">
-          {durationOptions.map(({ value, label, desc }) => (
-            <button
-              key={value}
-              onClick={() => onDurationChange(value)}
-              className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
-                duration === value
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/50"
-              }`}
-            >
-              <span className="text-lg font-bold">{label}</span>
-              <span className="mt-1 text-xs opacity-80">{desc}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Difficulty */}
       <div className="flex flex-col items-center gap-4">

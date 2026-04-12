@@ -3,7 +3,7 @@ import { DrillButton } from "@/components/ui/drill-button";
 import { CaseMathCategory } from "@/types/caseMath";
 import { SprintDuration } from "@/types/drill";
 import { DifficultyLevel } from "@/components/DifficultySelector";
-import { Clock, Zap, Target } from "lucide-react";
+import { Clock, Zap, Target, Check } from "lucide-react";
 
 interface CaseMathConfigProps {
   duration: SprintDuration;
@@ -117,27 +117,32 @@ const CaseMathConfig: React.FC<CaseMathConfigProps> = ({
         <div className="flex flex-wrap justify-center gap-3">
           <button
             onClick={selectAllCategories}
-            className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
+            className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 transition-all ${
               allSelected
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted/50"
             }`}
           >
-            <span className="text-lg font-bold">Alle</span>
+            {allSelected && <Check className="h-4 w-4" />}
+            <span className="text-base font-bold">Alle</span>
           </button>
-          {categoryOptions.map(({ category, label }) => (
-            <button
-              key={category}
-              onClick={() => handleCategoryToggle(category)}
-              className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
-                selectedCategories.includes(category)
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted/50"
-              }`}
-            >
-              <span className="text-lg font-bold">{label}</span>
-            </button>
-          ))}
+          {categoryOptions.map(({ category, label }) => {
+            const isSelected = selectedCategories.includes(category);
+            return (
+              <button
+                key={category}
+                onClick={() => handleCategoryToggle(category)}
+                className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 transition-all ${
+                  isSelected
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:bg-muted/50"
+                }`}
+              >
+                {isSelected && <Check className="h-4 w-4" />}
+                <span className="text-base font-bold">{label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

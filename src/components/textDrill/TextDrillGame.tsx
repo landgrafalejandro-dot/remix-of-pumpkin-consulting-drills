@@ -177,7 +177,11 @@ const TextDrillGame: React.FC<TextDrillGameProps> = ({
       {/* Timer + End */}
       <div className="flex w-full items-center gap-4">
         <div className="flex-1">
-          <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
+          {config.sprintMode !== false ? (
+            <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
+          ) : (
+            <span className="text-xs text-muted-foreground">Nimm dir die Zeit, die du brauchst.</span>
+          )}
         </div>
         <DrillButton
           variant="inactive"

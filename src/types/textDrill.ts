@@ -44,4 +44,6 @@ export interface DrillConfig {
   rubricLabels: { key: string; label: string; max: number }[];
   placeholder: string; // textarea placeholder
   structureGuide?: string[]; // step-by-step guide shown above textarea
+  sprintMode?: boolean; // true (default) = timed sprint with multiple cases. false = single case, quality focus, time tracked silently
+  timeReferenceMinutes?: number; // for non-sprint mode: suggested time per case (shown in feedback)
 }

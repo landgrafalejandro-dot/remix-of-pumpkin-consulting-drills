@@ -50,6 +50,14 @@ const TextDrillResultView: React.FC<TextDrillResultProps> = ({
         <span className="text-5xl font-bold">{eval_.total_score >= 80 ? "\uD83C\uDFAF" : eval_.total_score >= 60 ? "\uD83D\uDCAA" : "\uD83D\uDCC8"}</span>
         <span className={`text-4xl font-bold ${scoreColor}`}>{eval_.total_score}/100</span>
         <p className="text-sm text-muted-foreground text-center max-w-md">{eval_.one_line_summary}</p>
+        {result.timeSpentSec > 0 && config.sprintMode === false && (
+          <p className="text-xs text-muted-foreground">
+            Bearbeitungszeit: {Math.floor(result.timeSpentSec / 60)}:{String(result.timeSpentSec % 60).padStart(2, "0")} Min
+            {config.timeReferenceMinutes && (
+              <span> (Richtwert: ~{config.timeReferenceMinutes} Min)</span>
+            )}
+          </p>
+        )}
         {eval_.flagged && (
           <div className="flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-600">
             <AlertTriangle className="h-3 w-3" /> Qualität unsicher
@@ -123,7 +131,16 @@ const TextDrillResultView: React.FC<TextDrillResultProps> = ({
 
       {/* Next / Finish */}
       <div className="flex justify-center gap-4 pt-2">
-        {hasTimeLeft ? (
+        {config.sprintMode === false ? (
+          <>
+            <DrillButton variant="inactive" size="lg" onClick={onFinish} className="gap-2">
+              Zurück zur Übersicht
+            </DrillButton>
+            <DrillButton variant="active" size="lg" onClick={onNext} className="gap-2">
+              Neuer Case <ArrowRight className="h-4 w-4" />
+            </DrillButton>
+          </>
+        ) : hasTimeLeft ? (
           <DrillButton variant="active" size="lg" onClick={onNext} className="gap-2">
             Nächste Aufgabe <ArrowRight className="h-4 w-4" />
           </DrillButton>
