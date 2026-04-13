@@ -70,7 +70,7 @@ const profitabilityTemplates: TemplateGen[] = [
       return {
         question: `Ein ${ind} hat einen Umsatz von **${fmtEur(rev)}** und Gesamtkosten von **${fmtEur(safeCost)}**. Wie hoch ist der Gewinn?`,
         answer, tolerance: 0,
-        tip: `Rechenweg:\n  Umsatz: ${fmtEur(rev)}\n  − Kosten: ${fmtEur(safeCost)}\n  = Gewinn: ${fmtEur(answer)}\n\nTypischer Fehler: Einheiten verwechseln (k vs. Mio).`,
+        tip: `Formel: Gewinn = Umsatz − Kosten\n\nTypischer Fehler: Einheiten verwechseln (k vs. Mio).`,
       };
     }
     if (diff === 2) {
@@ -82,7 +82,7 @@ const profitabilityTemplates: TemplateGen[] = [
       return {
         question: `Ein ${ind} macht **${fmtEur(rev)} Umsatz** bei einer Gewinnmarge von **${fmtPct(margin)}**. Wie hoch ist der Gewinn?`,
         answer, tolerance: answer * 0.005,
-        tip: `Rechenweg:\n  Umsatz: ${fmtEur(rev)}\n  × Marge: ${fmtPct(margin)}\n  = Gewinn: ${fmtEur(answer)}\n\nTrick: ${trick}.\nTypischer Fehler: Marge und Markup verwechseln.`,
+        tip: `Formel: Gewinn = Umsatz × Marge\n\nTypischer Fehler: Marge und Markup verwechseln.`,
       };
     }
     // Hard: Multi-Step mit var. Kosten + Fixkosten + Steuern
@@ -96,7 +96,7 @@ const profitabilityTemplates: TemplateGen[] = [
     return {
       question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**, variable Kosten **${fmtPct(varPct)}** vom Umsatz, Fixkosten **${fmtEur(fix)}**, Steuersatz **${fmtPct(taxPct)}**. Wie hoch ist der Nettogewinn?`,
       answer, tolerance: Math.abs(answer) * 0.02,
-      tip: `Rechenweg:\n  Schritt 1: Rohertrag = ${fmtEur(rev)} × ${100 - varPct}% = ${fmtEur(grossProfit)}\n  Schritt 2: EBIT = ${fmtEur(grossProfit)} − ${fmtEur(fix)} = ${fmtEur(ebit)}\n  Schritt 3: Nettogewinn = ${fmtEur(ebit)} × ${100 - taxPct}% = ${fmtEur(answer)}\n\nTypischer Fehler: Steuern auf Umsatz statt auf EBIT berechnen.`,
+      tip: `Formel: Nettogewinn = (Umsatz × (1 − Var. Kosten %) − Fixkosten) × (1 − Steuersatz)\n\nTypischer Fehler: Steuern auf Umsatz statt auf EBIT berechnen.`,
     };
   },
 
@@ -111,7 +111,7 @@ const profitabilityTemplates: TemplateGen[] = [
       return {
         question: `Ein ${ind} hat zwei Geschäftsbereiche. Bereich A macht **${fmtEur(profitA)} Gewinn**, Bereich B **${fmtEur(profitB)}**. Wie hoch ist der Gesamtgewinn?`,
         answer, tolerance: 0,
-        tip: `Rechenweg:\n  Bereich A: ${fmtEur(profitA)}\n  + Bereich B: ${fmtEur(profitB)}\n  = Gesamt: ${fmtEur(answer)}\n\nTypischer Fehler: Bei großen Zahlen die Einheiten falsch addieren.`,
+        tip: `Formel: Gesamtgewinn = Gewinn A + Gewinn B\n\nTypischer Fehler: Bei großen Zahlen die Einheiten falsch addieren.`,
       };
     }
     const segments = diff === 2 ? 2 : 3;
@@ -136,7 +136,7 @@ const profitabilityTemplates: TemplateGen[] = [
     return {
       question: `Ein Unternehmen hat **${segments} Bereiche**: ${parts.join(". ")}. Wie hoch ist der Gesamtgewinn?`,
       answer: total, tolerance: Math.abs(total) * 0.01,
-      tip: `Rechenweg:\n${steps.join("\n")}\n  = Gesamt: ${fmtEur(total)}\n\nTypischer Fehler: ${diff === 3 ? "Negative Margen übersehen oder Overhead vergessen." : "Segmente falsch addieren."}`,
+      tip: `Formel: Gesamtgewinn = Σ (Umsatz × Marge) je Bereich${diff === 3 ? " − Overhead" : ""}\n\nTypischer Fehler: ${diff === 3 ? "Negative Margen übersehen oder Overhead vergessen." : "Segmente falsch addieren."}`,
     };
   },
 
@@ -150,7 +150,7 @@ const profitabilityTemplates: TemplateGen[] = [
       return {
         question: `Ein ${ind} hat **${fmt(customers)} Kunden**, die je **${fmtEur(price)}/Jahr** zahlen. Wie hoch ist der Jahresumsatz?`,
         answer, tolerance: 0,
-        tip: `Rechenweg:\n  ${fmt(customers)} Kunden × ${fmtEur(price)} = ${fmtEur(answer)}\n\nTypischer Fehler: Bei 500 × 200 die Nullen falsch zählen.`,
+        tip: `Formel: Umsatz = Kunden × Preis pro Kunde\n\nTypischer Fehler: Bei großen Zahlen die Nullen falsch zählen.`,
       };
     }
     const customers = diff === 2 ? choice([500, 1_000, 2_000]) : choice([2_500, 5_000, 8_000]);
@@ -161,7 +161,7 @@ const profitabilityTemplates: TemplateGen[] = [
     return {
       question: `Ein ${ind}: **${fmt(customers)} Kunden** × **${fmtEur(price)}/Jahr**, Gesamtkosten **${fmtPct(costPct)}** vom Umsatz. Wie hoch ist der Gewinn?`,
       answer, tolerance: Math.abs(answer) * 0.01,
-      tip: `Rechenweg:\n  Schritt 1: Umsatz = ${fmt(customers)} × ${fmtEur(price)} = ${fmtEur(revenue)}\n  Schritt 2: Gewinn = ${fmtEur(revenue)} × ${100 - costPct}% = ${fmtEur(answer)}\n\nTypischer Fehler: Kosten-% statt Gewinn-% nehmen (${costPct}% statt ${100 - costPct}%).`,
+      tip: `Formel: Gewinn = (Kunden × Preis) × (1 − Kosten %)\n\nTypischer Fehler: Kosten-% statt Gewinn-% nehmen.`,
     };
   },
 ];
@@ -192,7 +192,7 @@ const investmentTemplates: TemplateGen[] = [
     return {
       question: `Eine ${scenario.ctx}: ${scenario.invest} **${fmtEur(invest)}**, jährlicher Zusatzgewinn **${fmtEur(profitPa)}**${years > 1 ? ` über **${years} Jahre**` : ""}. Wie hoch ist der ROI in %?`,
       answer, tolerance: 0.5,
-      tip: `Rechenweg:\n  ${years > 1 ? `Schritt 1: Gesamtgewinn = ${fmtEur(profitPa)} × ${years} = ${fmtEur(totalProfit)}\n  Schritt 2: ` : ""}ROI = ${fmtEur(totalProfit)} ÷ ${fmtEur(invest)} × 100 = ${Math.round(answer * 10) / 10}%\n\nTypischer Fehler: ${years > 1 ? "Vergessen, den Jahresgewinn mit der Anzahl Jahre zu multiplizieren." : "Division in falscher Richtung (Invest ÷ Gewinn statt umgekehrt)."}`,
+      tip: `Formel: ROI = ${years > 1 ? "(Gewinn/Jahr × Jahre)" : "Gewinn"} ÷ Investition × 100\n\nTypischer Fehler: ${years > 1 ? "Vergessen, den Jahresgewinn mit der Anzahl Jahre zu multiplizieren." : "Division in falscher Richtung (Invest ÷ Gewinn statt umgekehrt)."}`,
     };
   },
 
@@ -207,7 +207,7 @@ const investmentTemplates: TemplateGen[] = [
     return {
       question: `Ein Unternehmen stellt **${hires} neue Mitarbeiter** ein. Kosten pro Mitarbeiter: **${fmtEur(costPerHire)}/Jahr**, Umsatzbeitrag pro Mitarbeiter: **${fmtEur(revPerHire)}/Jahr**. Wie hoch ist der ROI in %?`,
       answer, tolerance: 1,
-      tip: `Rechenweg:\n  Schritt 1: Gesamtkosten = ${hires} × ${fmtEur(costPerHire)} = ${fmtEur(totalCost)}\n  Schritt 2: Gesamtumsatz = ${hires} × ${fmtEur(revPerHire)} = ${fmtEur(totalRev)}\n  Schritt 3: ROI = (${fmtEur(totalRev)} − ${fmtEur(totalCost)}) ÷ ${fmtEur(totalCost)} × 100 = ${Math.round(answer)}%\n\nTypischer Fehler: ROI = Umsatz ÷ Kosten statt (Umsatz − Kosten) ÷ Kosten.`,
+      tip: `Formel: ROI = (Gesamtumsatz − Gesamtkosten) ÷ Gesamtkosten × 100\n\nTypischer Fehler: ROI = Umsatz ÷ Kosten statt (Umsatz − Kosten) ÷ Kosten.`,
     };
   },
 
@@ -223,7 +223,7 @@ const investmentTemplates: TemplateGen[] = [
     return {
       question: `Investition in Automatisierung: **${fmtEur(invest)}**. Jährliche Einsparung: **${fmtEur(savingsPerYear)}**${maintText}. ROI nach **${years} ${years === 1 ? "Jahr" : "Jahren"}** in %?`,
       answer, tolerance: 1,
-      tip: `Rechenweg:\n${maintCostPa > 0 ? `  Schritt 1: Netto-Einsparung/Jahr = ${fmtEur(savingsPerYear)} − ${fmtEur(maintCostPa)} = ${fmtEur(savingsPerYear - maintCostPa)}\n  Schritt 2: ` : "  "}Gesamt-Einsparung = ${fmtEur(savingsPerYear - maintCostPa)} × ${years} = ${fmtEur(netSavings)}\n  ROI = ${fmtEur(netSavings)} ÷ ${fmtEur(invest)} × 100 = ${Math.round(answer)}%\n\nTypischer Fehler: ${maintCostPa > 0 ? "Laufende Kosten nicht von der Einsparung abziehen." : "Einsparung nur für 1 Jahr statt für den gesamten Zeitraum rechnen."}`,
+      tip: `Formel: ROI = ${maintCostPa > 0 ? "(Einsparung − lfd. Kosten)" : "Einsparung"} × Jahre ÷ Investition × 100\n\nTypischer Fehler: ${maintCostPa > 0 ? "Laufende Kosten nicht von der Einsparung abziehen." : "Einsparung nur für 1 Jahr statt für den gesamten Zeitraum rechnen."}`,
     };
   },
 
@@ -238,7 +238,7 @@ const investmentTemplates: TemplateGen[] = [
     return {
       question: `Expansion in neuen Markt: Setup-Kosten **${fmtEur(setupCost)}**, erwarteter Zusatzumsatz **${fmtEur(additionalRevPa)}/Jahr** bei **${fmtPct(marginPct)} Marge**. ROI nach **${years} ${years === 1 ? "Jahr" : "Jahren"}**?`,
       answer, tolerance: 1,
-      tip: `Rechenweg:\n  Schritt 1: Gewinn/Jahr = ${fmtEur(additionalRevPa)} × ${fmtPct(marginPct)} = ${fmtEur(profitPa)}\n  Schritt 2: Gesamtgewinn = ${fmtEur(profitPa)} × ${years} = ${fmtEur(profitPa * years)}\n  Schritt 3: ROI = ${fmtEur(profitPa * years)} ÷ ${fmtEur(setupCost)} × 100 = ${Math.round(answer)}%\n\nTypischer Fehler: Umsatz statt Gewinn für den ROI nehmen.`,
+      tip: `Formel: ROI = (Umsatz × Marge × Jahre) ÷ Setup-Kosten × 100\n\nTypischer Fehler: Umsatz statt Gewinn für den ROI nehmen.`,
     };
   },
 
@@ -254,7 +254,7 @@ const investmentTemplates: TemplateGen[] = [
     return {
       question: `Marketing-Budget: **${fmtEur(budget)}**. Damit wurden **${fmt(customers)} Neukunden** gewonnen. Wie hoch sind die Akquisitionskosten pro Kunde (CAC)?`,
       answer, tolerance: answer * 0.01,
-      tip: `Rechenweg:\n  CAC = ${fmtEur(budget)} ÷ ${fmt(customers)} = ${fmtEur(answer)}\n\nTrick: Erst kürzen – z.B. ${fmtEur(budget)} ÷ ${fmt(customers)} = ${fmt(budget / 1000)} ÷ ${customers >= 1000 ? customers / 1000 : customers}.\nTypischer Fehler: Division in falscher Richtung.`,
+      tip: `Formel: CAC = Marketing-Budget ÷ Anzahl Neukunden\n\nTypischer Fehler: Division in falscher Richtung.`,
     };
   },
 ];
@@ -282,7 +282,7 @@ const breakevenTemplates: TemplateGen[] = [
     return {
       question: `Investition in ${s.what}: **${fmtEur(invest)}**. ${s.cashName}: **${fmtEur(cashflowPa)}**. Nach wie vielen Jahren ist die Investition amortisiert?`,
       answer: years, tolerance: 0,
-      tip: `Rechenweg:\n  Break-even = ${fmtEur(invest)} ÷ ${fmtEur(cashflowPa)} = ${years} Jahre\n\nTypischer Fehler: Nicht beachten, dass Break-even = Investition ÷ jährlicher Rückfluss.`,
+      tip: `Formel: Break-even (Jahre) = Investition ÷ jährlicher Rückfluss\n\nTypischer Fehler: Rückfluss und Investition verwechseln.`,
     };
   },
 
@@ -296,7 +296,7 @@ const breakevenTemplates: TemplateGen[] = [
       return {
         question: `Marketing-Kampagne kostet **${fmtEur(campaignCost)}**. Gewinn pro Neukunde: **${fmtEur(profitPerCustomer)}**. Ab wie vielen Neukunden ist die Kampagne im Plus?`,
         answer, tolerance: 0,
-        tip: `Rechenweg:\n  Break-even = ${fmtEur(campaignCost)} ÷ ${fmtEur(profitPerCustomer)} = ${fmt(answer)} Kunden\n\nTypischer Fehler: Umsatz statt Gewinn pro Kunde verwenden.`,
+        tip: `Formel: Break-even (Kunden) = Kampagnenkosten ÷ Gewinn pro Kunde\n\nTypischer Fehler: Umsatz statt Gewinn pro Kunde verwenden.`,
       };
     }
     // Medium/Hard: Erst Gewinn pro Kunde berechnen, dann Break-even
@@ -314,7 +314,7 @@ const breakevenTemplates: TemplateGen[] = [
     return {
       question: `Marketing-Kampagne: **${fmtEur(campaignCost)}**${runningText}. Umsatz pro Neukunde: **${fmtEur(revenuePerCustomer)}**, Kosten pro Kunde: **${fmtPct(costPct)}** vom Umsatz. Ab wie vielen Kunden Break-even?`,
       answer: effectiveBE, tolerance: 1,
-      tip: `Rechenweg:\n  Schritt 1: Gewinn/Kunde = ${fmtEur(revenuePerCustomer)} × ${100 - costPct}% = ${fmtEur(profitPerCustomer)}\n  ${runningCost > 0 ? `Schritt 2: Gesamtkosten = ${fmtEur(campaignCost)} + ${fmtEur(runningCost)} = ${fmtEur(effectiveInvest)}\n  Schritt 3` : "Schritt 2"}: Break-even = ${fmtEur(effectiveInvest)} ÷ ${fmtEur(profitPerCustomer)} = ${effectiveBE} Kunden\n\nTypischer Fehler: Umsatz statt Gewinn pro Kunde für den Break-even verwenden.`,
+      tip: `Formel: Break-even (Kunden) = ${runningCost > 0 ? "(Kampagne + lfd. Kosten)" : "Kampagnenkosten"} ÷ (Umsatz/Kunde × (1 − Kosten %))\n\nTypischer Fehler: Umsatz statt Gewinn pro Kunde für den Break-even verwenden.`,
     };
   },
 
@@ -334,7 +334,7 @@ const breakevenTemplates: TemplateGen[] = [
     return {
       question: `Investition in ${choice(scenarios)}: **${fmtEur(invest)}**.${runningText} Erwarteter Zusatzgewinn: **${fmtEur(profitPa)}/Jahr**. Nach wie vielen Jahren Break-even?`,
       answer: years, tolerance: 0,
-      tip: `Rechenweg:\n  ${runningCostPa > 0 ? `Schritt 1: Netto-Rückfluss = ${fmtEur(profitPa)} − ${fmtEur(runningCostPa)} = ${fmtEur(profitPa - runningCostPa)}/Jahr\n  Schritt 2: ` : ""}Break-even = ${fmtEur(invest)} ÷ ${fmtEur(profitPa - runningCostPa)} = ${years} Jahre\n\nTypischer Fehler: ${runningCostPa > 0 ? "Laufende Kosten nicht vom Rückfluss abziehen." : "Verwechslung von Umsatz und Gewinn."}`,
+      tip: `Formel: Break-even (Jahre) = Investition ÷ ${runningCostPa > 0 ? "(Gewinn/Jahr − lfd. Kosten)" : "Gewinn pro Jahr"}\n\nTypischer Fehler: ${runningCostPa > 0 ? "Laufende Kosten nicht vom Rückfluss abziehen." : "Verwechslung von Umsatz und Gewinn."}`,
     };
   },
 
@@ -349,7 +349,7 @@ const breakevenTemplates: TemplateGen[] = [
       return {
         question: `Launch einer Abo-Plattform: Startkosten **${fmtEur(invest)}**. Monatlicher Nettogewinn: **${fmtEur(monthlyNet)}**. Nach wie vielen Monaten Break-even?`,
         answer: months, tolerance: 0,
-        tip: `Rechenweg:\n  Break-even = ${fmtEur(invest)} ÷ ${fmtEur(monthlyNet)}/Monat = ${months} Monate\n\nTypischer Fehler: Jahre statt Monate als Einheit verwenden.`,
+        tip: `Formel: Break-even (Monate) = Startkosten ÷ monatlicher Nettogewinn\n\nTypischer Fehler: Jahre statt Monate als Einheit verwenden.`,
       };
     }
     // Medium/Hard: Erst monatlichen Nettogewinn berechnen
@@ -362,7 +362,7 @@ const breakevenTemplates: TemplateGen[] = [
     return {
       question: `Abo-Plattform: Startkosten **${fmtEur(invest)}**${runningText}. Monatlicher Umsatz: **${fmtEur(monthlyRev)}**, monatliche Kosten: **${fmtEur(monthlyCost)}**. Nach wie vielen Monaten Break-even?`,
       answer: effectiveMonths, tolerance: 1,
-      tip: `Rechenweg:\n  Schritt 1: Monatlicher Nettogewinn = ${fmtEur(monthlyRev)} − ${fmtEur(monthlyCost)} = ${fmtEur(monthlyNet)}\n  ${runningInvest > 0 ? `Schritt 2: Gesamtinvestition = ${fmtEur(invest)} + ${fmtEur(runningInvest)} = ${fmtEur(totalInvest)}\n  Schritt 3` : "Schritt 2"}: Break-even = ${fmtEur(totalInvest)} ÷ ${fmtEur(monthlyNet)} = ${effectiveMonths} Monate\n\nTypischer Fehler: Umsatz statt Nettogewinn für Break-even nehmen.`,
+      tip: `Formel: Break-even (Monate) = ${runningInvest > 0 ? "(Start + Einmalkosten)" : "Startkosten"} ÷ (Monatsumsatz − Monatskosten)\n\nTypischer Fehler: Umsatz statt Nettogewinn für Break-even nehmen.`,
     };
   },
 ];
