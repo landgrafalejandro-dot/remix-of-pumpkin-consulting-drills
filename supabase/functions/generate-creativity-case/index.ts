@@ -23,9 +23,8 @@ serve(async (req) => {
     const { difficulty, industry, avoid_topics } = await req.json();
 
     const diffLabels: Record<string, string> = {
-      easy: "einfach – klares Problem, eine Branche, offensichtlicher Lösungsansatz",
-      medium: "mittel – offenes Szenario, mehrere Stakeholder, Zielkonflikte möglich",
-      hard: "schwer – disruptive Innovation gefragt, komplexes Ökosystem, Moonshot-Ideen",
+      medium: "normal – kurzes, klares Business-Problem in 1-2 Sätzen. Keine Zahlen, kein langer Kontext. Beispiel: 'Eine Restaurantkette sucht nach Wegen, auf Restaurant-Level den täglichen Umsatz zu steigern.'",
+      hard: "schwer – detailliertes Szenario mit konkreten Zahlen, Marktdaten und Kontext. 3-4 Sätze mit Hintergrundinformationen.",
     };
 
     const industryLabels: Record<string, string> = {
@@ -44,15 +43,15 @@ Branche: ${industryLabels[industry] || industry || "beliebig"}
 
 Antworte NUR mit validem JSON (kein Markdown, keine Erklärung):
 {
-  "prompt": "2-4 Sätze: Business-Szenario mit konkretem Problem, das eine kreative Lösung erfordert. Nenne konkrete Zahlen/Fakten wo sinnvoll.",
-  "context_info": "1-2 Sätze: Zusätzlicher Kontext (Marktgröße, Wettbewerber, Trends), der dem User hilft."
+  "prompt": "${difficulty === "hard" ? "2-4 Sätze: Business-Szenario mit konkretem Problem, konkreten Zahlen und Fakten." : "1-2 kurze Sätze: Simples Business-Problem, das eine kreative Lösung erfordert. KEINE Zahlen, KEIN langer Kontext."}",
+  "context_info": "${difficulty === "hard" ? "1-2 Sätze: Zusätzlicher Kontext mit Zahlen (Marktgröße, Umsatz, Wettbewerber)." : "null"}"
 }
 
 Wichtig:
 - Alles auf Deutsch
 - Realistische, aktuelle Szenarien (keine Science-Fiction)
 - Das Problem muss offen genug sein für verschiedene Lösungsansätze
-- Keine generischen Probleme – sei spezifisch (nenne Firmennamen/-typen, Zahlen, Regionen)${
+${difficulty === "hard" ? "- Sei spezifisch: nenne Firmennamen/-typen, Zahlen, Regionen" : "- Halte es kurz und simpel – maximal 2 Sätze, keine Zahlen"}${
       Array.isArray(avoid_topics) && avoid_topics.length > 0
         ? `\n\nVERMEIDE folgende bereits gestellte Themen (wähle ein komplett anderes Szenario):\n${avoid_topics.map((t: string) => `- ${t.slice(0, 80)}`).join("\n")}`
         : ""

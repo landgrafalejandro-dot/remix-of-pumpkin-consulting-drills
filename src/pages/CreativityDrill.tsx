@@ -34,9 +34,8 @@ const drillConfig: DrillConfig = {
     { value: "sustainability", label: "Sustainability" },
   ],
   difficultyOptions: [
-    { value: "easy", label: "Einfach", desc: "Klares Problem" },
-    { value: "medium", label: "Mittel", desc: "Offenes Szenario" },
-    { value: "hard", label: "Schwer", desc: "Disruptive Innovation" },
+    { value: "medium", label: "Normal", desc: "Kurze Situation, kreative Lösung" },
+    { value: "hard", label: "Schwer", desc: "Detailliertes Szenario mit Zahlen" },
   ],
   hintText: "Entwickle eine kreative, aber machbare Lösung für das Business-Problem. Die KI bewertet deine Antwort nach fester Rubrik.",
   startButtonText: "Start Creativity \u2192",
@@ -60,7 +59,7 @@ const drillConfig: DrillConfig = {
 const CreativityDrill: React.FC = () => {
   const userEmail = useUserEmail();
   const [duration, setDuration] = useState<SprintDuration>(300);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   const [category, setCategory] = useState("all");
   const [phase, setPhase] = useState<TextDrillPhase>("config");
   const [currentCase, setCurrentCase] = useState<TextDrillCase | null>(null);
