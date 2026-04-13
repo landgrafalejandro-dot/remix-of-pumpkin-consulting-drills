@@ -1,9 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
+import { FrameworkNode } from "@/types/frameworkBuilder";
+import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
+import FrameworkNodeCard from "@/components/frameworkBuilder/FrameworkNodeCard";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
 import { AudioRecorder } from "@/components/ui/AudioRecorder";
-import { X, Send, Info, ChevronDown, ChevronUp, Award } from "lucide-react";
+import { X, Send, Info, ChevronDown, ChevronUp, Award, Plus } from "lucide-react";
 
 interface MarketSizingGameProps {
   currentCase: MarketSizingCase | null;
@@ -14,34 +17,164 @@ interface MarketSizingGameProps {
   isEvaluating: boolean;
 }
 
+const MAX_TOP_LEVEL = 6;
+const MAX_CHILDREN = 4;
+
+const NODE_COLORS = [
+  "border-t-amber-500",
+  "border-t-blue-500",
+  "border-t-emerald-500",
+  "border-t-violet-500",
+  "border-t-rose-500",
+  "border-t-cyan-500",
+];
+
+/* ─── Tree connector lines ─── */
+
+const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
+  children,
+  childCount,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!containerRef.current || !barRef.current || childCount <= 1) return;
+    const container = containerRef.current;
+    const cols = container.querySelectorAll<HTMLElement>("[data-child-col]");
+    if (cols.length < 2) return;
+    const first = cols[0];
+    const last = cols[cols.length - 1];
+    const rect = container.getBoundingClientRect();
+    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - rect.left;
+    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - rect.left;
+    barRef.current.style.left = `${firstCenter}px`;
+    barRef.current.style.width = `${lastCenter - firstCenter}px`;
+  });
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="w-px h-5 bg-border" />
+      <div ref={containerRef} className="relative flex gap-3 pt-5">
+        {childCount > 1 && (
+          <div ref={barRef} className="absolute top-0 h-px bg-border" style={{ left: 0, width: 0 }} />
+        )}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div data-child-col className="flex flex-col items-center">
+    <div className="w-px h-5 bg-border" />
+    {children}
+  </div>
+);
+
+/* ─── Main Component ─── */
+
 const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   currentCase, timeRemaining, totalDuration, onSubmit, onEnd, isEvaluating,
 }) => {
-  const [answerText, setAnswerText] = useState("");
+  // Tree state
+  const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
+
+  // Text fields
+  const [methodText, setMethodText] = useState("");
+  const [sanityText, setSanityText] = useState("");
   const [estimateValue, setEstimateValue] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
+
   const [rubrikOpen, setRubrikOpen] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasSeenRubrik = useRef(false);
 
+  // Reset on new case
   useEffect(() => {
     if (currentCase) {
-      setAnswerText("");
+      setNodes([createEmptyNode()]);
+      setLastAddedId(null);
+      setMethodText("");
+      setSanityText("");
       setEstimateValue("");
       setEstimateUnit(currentCase.unit_hint || "");
       if (hasSeenRubrik.current) setRubrikOpen(false);
       hasSeenRubrik.current = true;
-      textareaRef.current?.focus();
     }
   }, [currentCase?.id]);
 
+  /* ── Tree helpers ── */
+
+  const updateNode = useCallback((nodeId: string, updated: FrameworkNode) => {
+    setNodes((prev) => prev.map((n) => (n.id === nodeId ? updated : n)));
+  }, []);
+
+  const removeNode = useCallback((nodeId: string) => {
+    setNodes((prev) => {
+      const filtered = prev.filter((n) => n.id !== nodeId);
+      return filtered.length === 0 ? [createEmptyNode()] : filtered;
+    });
+  }, []);
+
+  const addNode = useCallback(() => {
+    if (nodes.length >= MAX_TOP_LEVEL) return;
+    const n = createEmptyNode();
+    setNodes((prev) => [...prev, n]);
+    setLastAddedId(n.id);
+  }, [nodes.length]);
+
+  const updateChildNode = useCallback((parentId: string, childId: string, updated: FrameworkNode) => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId) return n;
+        return { ...n, children: n.children.map((c) => (c.id === childId ? updated : c)) };
+      })
+    );
+  }, []);
+
+  const addChildNode = useCallback((parentId: string) => {
+    const child = createEmptyNode();
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId || n.children.length >= MAX_CHILDREN) return n;
+        return { ...n, children: [...n.children, child] };
+      })
+    );
+    setLastAddedId(child.id);
+  }, []);
+
+  const removeChildNode = useCallback((parentId: string, childId: string) => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId) return n;
+        return { ...n, children: n.children.filter((c) => c.id !== childId) };
+      })
+    );
+  }, []);
+
+  /* ── Submit ── */
+
   const handleSubmit = () => {
-    if (!answerText.trim()) return;
+    const treeText = serializeFramework({ nodes });
+    const method = methodText.trim();
+    const sanity = sanityText.trim();
+    const estVal = estimateValue.trim();
+    const estUnit = estimateUnit.trim();
+
+    let combined = `STRUKTUR:\n${treeText}`;
+    if (method) combined += `\n\nMETHODE:\n${method}`;
+    if (sanity) combined += `\n\nSANITY CHECK:\n${sanity}`;
+    if (estVal) combined += `\n\nFINALE SCHÄTZUNG: ${estVal} ${estUnit}`;
+
     const numValue = estimateValue ? parseFloat(estimateValue.replace(",", ".")) : null;
-    onSubmit(answerText, numValue, estimateUnit);
+    onSubmit(combined, numValue, estUnit);
   };
 
   if (!currentCase) return null;
+
+  const hasContent = isFrameworkValid({ nodes }) || methodText.trim().length > 0;
+  const canSubmit = hasContent && !isEvaluating;
 
   return (
     <div className="flex flex-col gap-5">
@@ -62,9 +195,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
       {/* Case Prompt */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-        <p className="text-lg font-medium text-foreground leading-relaxed">
-          {currentCase.prompt}
-        </p>
+        <p className="text-lg font-medium text-foreground leading-relaxed">{currentCase.prompt}</p>
         {currentCase.unit_hint && (
           <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="h-3.5 w-3.5" />
@@ -85,8 +216,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <span className="flex items-center gap-2">
-            <Award className="h-4 w-4" />
-            Bewertungskriterien
+            <Award className="h-4 w-4" /> Bewertungskriterien
           </span>
           {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
@@ -115,43 +245,113 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         <p className="mb-2 text-xs font-medium text-muted-foreground">So strukturierst du deine Schätzung:</p>
         <ol className="space-y-1">
           {[
-            "Methode wählen — Top-down, Bottom-up oder Mix",
-            "Ausgangsgröße festlegen — z.B. Bevölkerung, Haushalte, Unternehmen",
-            "Schritt für Schritt einengen — Zielgruppe × Nutzungsrate × Preis × Frequenz",
-            "Sanity Check — Ergebnis mit bekannten Vergleichswerten prüfen",
+            "Boxen anlegen für jeden Rechenschritt (z.B. Bevölkerung → Zielgruppe → Nutzung → Preis)",
+            "Unteräste für Detailschritte und Annahmen",
+            "Methode kurz erklären (Top-down / Bottom-up)",
+            "Sanity Check durchführen und Ergebnis eingeben",
           ].map((step, i) => (
             <li key={i} className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground/70">{i + 1}.</span>{" "}{step}
+              <span className="font-medium text-foreground/70">{i + 1}.</span> {step}
             </li>
           ))}
         </ol>
       </div>
 
-      {/* Answer Textarea */}
+      {/* ── Issue Tree ── */}
+      <label className="text-sm font-medium text-foreground">Deine Struktur</label>
+      <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
+        <div className="inline-flex items-start gap-6 min-w-min">
+          {nodes.map((node, i) => {
+            const color = NODE_COLORS[i % NODE_COLORS.length];
+            return (
+              <div key={node.id} className="flex flex-col items-center">
+                <FrameworkNodeCard
+                  node={node}
+                  colorClass={color}
+                  onUpdate={(updated) => updateNode(node.id, updated)}
+                  onRemove={() => removeNode(node.id)}
+                  disabled={isEvaluating}
+                  autoFocusTitle={node.id === lastAddedId}
+                />
+                {node.children.length < MAX_CHILDREN && (
+                  <button
+                    type="button"
+                    onClick={() => addChildNode(node.id)}
+                    disabled={isEvaluating}
+                    className="mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-primary disabled:opacity-30"
+                  >
+                    <Plus className="h-3 w-3" /> Unterast
+                  </button>
+                )}
+                {node.children.length > 0 && (
+                  <ChildrenConnector childCount={node.children.length}>
+                    {node.children.map((child) => (
+                      <ChildColumn key={child.id}>
+                        <FrameworkNodeCard
+                          node={child}
+                          colorClass={color}
+                          onUpdate={(updated) => updateChildNode(node.id, child.id, updated)}
+                          onRemove={() => removeChildNode(node.id, child.id)}
+                          disabled={isEvaluating}
+                          autoFocusTitle={child.id === lastAddedId}
+                        />
+                      </ChildColumn>
+                    ))}
+                  </ChildrenConnector>
+                )}
+              </div>
+            );
+          })}
+          {nodes.length < MAX_TOP_LEVEL && (
+            <button
+              type="button"
+              onClick={addNode}
+              disabled={isEvaluating}
+              className="flex h-[80px] min-w-[80px] flex-col items-center justify-center gap-1 self-start rounded-lg border-2 border-dashed border-border text-muted-foreground/50 transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-30"
+            >
+              <Plus className="h-5 w-5" />
+              <span className="text-[10px]">Ast</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Method & Explanation ── */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">
-            Deine Lösung (Struktur, Annahmen, Rechenschritte)
-          </label>
+          <label className="text-sm font-medium text-foreground">Methode & Erklärung</label>
           <AudioRecorder
-            onTranscript={(text) => setAnswerText((prev) => prev ? prev + "\n" + text : text)}
+            onTranscript={(text) => setMethodText((prev) => prev ? prev + " " + text : text)}
             disabled={isEvaluating}
           />
         </div>
         <textarea
-          ref={textareaRef}
-          value={answerText}
-          onChange={(e) => setAnswerText(e.target.value)}
-          placeholder={"1) Methode: Top-down\n2) Basis: 83 Mio Einwohner in DE\n3) Zielgruppe: ...\n4) Nutzung pro Person/Jahr: ...\n5) Preis: ...\n6) Ergebnis: ...\n7) Sanity Check: ..."}
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary min-h-[200px] resize-y"
+          value={methodText}
+          onChange={(e) => setMethodText(e.target.value)}
+          placeholder="z.B. Top-down von Bevölkerung DE, Zielgruppe eingegrenzt nach Alter und Nutzungsverhalten..."
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
+          rows={3}
           disabled={isEvaluating}
         />
       </div>
 
-      {/* Final Estimate */}
+      {/* ── Sanity Check ── */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-foreground">Sanity Check</label>
+        <textarea
+          value={sanityText}
+          onChange={(e) => setSanityText(e.target.value)}
+          placeholder="z.B. Pro-Kopf-Ausgaben ca. 50€/Jahr → passt zu Branchendurchschnitt..."
+          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
+          rows={2}
+          disabled={isEvaluating}
+        />
+      </div>
+
+      {/* ── Final Estimate ── */}
       <div className="rounded-xl border border-border bg-muted/30 p-4">
         <label className="mb-3 block text-sm font-semibold text-foreground">
-          📊 Finale Schätzung (Pflichtfeld)
+          Finale Schätzung (Pflichtfeld)
         </label>
         <div className="flex items-center gap-3">
           <input
@@ -179,12 +379,12 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           variant="active"
           size="lg"
           onClick={handleSubmit}
-          disabled={!answerText.trim() || isEvaluating}
+          disabled={!canSubmit}
           className="gap-2 px-8"
         >
           {isEvaluating ? (
             <>
-              <span className="animate-spin">⏳</span> KI bewertet...
+              <span className="animate-spin">&#9203;</span> KI bewertet...
             </>
           ) : (
             <>

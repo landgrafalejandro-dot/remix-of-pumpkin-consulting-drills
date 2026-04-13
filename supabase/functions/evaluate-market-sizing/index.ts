@@ -48,6 +48,17 @@ WICHTIGE REGELN:
 - Sei FAIR und KONSISTENT: Gleiche Qualität = gleiche Punkte, immer.
 - Wenn du unsicher bist ob die Größenordnung stimmt, setze flagged=true.
 
+HINWEIS ZUM ANTWORT-FORMAT:
+Die Antwort kommt in strukturiertem Format:
+- "STRUKTUR:" gefolgt von einem hierarchischen Issue Tree
+  - "[Ast N] Titel" = Hauptschritte der Rechnung
+  - "  [Unterast N.M] Titel" = Detailschritte
+  - "  - Punkt" = Annahmen und Zwischenergebnisse
+- "METHODE:" = Kurze Erklärung des gewählten Ansatzes
+- "SANITY CHECK:" = Plausibilitätsprüfung
+- "FINALE SCHÄTZUNG:" = Endwert mit Einheit
+Bewerte jeden Bereich nach der Rubrik.
+
 RUBRIK (0-100 Punkte):
 A) Struktur & MECE (0-30): Klare Methode (top-down/bottom-up/mixed)? Logisch und MECE? Nachvollziehbare Schritte?
 B) Annahmenqualität (0-20): Explizit genannt? Plausibel? Keine falschen Datenquellen behauptet?
