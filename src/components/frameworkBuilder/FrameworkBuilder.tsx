@@ -5,7 +5,6 @@ import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/fra
 import FrameworkNodeCard from "./FrameworkNodeCard";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
-import { AudioRecorder } from "@/components/ui/AudioRecorder";
 import { X, Send, Info, ChevronDown, ChevronUp, Award, Plus } from "lucide-react";
 
 interface FrameworkBuilderProps {
@@ -164,28 +163,6 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
     );
   }, []);
 
-  /* ── Audio transcript ── */
-
-  const handleTranscript = useCallback((text: string) => {
-    const lines = text.split(/[\n.;]/).map((l) => l.trim()).filter((l) => l.length > 0);
-    if (lines.length === 0) return;
-
-    setNodes((prev) => {
-      const updated = [...prev];
-      const last = updated[updated.length - 1];
-      if (!last) return prev;
-
-      const hasOnlyEmpty = last.bulletPoints.length === 1 && last.bulletPoints[0].text === "";
-      const newBullets = lines.map((line) => ({ id: crypto.randomUUID(), text: line }));
-
-      updated[updated.length - 1] = {
-        ...last,
-        bulletPoints: hasOnlyEmpty ? newBullets : [...last.bulletPoints, ...newBullets],
-      };
-      return updated;
-    });
-  }, []);
-
   /* ── Submit ── */
 
   const handleSubmit = () => {
@@ -271,11 +248,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
         </div>
       )}
 
-      {/* Audio recorder */}
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-foreground">Dein Issue Tree</label>
-        <AudioRecorder onTranscript={handleTranscript} disabled={isEvaluating} />
-      </div>
+      <label className="text-sm font-medium text-foreground">Dein Framework</label>
 
       {/* ── Horizontal Tree ── */}
       <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
