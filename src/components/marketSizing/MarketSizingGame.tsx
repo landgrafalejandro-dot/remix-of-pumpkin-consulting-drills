@@ -83,7 +83,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
   // Text fields
   const [methodText, setMethodText] = useState("");
-  const [sanityText, setSanityText] = useState("");
   const [estimateValue, setEstimateValue] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
 
@@ -96,7 +95,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       setNodes([createEmptyNode()]);
       setLastAddedId(null);
       setMethodText("");
-      setSanityText("");
       setEstimateValue("");
       setEstimateUnit(currentCase.unit_hint || "");
       if (hasSeenRubrik.current) setRubrikOpen(false);
@@ -158,13 +156,11 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   const handleSubmit = () => {
     const treeText = serializeFramework({ nodes });
     const method = methodText.trim();
-    const sanity = sanityText.trim();
     const estVal = estimateValue.trim();
     const estUnit = estimateUnit.trim();
 
     let combined = `STRUKTUR:\n${treeText}`;
     if (method) combined += `\n\nMETHODE:\n${method}`;
-    if (sanity) combined += `\n\nSANITY CHECK:\n${sanity}`;
     if (estVal) combined += `\n\nFINALE SCHÄTZUNG: ${estVal} ${estUnit}`;
 
     const numValue = estimateValue ? parseFloat(estimateValue.replace(",", ".")) : null;
@@ -331,19 +327,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           placeholder="z.B. Top-down von Bevölkerung DE, Zielgruppe eingegrenzt nach Alter und Nutzungsverhalten..."
           className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
           rows={3}
-          disabled={isEvaluating}
-        />
-      </div>
-
-      {/* ── Sanity Check ── */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-foreground">Sanity Check</label>
-        <textarea
-          value={sanityText}
-          onChange={(e) => setSanityText(e.target.value)}
-          placeholder="z.B. Pro-Kopf-Ausgaben ca. 50€/Jahr → passt zu Branchendurchschnitt..."
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
-          rows={2}
           disabled={isEvaluating}
         />
       </div>
