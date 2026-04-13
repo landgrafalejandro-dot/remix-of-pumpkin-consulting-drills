@@ -3,13 +3,13 @@ export interface FrameworkBulletPoint {
   text: string;
 }
 
-export interface FrameworkBranch {
+export interface FrameworkNode {
   id: string;
   title: string;
   bulletPoints: FrameworkBulletPoint[];
+  children: FrameworkNode[];
 }
 
 export interface FrameworkBuilderState {
-  frameworkTitle: string;
-  branches: FrameworkBranch[];
+  nodes: FrameworkNode[];
 }

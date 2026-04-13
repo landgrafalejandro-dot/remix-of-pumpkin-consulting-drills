@@ -53,17 +53,18 @@ function buildSystemPrompt(drillType: string, difficulty: string): string {
   const scoringAnchors =
     drillType === "frameworks" ? `
 HINWEIS ZUM ANTWORT-FORMAT:
-Die Antwort kommt in strukturiertem Format:
-- "FRAMEWORK:" Zeile = gewähltes Framework
-- "[Priorität N] Titel" = Hauptäste in Prioritätsreihenfolge
+Die Antwort kommt als hierarchischer Issue Tree:
+- "[Ast N] Titel" = Hauptäste (top-level)
 - "  - Punkt" = Unterpunkte je Ast
-Bewerte die Struktur, MECE-Eigenschaft der Äste, Tiefe der Unterpunkte, und ob die Priorisierungsreihenfolge für das Szenario sinnvoll ist.
+- "  [Unterast N.M] Titel" = Unteräste (children)
+- "    - Punkt" = Unterpunkte der Unteräste
+Bewerte Baumstruktur, MECE-Eigenschaft, Tiefe der Analyse, und ob die Aufteilung logisch zum Szenario passt.
 
 SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
-- Framework-Wahl: Richtiges Framework klar benannt = 20-25. Passendes Framework aber nicht benannt = 12-19. Falsches/kein Framework = 0-11.
-- Struktur & MECE: 3+ MECE-Äste mit Unterpunkten = 20-25. 2-3 Äste, teilweise MECE = 12-19. Keine klare Struktur = 0-11.
+- Framework-Wahl: Passendes Framework erkennbar aus Baumstruktur = 20-25. Ansatz passt teilweise = 12-19. Falscher/kein erkennbarer Ansatz = 0-11.
+- Struktur & MECE: 3+ MECE-Äste mit Unterästen und Unterpunkten = 20-25. 2-3 Äste, teilweise MECE = 12-19. Keine klare Struktur = 0-11.
 - Vollständigkeit: Alle wesentlichen Aspekte abgedeckt = 20-25. Wichtigste Punkte da, Lücken = 12-19. Nur oberflächlich = 0-11.
-- Priorisierung: Sinnvolle Reihenfolge mit erkennbarer Logik = 12-15. Reihenfolge vorhanden aber nicht begründet = 6-11. Keine erkennbare Priorisierung = 0-5.
+- Priorisierung: Tiefe Analyse der wichtigsten Hebel (mehr Unteräste/Punkte) = 12-15. Gleichmäßig ohne Fokus = 6-11. Keine erkennbare Priorisierung = 0-5.
 - Kommunikation: Klar und prägnant = 8-10. Verständlich = 4-7. Unstrukturiert = 0-3.` :
     drillType === "charts" ? `
 SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):

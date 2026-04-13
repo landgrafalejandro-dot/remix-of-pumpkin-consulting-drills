@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { TextDrillCase, DrillConfig } from "@/types/textDrill";
-import { FrameworkBranch } from "@/types/frameworkBuilder";
-import { createEmptyBranch, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
-import FrameworkBranchCard from "./FrameworkBranchCard";
+import { FrameworkNode } from "@/types/frameworkBuilder";
+import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
+import FrameworkNodeCard from "./FrameworkNodeCard";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
 import { AudioRecorder } from "@/components/ui/AudioRecorder";
@@ -18,7 +18,74 @@ interface FrameworkBuilderProps {
   isEvaluating: boolean;
 }
 
-const MAX_BRANCHES = 8;
+const MAX_TOP_LEVEL = 6;
+const MAX_CHILDREN = 4;
+
+const NODE_COLORS = [
+  "border-t-amber-500",
+  "border-t-blue-500",
+  "border-t-emerald-500",
+  "border-t-violet-500",
+  "border-t-rose-500",
+  "border-t-cyan-500",
+];
+
+/* ─── Tree connector lines between parent and children ─── */
+
+const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
+  children,
+  childCount,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!containerRef.current || !barRef.current || childCount <= 1) return;
+
+    const container = containerRef.current;
+    const childColumns = container.querySelectorAll<HTMLElement>("[data-child-col]");
+    if (childColumns.length < 2) return;
+
+    const first = childColumns[0];
+    const last = childColumns[childColumns.length - 1];
+    const containerRect = container.getBoundingClientRect();
+
+    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - containerRect.left;
+    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - containerRect.left;
+
+    barRef.current.style.left = `${firstCenter}px`;
+    barRef.current.style.width = `${lastCenter - firstCenter}px`;
+  });
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Vertical stem from parent */}
+      <div className="w-px h-5 bg-border" />
+
+      {/* Children row with horizontal connector */}
+      <div ref={containerRef} className="relative flex gap-3 pt-5">
+        {/* Horizontal bar */}
+        {childCount > 1 && (
+          <div
+            ref={barRef}
+            className="absolute top-0 h-px bg-border"
+            style={{ left: 0, width: 0 }}
+          />
+        )}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div data-child-col className="flex flex-col items-center">
+    <div className="w-px h-5 bg-border" />
+    {children}
+  </div>
+);
+
+/* ─── Main FrameworkBuilder ─── */
 
 const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
   config,
@@ -29,103 +96,107 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
   onEnd,
   isEvaluating,
 }) => {
-  const [frameworkTitle, setFrameworkTitle] = useState("");
-  const [branches, setBranches] = useState<FrameworkBranch[]>([createEmptyBranch()]);
+  const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
   const [rubrikOpen, setRubrikOpen] = useState(true);
-  const [lastAddedBranchId, setLastAddedBranchId] = useState<string | null>(null);
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
   const hasSeenRubrik = useRef(false);
-  const titleRef = useRef<HTMLInputElement>(null);
 
-  // Reset state when case changes
+  // Reset on new case
   useEffect(() => {
     if (currentCase) {
-      setFrameworkTitle("");
-      const initial = createEmptyBranch();
-      setBranches([initial]);
-      setLastAddedBranchId(null);
-      titleRef.current?.focus();
+      setNodes([createEmptyNode()]);
+      setLastAddedId(null);
     }
   }, [currentCase?.id]);
 
   // Collapse rubric after first case
   useEffect(() => {
-    if (currentCase && hasSeenRubrik.current) {
-      setRubrikOpen(false);
-    }
+    if (currentCase && hasSeenRubrik.current) setRubrikOpen(false);
     if (currentCase) hasSeenRubrik.current = true;
   }, [currentCase?.id]);
 
+  /* ── State helpers ── */
+
+  const updateNode = useCallback((nodeId: string, updated: FrameworkNode) => {
+    setNodes((prev) => prev.map((n) => (n.id === nodeId ? updated : n)));
+  }, []);
+
+  const removeNode = useCallback((nodeId: string) => {
+    setNodes((prev) => {
+      const filtered = prev.filter((n) => n.id !== nodeId);
+      return filtered.length === 0 ? [createEmptyNode()] : filtered;
+    });
+  }, []);
+
+  const addNode = useCallback(() => {
+    if (nodes.length >= MAX_TOP_LEVEL) return;
+    const n = createEmptyNode();
+    setNodes((prev) => [...prev, n]);
+    setLastAddedId(n.id);
+  }, [nodes.length]);
+
+  const updateChildNode = useCallback((parentId: string, childId: string, updated: FrameworkNode) => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId) return n;
+        return { ...n, children: n.children.map((c) => (c.id === childId ? updated : c)) };
+      })
+    );
+  }, []);
+
+  const addChildNode = useCallback((parentId: string) => {
+    const child = createEmptyNode();
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId || n.children.length >= MAX_CHILDREN) return n;
+        return { ...n, children: [...n.children, child] };
+      })
+    );
+    setLastAddedId(child.id);
+  }, []);
+
+  const removeChildNode = useCallback((parentId: string, childId: string) => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id !== parentId) return n;
+        return { ...n, children: n.children.filter((c) => c.id !== childId) };
+      })
+    );
+  }, []);
+
+  /* ── Audio transcript ── */
+
+  const handleTranscript = useCallback((text: string) => {
+    const lines = text.split(/[\n.;]/).map((l) => l.trim()).filter((l) => l.length > 0);
+    if (lines.length === 0) return;
+
+    setNodes((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (!last) return prev;
+
+      const hasOnlyEmpty = last.bulletPoints.length === 1 && last.bulletPoints[0].text === "";
+      const newBullets = lines.map((line) => ({ id: crypto.randomUUID(), text: line }));
+
+      updated[updated.length - 1] = {
+        ...last,
+        bulletPoints: hasOnlyEmpty ? newBullets : [...last.bulletPoints, ...newBullets],
+      };
+      return updated;
+    });
+  }, []);
+
+  /* ── Submit ── */
+
   const handleSubmit = () => {
-    const state = { frameworkTitle, branches };
+    const state = { nodes };
     if (!isFrameworkValid(state)) return;
     onSubmit(serializeFramework(state));
   };
 
-  const updateBranch = (branchId: string, updated: FrameworkBranch) => {
-    setBranches((prev) => prev.map((b) => (b.id === branchId ? updated : b)));
-  };
-
-  const removeBranch = (branchId: string) => {
-    setBranches((prev) => {
-      const filtered = prev.filter((b) => b.id !== branchId);
-      return filtered.length === 0 ? [createEmptyBranch()] : filtered;
-    });
-  };
-
-  const addBranch = () => {
-    if (branches.length >= MAX_BRANCHES) return;
-    const newBranch = createEmptyBranch();
-    setBranches((prev) => [...prev, newBranch]);
-    setLastAddedBranchId(newBranch.id);
-  };
-
-  const moveBranch = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= branches.length) return;
-    setBranches((prev) => {
-      const updated = [...prev];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, moved);
-      return updated;
-    });
-  };
-
-  const handleTranscript = (text: string) => {
-    // Add transcript lines as bullet points to the last branch
-    const lines = text
-      .split(/[\n.;]/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-
-    if (lines.length === 0) return;
-
-    setBranches((prev) => {
-      const updated = [...prev];
-      const lastBranch = updated[updated.length - 1];
-      if (!lastBranch) return prev;
-
-      // If the last branch has a single empty bullet, replace it
-      const hasOnlyEmpty =
-        lastBranch.bulletPoints.length === 1 && lastBranch.bulletPoints[0].text === "";
-
-      const newBullets = lines.map((line) => ({
-        id: crypto.randomUUID(),
-        text: line,
-      }));
-
-      updated[updated.length - 1] = {
-        ...lastBranch,
-        bulletPoints: hasOnlyEmpty
-          ? newBullets
-          : [...lastBranch.bulletPoints, ...newBullets],
-      };
-
-      return updated;
-    });
-  };
-
   if (!currentCase) return null;
 
-  const canSubmit = isFrameworkValid({ frameworkTitle, branches }) && !isEvaluating;
+  const canSubmit = isFrameworkValid({ nodes }) && !isEvaluating;
 
   return (
     <div className="flex flex-col gap-5">
@@ -135,9 +206,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
           {config.sprintMode !== false ? (
             <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
           ) : (
-            <span className="text-xs text-muted-foreground">
-              Nimm dir die Zeit, die du brauchst.
-            </span>
+            <span className="text-xs text-muted-foreground">Nimm dir die Zeit, die du brauchst.</span>
           )}
         </div>
         <DrillButton
@@ -152,9 +221,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
 
       {/* Case Prompt */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-        <p className="text-lg font-medium text-foreground leading-relaxed">
-          {currentCase.prompt}
-        </p>
+        <p className="text-lg font-medium text-foreground leading-relaxed">{currentCase.prompt}</p>
         {currentCase.context_info && (
           <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
@@ -171,23 +238,15 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
             className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <span className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              Bewertungskriterien
+              <Award className="h-4 w-4" /> Bewertungskriterien
             </span>
-            {rubrikOpen ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
           {rubrikOpen && (
             <div className="border-t border-border px-4 pb-4 pt-3">
               <div className="flex flex-wrap gap-3">
                 {config.rubricLabels.map(({ key, label, max }) => (
-                  <div
-                    key={key}
-                    className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs"
-                  >
+                  <div key={key} className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
                     <span className="font-medium text-foreground">{label}</span>
                     <span className="text-muted-foreground">({max} Pkt)</span>
                   </div>
@@ -201,9 +260,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
       {/* Structure Guide */}
       {config.structureGuide && config.structureGuide.length > 0 && (
         <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">
-            So baust du dein Framework:
-          </p>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">So baust du dein Framework:</p>
           <ol className="space-y-1">
             {config.structureGuide.map((step, i) => (
               <li key={i} className="text-xs text-muted-foreground">
@@ -214,56 +271,76 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
         </div>
       )}
 
-      {/* Framework Title */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">Dein Framework</label>
-          <AudioRecorder onTranscript={handleTranscript} disabled={isEvaluating} />
+      {/* Audio recorder */}
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-foreground">Dein Issue Tree</label>
+        <AudioRecorder onTranscript={handleTranscript} disabled={isEvaluating} />
+      </div>
+
+      {/* ── Horizontal Tree ── */}
+      <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
+        <div className="inline-flex items-start gap-6 min-w-min">
+          {nodes.map((node, i) => {
+            const color = NODE_COLORS[i % NODE_COLORS.length];
+            return (
+              <div key={node.id} className="flex flex-col items-center">
+                {/* Parent node card */}
+                <FrameworkNodeCard
+                  node={node}
+                  colorClass={color}
+                  onUpdate={(updated) => updateNode(node.id, updated)}
+                  onRemove={() => removeNode(node.id)}
+                  disabled={isEvaluating}
+                  autoFocusTitle={node.id === lastAddedId}
+                />
+
+                {/* Add child button */}
+                {node.children.length < MAX_CHILDREN && (
+                  <button
+                    type="button"
+                    onClick={() => addChildNode(node.id)}
+                    disabled={isEvaluating}
+                    className="mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-primary disabled:opacity-30"
+                  >
+                    <Plus className="h-3 w-3" /> Unterast
+                  </button>
+                )}
+
+                {/* Children with connector lines */}
+                {node.children.length > 0 && (
+                  <ChildrenConnector childCount={node.children.length}>
+                    {node.children.map((child) => (
+                      <ChildColumn key={child.id}>
+                        <FrameworkNodeCard
+                          node={child}
+                          colorClass={color}
+                          onUpdate={(updated) => updateChildNode(node.id, child.id, updated)}
+                          onRemove={() => removeChildNode(node.id, child.id)}
+                          disabled={isEvaluating}
+                          autoFocusTitle={child.id === lastAddedId}
+                        />
+                      </ChildColumn>
+                    ))}
+                  </ChildrenConnector>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Add top-level node button */}
+          {nodes.length < MAX_TOP_LEVEL && (
+            <button
+              type="button"
+              onClick={addNode}
+              disabled={isEvaluating}
+              className="flex h-[80px] min-w-[80px] flex-col items-center justify-center gap-1 self-start rounded-lg border-2 border-dashed border-border text-muted-foreground/50 transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-30"
+            >
+              <Plus className="h-5 w-5" />
+              <span className="text-[10px]">Ast</span>
+            </button>
+          )}
         </div>
-        <input
-          ref={titleRef}
-          value={frameworkTitle}
-          onChange={(e) => setFrameworkTitle(e.target.value)}
-          placeholder="Framework benennen (z.B. Profitability Tree, 3C, Porter's 5 Forces)"
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          disabled={isEvaluating}
-        />
       </div>
-
-      {/* Priority hint */}
-      <p className="text-xs text-muted-foreground">
-        Reihenfolge = Priorität — der wichtigste Ast steht oben.
-      </p>
-
-      {/* Branch Cards */}
-      <div className="space-y-3">
-        {branches.map((branch, i) => (
-          <FrameworkBranchCard
-            key={branch.id}
-            branch={branch}
-            index={i}
-            totalBranches={branches.length}
-            onUpdate={(updated) => updateBranch(branch.id, updated)}
-            onRemove={() => removeBranch(branch.id)}
-            onMoveUp={() => moveBranch(i, i - 1)}
-            onMoveDown={() => moveBranch(i, i + 1)}
-            disabled={isEvaluating}
-            autoFocusTitle={branch.id === lastAddedBranchId}
-          />
-        ))}
-      </div>
-
-      {/* Add Branch Button */}
-      {branches.length < MAX_BRANCHES && (
-        <button
-          type="button"
-          onClick={addBranch}
-          disabled={isEvaluating}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-3 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary disabled:opacity-40"
-        >
-          <Plus className="h-4 w-4" /> Ast hinzufügen
-        </button>
-      )}
 
       {/* Submit */}
       <div className="flex justify-center pt-2">

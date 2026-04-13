@@ -1,34 +1,46 @@
-import { FrameworkBranch, FrameworkBulletPoint, FrameworkBuilderState } from "@/types/frameworkBuilder";
+import { FrameworkNode, FrameworkBulletPoint, FrameworkBuilderState } from "@/types/frameworkBuilder";
 
 export function createEmptyBullet(): FrameworkBulletPoint {
   return { id: crypto.randomUUID(), text: "" };
 }
 
-export function createEmptyBranch(): FrameworkBranch {
+export function createEmptyNode(): FrameworkNode {
   return {
     id: crypto.randomUUID(),
     title: "",
     bulletPoints: [createEmptyBullet()],
+    children: [],
   };
 }
 
 export function serializeFramework(state: FrameworkBuilderState): string {
-  const title = state.frameworkTitle.trim() || "(kein Name)";
-  let result = `FRAMEWORK: ${title}\n`;
+  let result = "";
 
-  state.branches.forEach((branch, index) => {
-    const branchTitle = branch.title.trim() || "(kein Titel)";
-    result += `\n[Priorität ${index + 1}] ${branchTitle}\n`;
+  state.nodes.forEach((node, i) => {
+    const nodeTitle = node.title.trim() || "(kein Titel)";
+    result += `[Ast ${i + 1}] ${nodeTitle}\n`;
 
-    const nonEmptyBullets = branch.bulletPoints.filter((bp) => bp.text.trim());
-    nonEmptyBullets.forEach((bp) => {
+    const bullets = node.bulletPoints.filter((bp) => bp.text.trim());
+    bullets.forEach((bp) => {
       result += `  - ${bp.text.trim()}\n`;
     });
+
+    node.children.forEach((child, j) => {
+      const childTitle = child.title.trim() || "(kein Titel)";
+      result += `  [Unterast ${i + 1}.${j + 1}] ${childTitle}\n`;
+
+      const childBullets = child.bulletPoints.filter((bp) => bp.text.trim());
+      childBullets.forEach((bp) => {
+        result += `    - ${bp.text.trim()}\n`;
+      });
+    });
+
+    result += "\n";
   });
 
   return result.trim();
 }
 
 export function isFrameworkValid(state: FrameworkBuilderState): boolean {
-  return state.branches.some((b) => b.title.trim().length > 0);
+  return state.nodes.some((n) => n.title.trim().length > 0);
 }
