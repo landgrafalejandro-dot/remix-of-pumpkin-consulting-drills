@@ -52,11 +52,18 @@ function buildSystemPrompt(drillType: string, difficulty: string): string {
 
   const scoringAnchors =
     drillType === "frameworks" ? `
+HINWEIS ZUM ANTWORT-FORMAT:
+Die Antwort kommt in strukturiertem Format:
+- "FRAMEWORK:" Zeile = gewähltes Framework
+- "[Priorität N] Titel" = Hauptäste in Prioritätsreihenfolge
+- "  - Punkt" = Unterpunkte je Ast
+Bewerte die Struktur, MECE-Eigenschaft der Äste, Tiefe der Unterpunkte, und ob die Priorisierungsreihenfolge für das Szenario sinnvoll ist.
+
 SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
 - Framework-Wahl: Richtiges Framework klar benannt = 20-25. Passendes Framework aber nicht benannt = 12-19. Falsches/kein Framework = 0-11.
 - Struktur & MECE: 3+ MECE-Äste mit Unterpunkten = 20-25. 2-3 Äste, teilweise MECE = 12-19. Keine klare Struktur = 0-11.
 - Vollständigkeit: Alle wesentlichen Aspekte abgedeckt = 20-25. Wichtigste Punkte da, Lücken = 12-19. Nur oberflächlich = 0-11.
-- Priorisierung: Klare Priorisierung mit Begründung = 12-15. Priorisierung ohne Begründung = 6-11. Keine Priorisierung = 0-5.
+- Priorisierung: Sinnvolle Reihenfolge mit erkennbarer Logik = 12-15. Reihenfolge vorhanden aber nicht begründet = 6-11. Keine erkennbare Priorisierung = 0-5.
 - Kommunikation: Klar und prägnant = 8-10. Verständlich = 4-7. Unstrukturiert = 0-3.` :
     drillType === "charts" ? `
 SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):

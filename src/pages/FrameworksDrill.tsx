@@ -5,7 +5,7 @@ import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 import { ListTree, ArrowLeft } from "lucide-react";
 import TextDrillConfig from "@/components/textDrill/TextDrillConfig";
-import TextDrillGame from "@/components/textDrill/TextDrillGame";
+import FrameworkBuilder from "@/components/frameworkBuilder/FrameworkBuilder";
 import TextDrillResultView from "@/components/textDrill/TextDrillResult";
 import TextDrillDebrief from "@/components/textDrill/TextDrillDebrief";
 import { SprintDuration } from "@/types/drill";
@@ -47,12 +47,12 @@ const drillConfig: DrillConfig = {
     { key: "prioritization", label: "Priorisierung", max: 15 },
     { key: "communication", label: "Kommunikation", max: 10 },
   ],
-  placeholder: "Framework: Profitability Tree\n\nHauptäste:\n  1. Revenue-Seite\n     - Preis pro Einheit\n     - Absatzmenge / Kanäle\n  2. Kosten-Seite\n     - Variable Kosten (Material, Logistik)\n     - Fixkosten (Personal, Miete)\n\nPriorisierung: Kostenanalyse zuerst, da ...\n\nKey Insight: ...",
+  placeholder: "",
   structureGuide: [
-    "Framework benennen — Welches passt? (z.B. Profitability Tree, 3C, Porter's 5 Forces)",
-    "3–4 Hauptäste auflisten — MECE-Struktur mit Einrückung",
-    "Je Ast 2–3 Unterpunkte oder Analysefragen",
-    "Priorisierung — Welcher Ast ist der wichtigste Hebel und warum?",
+    "Framework oben benennen (z.B. Profitability Tree, 3C, Porter's 5 Forces)",
+    "3–5 Äste anlegen — jeder Ast = eine MECE-Dimension",
+    "Je Ast 2–3 Unterpunkte oder Analysefragen eintragen",
+    "Äste nach Priorität sortieren — wichtigster Hebel nach oben",
   ],
   sprintMode: false,
   timeReferenceMinutes: 5,
@@ -297,7 +297,7 @@ const FrameworksDrill: React.FC = () => {
       {(phase === "answering" || phase === "evaluating") && (
         <main className="flex flex-1 flex-col items-center px-4 py-8">
           <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
-            <TextDrillGame
+            <FrameworkBuilder
               config={drillConfig}
               currentCase={currentCase}
               timeRemaining={timeRemaining}
