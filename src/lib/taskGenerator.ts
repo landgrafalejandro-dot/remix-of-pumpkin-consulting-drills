@@ -124,7 +124,58 @@ const generateMultiplicationL1 = (): GenResult => {
 };
 
 const generateMultiplicationL2 = (): GenResult => {
-  const template = choice(["zweistell", "dezimal_einheit", "fast_rund"]);
+  const template = choice(["einstellig_gross", "dezimal_einheit", "fast_rund"]);
+
+  if (template === "einstellig_gross") {
+    const a = choice([6, 7, 8, 9, 12, 15]);
+    const b = choice([20, 30, 40, 50, 60, 80, 100]);
+    const answer = a * b;
+    return {
+      question: `${a} × ${b}`,
+      answer,
+      shortcut: {
+        name: "Nullen zählen",
+        description: `Kernziffern multiplizieren, Nullen anhängen.`,
+        steps: [`${bold(a)} × ${bold(b / 10)} = ${bold(a * (b / 10))}`, `× 10 → ${bold(answer)}`],
+      },
+    };
+  }
+  if (template === "dezimal_einheit") {
+    const a = choice([0.5, 1.5, 2.5, 5]);
+    const unit = choice(["Mio", "k"]);
+    const mult = unit === "Mio" ? 1_000_000 : 1000;
+    const b = choice([2, 3, 4, 5, 6, 8, 10]);
+    const answer = a * mult * b;
+    const core = a * b;
+    return {
+      question: `${String(a).replace(".", ",")} ${unit} × ${b}`,
+      answer,
+      shortcut: {
+        name: "Dezimalzahl auflösen",
+        description: `${String(a).replace(".", ",")} × ${b} rechnen, dann Einheit.`,
+        steps: [`${bold(String(a).replace(".", ","))} × ${bold(b)} = ${bold(String(core).replace(".", ","))}`, `Ergebnis: ${bold(fmtAbbrev(answer))}`],
+      },
+    };
+  }
+  // fast_rund
+  const nearRound = choice([19, 21, 49, 51, 99, 101]);
+  const round = nearRound < 50 ? Math.round(nearRound / 10) * 10 : nearRound > 90 ? 100 : 50;
+  const diff = nearRound - round;
+  const b = choice([10, 20, 50, 100]);
+  const answer = nearRound * b;
+  return {
+    question: `${nearRound} × ${b}`,
+    answer,
+    shortcut: {
+      name: "Ankertechnik",
+      description: `${nearRound} = ${round} ${diff >= 0 ? "+" : ""}${diff}`,
+      steps: [`${bold(round)} × ${bold(b)} = ${bold(round * b)}`, `${diff >= 0 ? "+" : ""}${diff} × ${bold(b)} = ${bold(diff * b)}`, `Summe: ${bold(answer)}`],
+    },
+  };
+};
+
+const generateMultiplicationL3 = (): GenResult => {
+  const template = choice(["zweistell", "dreifach", "wachstum"]);
 
   if (template === "zweistell") {
     const a = choice([12, 15, 16, 18, 22, 24, 25, 32, 35, 45]);
@@ -149,86 +200,12 @@ const generateMultiplicationL2 = (): GenResult => {
     }
     return { question: `${a} × ${b}`, answer, shortcut };
   }
-  if (template === "dezimal_einheit") {
-    const a = choice([1.5, 2.5, 3.5, 4.5, 0.5, 0.8, 1.2, 2.4]);
-    const unit = choice(["Mio", "k"]);
-    const mult = unit === "Mio" ? 1_000_000 : 1000;
-    const b = choice([3, 4, 5, 6, 8, 10, 12, 15, 20]);
-    const answer = a * mult * b;
-    const core = a * b;
-    return {
-      question: `${String(a).replace(".", ",")} ${unit} × ${b}`,
-      answer,
-      shortcut: {
-        name: "Dezimalzahl auflösen",
-        description: `${String(a).replace(".", ",")} × ${b} rechnen, dann Einheit.`,
-        steps: [`${bold(String(a).replace(".", ","))} × ${bold(b)} = ${bold(String(core).replace(".", ","))}`, `Ergebnis: ${bold(fmtAbbrev(answer))}`],
-      },
-    };
-  }
-  // fast_rund
-  const nearRound = choice([19, 21, 29, 31, 49, 51, 99, 101]);
-  const round = nearRound < 50 ? Math.round(nearRound / 10) * 10 : nearRound > 90 ? 100 : 50;
-  const diff = nearRound - round;
-  const b = choice([10, 15, 20, 25, 30, 40, 50]);
-  const answer = nearRound * b;
-  return {
-    question: `${nearRound} × ${b}`,
-    answer,
-    shortcut: {
-      name: "Ankertechnik",
-      description: `${nearRound} = ${round} ${diff >= 0 ? "+" : ""}${diff}`,
-      steps: [`${bold(round)} × ${bold(b)} = ${bold(round * b)}`, `${diff >= 0 ? "+" : ""}${diff} × ${bold(b)} = ${bold(diff * b)}`, `Summe: ${bold(answer)}`],
-    },
-  };
-};
-
-const generateMultiplicationL3 = (): GenResult => {
-  const template = choice(["dreistellig", "dezimal_dezimal", "dreifach", "wachstum"]);
-
-  if (template === "dreistellig") {
-    const a = randInt(11, 49) * 10 + randInt(1, 9); // 111-499, no trailing zero
-    const b = randInt(12, 89);
-    const answer = a * b;
-    const aH = Math.floor(a / 100) * 100;
-    const aRest = a - aH;
-    return {
-      question: `${formatNumber(a)} × ${b}`,
-      answer,
-      shortcut: {
-        name: "Schriftliches Multiplizieren",
-        description: `Zerlege ${a} in ${aH} + ${aRest}`,
-        steps: [`${bold(aH)} × ${bold(b)} = ${bold(formatNumber(aH * b))}`, `${bold(aRest)} × ${bold(b)} = ${bold(formatNumber(aRest * b))}`, `Summe: ${bold(formatNumber(answer))}`],
-      },
-    };
-  }
-  if (template === "dezimal_dezimal") {
-    const a = choice([1.2, 1.5, 1.8, 2.3, 2.5, 3.5, 4.5]);
-    const b = choice([0.8, 1.5, 2.5, 3.5, 4.5, 5.5]);
-    const unit = choice(["Mio", "k"]);
-    const mult = unit === "Mio" ? 1_000_000 : 1000;
-    const answer = Math.round(a * b * mult * 100) / 100;
-    const core = Math.round(a * b * 100) / 100;
-    return {
-      question: `${String(a).replace(".", ",")} ${unit} × ${String(b).replace(".", ",")}`,
-      answer,
-      shortcut: {
-        name: "Faktorzerlegung",
-        description: "Ganze und Dezimalteile separat rechnen.",
-        steps: [
-          `${bold(Math.floor(a))} × ${bold(String(b).replace(".", ","))} = ${bold(String(Math.round(Math.floor(a) * b * 100) / 100).replace(".", ","))}`,
-          `${bold(String(a - Math.floor(a)).replace(".", ","))} × ${bold(String(b).replace(".", ","))} = ${bold(String(Math.round((a - Math.floor(a)) * b * 100) / 100).replace(".", ","))}`,
-          `Ergebnis: ${bold(fmtAbbrev(answer))}`,
-        ],
-      },
-    };
-  }
   if (template === "dreifach") {
-    const a = choice([100, 150, 200, 250, 300, 400, 500]);
+    const a = choice([100, 200, 500, 1000]);
     const unitA = choice(["k", ""]);
     const multA = unitA === "k" ? 1000 : 1;
-    const b = choice([8, 10, 12, 15, 20, 25]);
-    const c = choice([0.4, 0.5, 0.6, 0.8, 1.2, 1.5]);
+    const b = choice([5, 10, 15, 20, 25]);
+    const c = choice([0.5, 1, 2]);
     const answer = Math.round(a * multA * b * c * 100) / 100;
     const step1 = a * multA * b;
     return {
@@ -242,9 +219,9 @@ const generateMultiplicationL3 = (): GenResult => {
     };
   }
   // wachstum
-  const factor = choice([1.08, 1.10, 1.12, 1.15, 1.18, 1.20, 1.25]);
+  const factor = choice([1.10, 1.20, 1.25, 1.50]);
   const pct = Math.round((factor - 1) * 100);
-  const base = choice([80, 120, 150, 200, 250, 350, 450, 500]);
+  const base = choice([100, 200, 500, 1000]);
   const unit = choice(["Mio", "k"]);
   const mult = unit === "Mio" ? 1_000_000 : 1000;
   const answer = Math.round(factor * base * mult * 100) / 100;
@@ -287,8 +264,8 @@ const generatePercentageL2 = (): GenResult => {
   const template = choice(["zusammengesetzt", "drittel", "business"]);
 
   if (template === "zusammengesetzt") {
-    const pct = choice([5, 15, 30, 35, 40, 60, 75]);
-    const base = choice([120, 180, 240, 360, 450, 600, 800, 1200]);
+    const pct = choice([5, 15, 20, 30, 50, 75]);
+    const base = choice([100, 200, 400, 500, 600, 800, 1000]);
     const unit = choice(["k", "Mio"]);
     const mult = unit === "k" ? 1000 : 1_000_000;
     const answer = (pct / 100) * base * mult;
@@ -325,8 +302,8 @@ const generatePercentageL2 = (): GenResult => {
     };
   }
   // business
-  const pct = choice([8, 12, 15, 18, 22]);
-  const base = choice([500, 800, 1200, 1500, 2400]);
+  const pct = choice([5, 10, 15, 20, 25]);
+  const base = choice([200, 400, 500, 800, 1000]);
   const unit = choice(["k", "Mio"]);
   const mult = unit === "k" ? 1000 : 1_000_000;
   const answer = (pct / 100) * base * mult;
@@ -346,30 +323,26 @@ const generatePercentageL2 = (): GenResult => {
 };
 
 const generatePercentageL3 = (): GenResult => {
-  const template = choice(["unrund", "umkehr", "veraenderung"]);
+  const template = choice(["business_hard", "umkehr", "veraenderung"]);
 
-  if (template === "unrund") {
-    const pctOptions: { pct: number; hint: string }[] = [
-      { pct: 12.5, hint: "12,5% = ⅛" }, { pct: 37.5, hint: "37,5% = ⅜" },
-      { pct: 7, hint: "7% = 10% - 3%" }, { pct: 17, hint: "17% = 10% + 5% + 2%" },
-      { pct: 42, hint: "42% = 40% + 2%" }, { pct: 65, hint: "65% = 50% + 15%" },
-      { pct: 83, hint: "83% = 80% + 3%" },
-    ];
-    const pick = choice(pctOptions);
-    const base = choice([148, 234, 348, 520, 640, 780, 960]);
+  if (template === "business_hard") {
+    const pct = choice([8, 12, 15, 18, 22]);
+    const base = choice([500, 800, 1200, 1500]);
     const unit = choice(["k", "Mio"]);
     const mult = unit === "k" ? 1000 : 1_000_000;
-    const answer = Math.round((pick.pct / 100) * base * mult * 100) / 100;
-    const isFraction = pick.pct === 12.5 || pick.pct === 37.5;
+    const answer = (pct / 100) * base * mult;
+    const ten = (base * mult) / 10;
+    const decomp: string[] = [];
+    let remainder = pct;
+    if (remainder >= 10) { decomp.push(`10% = ${bold(fmtAbbrev(ten))}`); remainder -= 10; }
+    if (remainder >= 10) { decomp.push(`10% = ${bold(fmtAbbrev(ten))}`); remainder -= 10; }
+    if (remainder >= 5) { decomp.push(`5% = ${bold(fmtAbbrev(ten / 2))}`); remainder -= 5; }
+    if (remainder >= 2) { decomp.push(`${remainder}% = ${bold(fmtAbbrev((remainder / 100) * base * mult))}`); }
+    decomp.push(`Summe: ${bold(fmtAbbrev(answer))}`);
     return {
-      question: `${String(pick.pct).replace(".", ",")}% von ${fmtRand(base * mult)}`,
+      question: `${pct}% von ${fmtRand(base * mult)}`,
       answer,
-      tolerance: Math.abs(answer) * 0.03,
-      shortcut: {
-        name: isFraction ? "Bruch-Trick" : "Block-Zerlegung",
-        description: pick.hint,
-        steps: [`Basis: ${bold(fmtAbbrev(base * mult))}`, `${pick.hint}`, `Ergebnis: ≈ ${bold(fmtAbbrev(answer))}`],
-      },
+      shortcut: { name: "Block-Zerlegung", description: `${pct}% in 10%/5%/1%-Bausteine zerlegen.`, steps: decomp },
     };
   }
   if (template === "umkehr") {
@@ -460,8 +433,8 @@ const generateDivisionL2 = (): GenResult => {
   const template = choice(["zweistellig", "cross_unit", "kuerzen"]);
 
   if (template === "zweistellig") {
-    const divisor = choice([12, 15, 16, 18, 24, 25, 35, 45, 55, 75]);
-    const result = choice([10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 200, 500]);
+    const divisor = choice([4, 5, 6, 8, 10, 12, 15, 20, 25]);
+    const result = choice([5, 10, 15, 20, 25, 50, 100]);
     const dividend = divisor * result;
     const unit = dividend >= 10000 ? choice(["k", ""]) : "";
     const mult = unit === "k" ? 1000 : 1;
@@ -483,8 +456,8 @@ const generateDivisionL2 = (): GenResult => {
   }
   if (template === "cross_unit") {
     // Mrd ÷ k = Mio or Mio ÷ k = units
-    const coreResult = choice([2, 3, 4, 5, 6, 8, 10]);
-    const divisorCore = choice([2, 3, 4, 5, 6, 8]);
+    const coreResult = choice([2, 3, 4, 5, 10]);
+    const divisorCore = choice([2, 3, 4, 5]);
     const dividendCore = coreResult * divisorCore;
     const isLarge = Math.random() > 0.5;
     if (isLarge) {
@@ -503,37 +476,34 @@ const generateDivisionL2 = (): GenResult => {
     };
   }
   // kuerzen
-  const gcd = choice([3, 5, 7, 9]);
+  const gcd = choice([2, 3, 5]);
   const reducedA = choice([6, 8, 10, 12, 14, 15, 16, 18, 20]);
   const reducedB = choice([2, 3, 4, 5]);
   const dividend = reducedA * gcd;
   const divisor = reducedB * gcd;
   const result = reducedA / reducedB;
   if (result !== Math.floor(result)) return generateDivisionL2(); // retry for clean
-  const scale = choice([1, 10, 100, 1000]);
   return {
-    question: `${fmtRand(dividend * scale)} ÷ ${divisor}`,
-    answer: result * scale,
+    question: `${formatNumber(dividend)} ÷ ${divisor}`,
+    answer: result,
     shortcut: {
       name: "Gemeinsam kürzen",
       description: `Beide durch ${gcd} teilen.`,
-      steps: [`${bold(dividend)} ÷ ${bold(gcd)} = ${bold(reducedA)}`, `${bold(divisor)} ÷ ${bold(gcd)} = ${bold(reducedB)}`, `${bold(reducedA)} ÷ ${bold(reducedB)} = ${bold(result)}`, ...(scale > 1 ? [`Ergebnis: ${bold(fmtAbbrev(result * scale))}`] : [])],
+      steps: [`${bold(dividend)} ÷ ${bold(gcd)} = ${bold(reducedA)}`, `${bold(divisor)} ÷ ${bold(gcd)} = ${bold(reducedB)}`, `${bold(reducedA)} ÷ ${bold(reducedB)} = ${bold(result)}`],
     },
   };
 };
 
 const generateDivisionL3 = (): GenResult => {
-  const template = choice(["dezimal", "complex_unit", "remainder"]);
+  const template = choice(["dezimal", "complex_unit", "zweistellig"]);
 
   if (template === "dezimal") {
     const decimals: { d: number; reciprocal: string; mult: number }[] = [
-      { d: 0.04, reciprocal: "×25", mult: 25 },
       { d: 0.05, reciprocal: "×20", mult: 20 },
-      { d: 0.08, reciprocal: "×12,5", mult: 12.5 },
-      { d: 0.12, reciprocal: "×8,33", mult: 1 / 0.12 },
-      { d: 0.15, reciprocal: "×6,67", mult: 1 / 0.15 },
+      { d: 0.1, reciprocal: "×10", mult: 10 },
+      { d: 0.2, reciprocal: "×5", mult: 5 },
       { d: 0.25, reciprocal: "×4", mult: 4 },
-      { d: 0.35, reciprocal: "×2,86", mult: 1 / 0.35 },
+      { d: 0.5, reciprocal: "×2", mult: 2 },
     ];
     const pick = choice(decimals);
     // Generate dividend so result is clean
@@ -553,7 +523,7 @@ const generateDivisionL3 = (): GenResult => {
   if (template === "complex_unit") {
     // e.g., "3,6 Mrd ÷ 450k = 8.000"
     const result = choice([4, 5, 6, 8, 10, 12, 15, 20]);
-    const divisorK = choice([150, 200, 250, 300, 400, 450, 500, 600, 750, 800]);
+    const divisorK = choice([100, 200, 250, 500, 1000]);
     const dividendMrd = (result * divisorK * 1000) / 1_000_000_000;
     const answer = result * 1000; // result in absolute
     // Format dividend nicely
@@ -574,20 +544,26 @@ const generateDivisionL3 = (): GenResult => {
       },
     };
   }
-  // remainder — division with non-integer result
-  const dividend = choice([100, 150, 200, 250, 300, 350, 400, 500, 700, 800]);
-  const divisor = choice([3, 6, 7, 9, 11, 12, 13, 14]);
-  const answer = Math.round((dividend / divisor) * 100) / 100;
-  const approx = Math.round(answer * 10) / 10;
+  // zweistellig — two-digit divisors with tricks
+  const divisor = choice([12, 15, 16, 18, 24, 25, 35, 45]);
+  const result = choice([10, 15, 20, 25, 30, 40, 50, 100]);
+  const dividend = divisor * result;
+  const unit = dividend >= 10000 ? choice(["k", ""]) : "";
+  const mult = unit === "k" ? 1000 : 1;
+  const displayDividend = dividend * mult;
+  const displayResult = result * mult;
+  let trickSteps: string[];
+  if (divisor === 25) {
+    trickSteps = [`÷ 25 = ÷ 100 × 4`, `${bold(fmtAbbrev(displayDividend))} ÷ 100 = ${bold(fmtAbbrev(displayDividend / 100))}`, `× 4 = ${bold(fmtAbbrev(displayResult))}`];
+  } else if (divisor === 15) {
+    trickSteps = [`÷ 15 = ÷ 3 ÷ 5`, `${bold(fmtAbbrev(displayDividend))} ÷ 3 = ${bold(fmtAbbrev(displayDividend / 3))}`, `÷ 5 = ${bold(fmtAbbrev(displayResult))}`];
+  } else {
+    trickSteps = [`${bold(fmtAbbrev(displayDividend))} ÷ ${bold(divisor)} = ${bold(fmtAbbrev(displayResult))}`];
+  }
   return {
-    question: `${formatNumber(dividend)} ÷ ${divisor}`,
-    answer,
-    tolerance: Math.abs(answer) * 0.02,
-    shortcut: {
-      name: "Annäherung",
-      description: "Nächste teilbare Zahl finden, dann korrigieren.",
-      steps: [`${bold(dividend)} ÷ ${bold(divisor)} ≈ ${bold(String(approx).replace(".", ","))}`],
-    },
+    question: `${fmtRand(displayDividend)} ÷ ${divisor}`,
+    answer: displayResult,
+    shortcut: { name: "Faktorzerlegung", description: `Teiler ${divisor} in einfachere Faktoren zerlegen.`, steps: trickSteps },
   };
 };
 
@@ -673,8 +649,8 @@ const generateZerosL2 = (): GenResult => {
     };
   }
   // dezimal_unit
-  const a = choice([1.2, 1.5, 1.8, 2.4, 3.5, 4.5, 6.5, 7.5]);
-  const divisorK = choice([200, 300, 400, 500, 600, 750, 800]);
+  const a = choice([1, 1.5, 2, 2.5, 3, 5]);
+  const divisorK = choice([200, 250, 500, 1000]);
   // a Mrd ÷ divisorK k
   const dividend = a * 1_000_000_000;
   const divisorFull = divisorK * 1000;
@@ -695,10 +671,10 @@ const generateZerosL3 = (): GenResult => {
   const template = choice(["multi_op", "unit_convert"]);
 
   if (template === "multi_op") {
-    const a = choice([1.2, 1.5, 1.8, 2.4, 3.5]);
+    const a = choice([1, 1.5, 2, 2.5, 5]);
     const unitA = "Mio";
-    const b = choice([4, 5, 6, 8, 10, 12, 15]);
-    const c = choice([0.4, 0.5, 0.6, 0.8, 1.2, 1.5]);
+    const b = choice([4, 5, 8, 10]);
+    const c = choice([0.5, 1, 2]);
     const answer = Math.round(a * 1_000_000 * b * c * 100) / 100;
     const step1 = a * 1_000_000 * b;
     return {
@@ -712,8 +688,8 @@ const generateZerosL3 = (): GenResult => {
     };
   }
   // unit_convert: Mio × large number = Mrd
-  const a = choice([1.2, 1.5, 1.8, 2.4, 3.6]);
-  const b = choice([400, 600, 800, 1000, 1200, 1500, 2000]);
+  const a = choice([1, 1.5, 2, 2.5, 5]);
+  const b = choice([200, 400, 500, 1000]);
   const answer = a * 1_000_000 * b;
   const answerMrd = answer / 1_000_000_000;
   return {
