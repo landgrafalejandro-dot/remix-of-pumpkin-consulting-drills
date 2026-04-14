@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Lokale Session-Notizen (nur auf meiner Platte, nicht auf GitHub)
+AENDERUNGEN_*.md
