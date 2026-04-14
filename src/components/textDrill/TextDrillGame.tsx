@@ -6,6 +6,7 @@ import { AudioRecorder } from "@/components/ui/AudioRecorder";
 import { X, Send, Info, ChevronDown, ChevronUp, Award } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
@@ -62,6 +63,118 @@ const ChartRenderer: React.FC<{ chartData: any; chartType: string; chartTitle?: 
             <Tooltip />
             <Legend />
           </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  if (chartType === "scatter") {
+    // Format convention: labels[] = point names, datasets[0].data[] = x values, datasets[1].data[] = y values
+    if (datasets.length < 2) return null;
+    const xDs = datasets[0];
+    const yDs = datasets[1];
+    const scatterData = labels.map((label, i) => ({
+      name: label,
+      x: xDs.data[i] ?? 0,
+      y: yDs.data[i] ?? 0,
+    }));
+
+    return (
+      <div className="flex flex-col items-center gap-2">
+        {chartTitle && <h4 className="text-sm font-semibold text-foreground">{chartTitle}</h4>}
+        <ResponsiveContainer width="100%" height={300}>
+          <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              type="number"
+              dataKey="x"
+              name={xDs.label}
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              label={{ value: xDs.label, position: "insideBottom", offset: -8, fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+            />
+            <YAxis
+              type="number"
+              dataKey="y"
+              name={yDs.label}
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={12}
+              label={{ value: yDs.label, angle: -90, position: "insideLeft", fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+            />
+            <Tooltip
+              cursor={{ strokeDasharray: "3 3" }}
+              content={({ active, payload }) => {
+                if (!active || !payload || !payload.length) return null;
+                const p = payload[0].payload;
+                return (
+                  <div className="rounded-lg border border-border bg-card p-2 text-xs">
+                    <div className="font-medium text-foreground">{p.name}</div>
+                    <div className="text-muted-foreground">{xDs.label}: {p.x}</div>
+                    <div className="text-muted-foreground">{yDs.label}: {p.y}</div>
+                  </div>
+                );
+              }}
+            />
+            <Scatter data={scatterData} fill={xDs.color || CHART_COLORS[0]} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  if (chartType === "waterfall") {
+    // Format convention: first and last values are absolute totals, middle are signed deltas.
+    // Rendering: invisible `base` bar stacked with visible `delta` bar.
+    const ds = datasets[0];
+    if (!ds) return null;
+    const values = ds.data;
+    const n = values.length;
+    let running = 0;
+    const waterfallData = values.map((v, i) => {
+      const isTotal = i === 0 || i === n - 1;
+      if (isTotal) {
+        running = v;
+        return { name: labels[i] ?? `#${i + 1}`, base: 0, delta: v, color: "#3b82f6" };
+      }
+      if (v >= 0) {
+        const base = running;
+        running += v;
+        return { name: labels[i] ?? `#${i + 1}`, base, delta: v, color: "#10b981" };
+      }
+      const base = running + v;
+      running += v;
+      return { name: labels[i] ?? `#${i + 1}`, base, delta: -v, color: "#ef4444" };
+    });
+
+    return (
+      <div className="flex flex-col items-center gap-2">
+        {chartTitle && <h4 className="text-sm font-semibold text-foreground">{chartTitle}</h4>}
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={waterfallData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload || !payload.length) return null;
+                const deltaItem = payload.find((p: any) => p.dataKey === "delta");
+                const entry = deltaItem?.payload as { delta: number; color: string } | undefined;
+                if (!entry) return null;
+                return (
+                  <div className="rounded-lg border border-border bg-card p-2 text-xs">
+                    <div className="font-medium text-foreground">{label}</div>
+                    <div style={{ color: entry.color }}>{entry.delta}</div>
+                  </div>
+                );
+              }}
+            />
+            <Bar dataKey="base" stackId="a" fill="transparent" />
+            <Bar dataKey="delta" stackId="a" radius={[4, 4, 0, 0]}>
+              {waterfallData.map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     );
