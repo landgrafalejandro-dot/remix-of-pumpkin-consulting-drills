@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
@@ -19,7 +19,7 @@ interface MarketSizingGameProps {
 
 const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
-const MAX_DEPTH = 5;
+const MAX_DEPTH = 3;
 
 function updateNodeInTree(
   nodes: FrameworkNode[],
@@ -52,6 +52,49 @@ const NODE_COLORS = [
   "border-t-cyan-500",
 ];
 
+/* ─── Tree connector lines ─── */
+
+const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
+  children,
+  childCount,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!containerRef.current || !barRef.current || childCount <= 1) return;
+    const container = containerRef.current;
+    const cols = container.querySelectorAll<HTMLElement>("[data-child-col]");
+    if (cols.length < 2) return;
+    const first = cols[0];
+    const last = cols[cols.length - 1];
+    const rect = container.getBoundingClientRect();
+    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - rect.left;
+    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - rect.left;
+    barRef.current.style.left = `${firstCenter}px`;
+    barRef.current.style.width = `${lastCenter - firstCenter}px`;
+  });
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="w-px h-5 bg-border" />
+      <div ref={containerRef} className="relative flex gap-3 pt-5">
+        {childCount > 1 && (
+          <div ref={barRef} className="absolute top-0 h-px bg-border" style={{ left: 0, width: 0 }} />
+        )}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div data-child-col className="flex flex-col items-center">
+    <div className="w-px h-5 bg-border" />
+    {children}
+  </div>
+);
+
 /* ─── Recursive Tree Branch ─── */
 
 interface TreeBranchProps {
@@ -78,7 +121,7 @@ const TreeBranch: React.FC<TreeBranchProps> = ({
   const canAddChild = node.children.length < MAX_CHILDREN && depth < MAX_DEPTH;
 
   return (
-    <div className="flex flex-col items-start">
+    <div className="flex flex-col items-center">
       <FrameworkNodeCard
         node={node}
         colorClass={colorClass}
@@ -98,21 +141,22 @@ const TreeBranch: React.FC<TreeBranchProps> = ({
         </button>
       )}
       {node.children.length > 0 && (
-        <div className="ml-6 mt-3 flex flex-col gap-3 border-l-2 border-border pl-5">
+        <ChildrenConnector childCount={node.children.length}>
           {node.children.map((child) => (
-            <TreeBranch
-              key={child.id}
-              node={child}
-              colorClass={colorClass}
-              depth={depth + 1}
-              isEvaluating={isEvaluating}
-              lastAddedId={lastAddedId}
-              onUpdate={onUpdate}
-              onRemove={onRemove}
-              onAddChild={onAddChild}
-            />
+            <ChildColumn key={child.id}>
+              <TreeBranch
+                node={child}
+                colorClass={colorClass}
+                depth={depth + 1}
+                isEvaluating={isEvaluating}
+                lastAddedId={lastAddedId}
+                onUpdate={onUpdate}
+                onRemove={onRemove}
+                onAddChild={onAddChild}
+              />
+            </ChildColumn>
           ))}
-        </div>
+        </ChildrenConnector>
       )}
     </div>
   );
@@ -284,7 +328,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       {/* ── Issue Tree ── */}
       <label className="text-sm font-medium text-foreground">Deine Struktur</label>
       <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
-        <div className="flex flex-col items-start gap-6">
+        <div className="flex items-start justify-center gap-6 min-w-max">
           {nodes.map((node, i) => (
             <TreeBranch
               key={node.id}
