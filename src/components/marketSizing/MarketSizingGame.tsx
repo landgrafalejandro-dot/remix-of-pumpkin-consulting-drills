@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
@@ -19,6 +19,29 @@ interface MarketSizingGameProps {
 
 const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
+const MAX_DEPTH = 5;
+
+function updateNodeInTree(
+  nodes: FrameworkNode[],
+  targetId: string,
+  updater: (n: FrameworkNode) => FrameworkNode
+): FrameworkNode[] {
+  return nodes.map((n) => {
+    if (n.id === targetId) return updater(n);
+    if (n.children.length > 0) {
+      return { ...n, children: updateNodeInTree(n.children, targetId, updater) };
+    }
+    return n;
+  });
+}
+
+function removeNodeFromTree(nodes: FrameworkNode[], targetId: string): FrameworkNode[] {
+  return nodes
+    .filter((n) => n.id !== targetId)
+    .map((n) =>
+      n.children.length > 0 ? { ...n, children: removeNodeFromTree(n.children, targetId) } : n
+    );
+}
 
 const NODE_COLORS = [
   "border-t-amber-500",
@@ -29,48 +52,71 @@ const NODE_COLORS = [
   "border-t-cyan-500",
 ];
 
-/* ─── Tree connector lines ─── */
+/* ─── Recursive Tree Branch ─── */
 
-const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
-  children,
-  childCount,
+interface TreeBranchProps {
+  node: FrameworkNode;
+  colorClass: string;
+  depth: number;
+  isEvaluating: boolean;
+  lastAddedId: string | null;
+  onUpdate: (id: string, updated: FrameworkNode) => void;
+  onRemove: (id: string) => void;
+  onAddChild: (parentId: string) => void;
+}
+
+const TreeBranch: React.FC<TreeBranchProps> = ({
+  node,
+  colorClass,
+  depth,
+  isEvaluating,
+  lastAddedId,
+  onUpdate,
+  onRemove,
+  onAddChild,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (!containerRef.current || !barRef.current || childCount <= 1) return;
-    const container = containerRef.current;
-    const cols = container.querySelectorAll<HTMLElement>("[data-child-col]");
-    if (cols.length < 2) return;
-    const first = cols[0];
-    const last = cols[cols.length - 1];
-    const rect = container.getBoundingClientRect();
-    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - rect.left;
-    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - rect.left;
-    barRef.current.style.left = `${firstCenter}px`;
-    barRef.current.style.width = `${lastCenter - firstCenter}px`;
-  });
+  const canAddChild = node.children.length < MAX_CHILDREN && depth < MAX_DEPTH;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-px h-5 bg-border" />
-      <div ref={containerRef} className="relative flex gap-3 pt-5">
-        {childCount > 1 && (
-          <div ref={barRef} className="absolute top-0 h-px bg-border" style={{ left: 0, width: 0 }} />
-        )}
-        {children}
-      </div>
+    <div className="flex flex-col items-start">
+      <FrameworkNodeCard
+        node={node}
+        colorClass={colorClass}
+        onUpdate={(updated) => onUpdate(node.id, updated)}
+        onRemove={() => onRemove(node.id)}
+        disabled={isEvaluating}
+        autoFocusTitle={node.id === lastAddedId}
+      />
+      {canAddChild && (
+        <button
+          type="button"
+          onClick={() => onAddChild(node.id)}
+          disabled={isEvaluating}
+          className="mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-primary disabled:opacity-30"
+        >
+          <Plus className="h-3 w-3" /> Unterast
+        </button>
+      )}
+      {node.children.length > 0 && (
+        <div className="ml-6 mt-3 flex flex-col gap-3 border-l-2 border-border pl-5">
+          {node.children.map((child) => (
+            <TreeBranch
+              key={child.id}
+              node={child}
+              colorClass={colorClass}
+              depth={depth + 1}
+              isEvaluating={isEvaluating}
+              lastAddedId={lastAddedId}
+              onUpdate={onUpdate}
+              onRemove={onRemove}
+              onAddChild={onAddChild}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
-
-const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div data-child-col className="flex flex-col items-center">
-    <div className="w-px h-5 bg-border" />
-    {children}
-  </div>
-);
 
 /* ─── Main Component ─── */
 
@@ -102,16 +148,16 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
     }
   }, [currentCase?.id]);
 
-  /* ── Tree helpers ── */
+  /* ── Tree helpers (recursive, work at any depth) ── */
 
   const updateNode = useCallback((nodeId: string, updated: FrameworkNode) => {
-    setNodes((prev) => prev.map((n) => (n.id === nodeId ? updated : n)));
+    setNodes((prev) => updateNodeInTree(prev, nodeId, () => updated));
   }, []);
 
   const removeNode = useCallback((nodeId: string) => {
     setNodes((prev) => {
-      const filtered = prev.filter((n) => n.id !== nodeId);
-      return filtered.length === 0 ? [createEmptyNode()] : filtered;
+      const result = removeNodeFromTree(prev, nodeId);
+      return result.length === 0 ? [createEmptyNode()] : result;
     });
   }, []);
 
@@ -122,33 +168,15 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
     setLastAddedId(n.id);
   }, [nodes.length]);
 
-  const updateChildNode = useCallback((parentId: string, childId: string, updated: FrameworkNode) => {
-    setNodes((prev) =>
-      prev.map((n) => {
-        if (n.id !== parentId) return n;
-        return { ...n, children: n.children.map((c) => (c.id === childId ? updated : c)) };
-      })
-    );
-  }, []);
-
   const addChildNode = useCallback((parentId: string) => {
     const child = createEmptyNode();
     setNodes((prev) =>
-      prev.map((n) => {
-        if (n.id !== parentId || n.children.length >= MAX_CHILDREN) return n;
-        return { ...n, children: [...n.children, child] };
+      updateNodeInTree(prev, parentId, (parent) => {
+        if (parent.children.length >= MAX_CHILDREN) return parent;
+        return { ...parent, children: [...parent.children, child] };
       })
     );
     setLastAddedId(child.id);
-  }, []);
-
-  const removeChildNode = useCallback((parentId: string, childId: string) => {
-    setNodes((prev) =>
-      prev.map((n) => {
-        if (n.id !== parentId) return n;
-        return { ...n, children: n.children.filter((c) => c.id !== childId) };
-      })
-    );
   }, []);
 
   /* ── Submit ── */
@@ -256,48 +284,20 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       {/* ── Issue Tree ── */}
       <label className="text-sm font-medium text-foreground">Deine Struktur</label>
       <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
-        <div className="inline-flex items-start gap-6 min-w-min">
-          {nodes.map((node, i) => {
-            const color = NODE_COLORS[i % NODE_COLORS.length];
-            return (
-              <div key={node.id} className="flex flex-col items-center">
-                <FrameworkNodeCard
-                  node={node}
-                  colorClass={color}
-                  onUpdate={(updated) => updateNode(node.id, updated)}
-                  onRemove={() => removeNode(node.id)}
-                  disabled={isEvaluating}
-                  autoFocusTitle={node.id === lastAddedId}
-                />
-                {node.children.length < MAX_CHILDREN && (
-                  <button
-                    type="button"
-                    onClick={() => addChildNode(node.id)}
-                    disabled={isEvaluating}
-                    className="mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-primary disabled:opacity-30"
-                  >
-                    <Plus className="h-3 w-3" /> Unterast
-                  </button>
-                )}
-                {node.children.length > 0 && (
-                  <ChildrenConnector childCount={node.children.length}>
-                    {node.children.map((child) => (
-                      <ChildColumn key={child.id}>
-                        <FrameworkNodeCard
-                          node={child}
-                          colorClass={color}
-                          onUpdate={(updated) => updateChildNode(node.id, child.id, updated)}
-                          onRemove={() => removeChildNode(node.id, child.id)}
-                          disabled={isEvaluating}
-                          autoFocusTitle={child.id === lastAddedId}
-                        />
-                      </ChildColumn>
-                    ))}
-                  </ChildrenConnector>
-                )}
-              </div>
-            );
-          })}
+        <div className="flex flex-col items-start gap-6">
+          {nodes.map((node, i) => (
+            <TreeBranch
+              key={node.id}
+              node={node}
+              colorClass={NODE_COLORS[i % NODE_COLORS.length]}
+              depth={1}
+              isEvaluating={isEvaluating}
+              lastAddedId={lastAddedId}
+              onUpdate={updateNode}
+              onRemove={removeNode}
+              onAddChild={addChildNode}
+            />
+          ))}
           {nodes.length < MAX_TOP_LEVEL && (
             <button
               type="button"

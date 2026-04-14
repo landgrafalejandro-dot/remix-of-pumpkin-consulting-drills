@@ -52,7 +52,7 @@ HINWEIS ZUM ANTWORT-FORMAT:
 Die Antwort kommt in strukturiertem Format:
 - "STRUKTUR:" gefolgt von einem hierarchischen Issue Tree
   - "[Ast N] Titel" = Hauptschritte der Rechnung
-  - "  [Unterast N.M] Titel" = Detailschritte
+  - "  [Unterast N.M] Titel" = Detailschritte (kann beliebig tief verschachtelt sein, z.B. [Unterast N.M.O.P])
   - "  - Punkt" = Annahmen und Zwischenergebnisse
 - "METHODE:" = Kurze Erklärung des gewählten Ansatzes
 - "SANITY CHECK:" = Plausibilitätsprüfung

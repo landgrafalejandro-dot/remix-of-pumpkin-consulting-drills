@@ -252,7 +252,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
 
       {/* ── Horizontal Tree ── */}
       <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
-        <div className="inline-flex items-start gap-6 min-w-min">
+        <div className="flex items-start justify-center gap-6 min-w-max">
           {nodes.map((node, i) => {
             const color = NODE_COLORS[i % NODE_COLORS.length];
             return (

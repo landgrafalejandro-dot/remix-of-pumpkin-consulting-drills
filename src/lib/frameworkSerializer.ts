@@ -13,28 +13,29 @@ export function createEmptyNode(): FrameworkNode {
   };
 }
 
+function serializeNode(node: FrameworkNode, path: string, depth: number): string {
+  const indent = "  ".repeat(depth);
+  const label = depth === 0 ? "Ast" : "Unterast";
+  const nodeTitle = node.title.trim() || "(kein Titel)";
+  let result = `${indent}[${label} ${path}] ${nodeTitle}\n`;
+
+  const bullets = node.bulletPoints.filter((bp) => bp.text.trim());
+  bullets.forEach((bp) => {
+    result += `${indent}  - ${bp.text.trim()}\n`;
+  });
+
+  node.children.forEach((child, j) => {
+    result += serializeNode(child, `${path}.${j + 1}`, depth + 1);
+  });
+
+  return result;
+}
+
 export function serializeFramework(state: FrameworkBuilderState): string {
   let result = "";
 
   state.nodes.forEach((node, i) => {
-    const nodeTitle = node.title.trim() || "(kein Titel)";
-    result += `[Ast ${i + 1}] ${nodeTitle}\n`;
-
-    const bullets = node.bulletPoints.filter((bp) => bp.text.trim());
-    bullets.forEach((bp) => {
-      result += `  - ${bp.text.trim()}\n`;
-    });
-
-    node.children.forEach((child, j) => {
-      const childTitle = child.title.trim() || "(kein Titel)";
-      result += `  [Unterast ${i + 1}.${j + 1}] ${childTitle}\n`;
-
-      const childBullets = child.bulletPoints.filter((bp) => bp.text.trim());
-      childBullets.forEach((bp) => {
-        result += `    - ${bp.text.trim()}\n`;
-      });
-    });
-
+    result += serializeNode(node, String(i + 1), 0);
     result += "\n";
   });
 
