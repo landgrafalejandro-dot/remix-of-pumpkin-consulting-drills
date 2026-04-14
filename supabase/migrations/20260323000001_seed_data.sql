@@ -281,26 +281,26 @@ VALUES
 INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, recommended_framework, reference_solution, active)
 VALUES
   ('easy', 'profitability',
-   'Ein mittelständischer Online-Händler hat in den letzten 2 Quartalen sinkende Gewinne trotz steigendem Umsatz. Der CEO bittet dich um eine strukturierte Analyse der Ursachen.',
-   'Umsatzwachstum: +12% YoY, Gewinnmarge gesunken von 8% auf 3%, 500 Mitarbeiter, B2C-Segment',
+   'Ein mittelständischer Online-Händler verzeichnet sinkende Gewinne trotz steigendem Umsatz. Strukturiere die Analyse der Ursachen.',
+   'B2C-Segment, Gewinnmarge deutlich rückläufig',
    'Profitability Framework',
    NULL, true),
 
   ('easy', 'profitability',
-   'Eine Restaurantkette mit 20 Standorten in Deutschland verzeichnet seit 6 Monaten rückläufige Gewinne. Analysiere die möglichen Ursachen.',
-   'Umsatz pro Standort: ca. 800.000 €/Jahr, Personalkosten gestiegen um 15%, Lebensmittelkosten +20%',
+   'Eine Restaurantkette in Deutschland verzeichnet seit einigen Monaten rückläufige Gewinne. Analysiere die möglichen Ursachen.',
+   'Personalkosten und Lebensmittelkosten gestiegen',
    'Profitability Framework',
    NULL, true),
 
   ('easy', 'growth',
-   'Ein erfolgreiches Café in München möchte expandieren. Der Inhaber fragt dich, wie er den Umsatz verdoppeln kann. Strukturiere deinen Ansatz.',
-   'Aktueller Jahresumsatz: 400.000 €, 1 Standort, hohe Kundenzufriedenheit, volle Auslastung zu Stoßzeiten',
+   'Ein erfolgreiches Café in München möchte expandieren und den Umsatz deutlich steigern. Strukturiere deinen Ansatz.',
+   'Einzelstandort, hohe Kundenzufriedenheit, volle Auslastung zu Stoßzeiten',
    'Growth Strategy Framework (Ansoff-Matrix)',
    NULL, true),
 
   ('easy', 'operations',
-   'Ein Logistikunternehmen hat eine Lieferpünktlichkeit von nur 78%. Der Branchendurchschnitt liegt bei 95%. Strukturiere deine Analyse.',
-   '500 Lieferungen/Tag, 3 Lagerhäuser, veraltetes IT-System, hohe Mitarbeiterfluktuation',
+   'Ein Logistikunternehmen liegt bei der Lieferpünktlichkeit deutlich unter dem Branchendurchschnitt. Strukturiere deine Analyse.',
+   'Veraltetes IT-System, hohe Mitarbeiterfluktuation',
    'Operations Framework',
    NULL, true);
 
@@ -309,25 +309,25 @@ INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, 
 VALUES
   ('medium', 'market_entry',
    'Ein deutsches Fintech-Startup möchte in den brasilianischen Markt expandieren. Strukturiere deine Analyse.',
-   'Produkt: Mobile Payment App, 2 Mio Nutzer in DACH, Series B Funding (30 Mio €), Team: 120 Mitarbeiter',
+   'Produkt: Mobile Payment App, etablierte DACH-Nutzerbasis, Series B finanziert',
    'Market Entry Framework',
    NULL, true),
 
   ('medium', 'pricing',
-   'Ein B2B-SaaS-Unternehmen für HR-Software plant eine Preiserhöhung von 20%. Analysiere die strategischen Implikationen und entwickle eine Empfehlung.',
-   'Aktueller ARPU: 500 €/Monat, 3.000 Kunden, NPS: 45, Churn Rate: 8% p.a., 3 Hauptwettbewerber',
+   'Ein B2B-SaaS-Unternehmen für HR-Software plant eine deutliche Preiserhöhung. Analysiere die strategischen Implikationen und entwickle eine Empfehlung.',
+   'Etabliertes Kundenportfolio, solide Churn, mehrere Hauptwettbewerber',
    'Pricing Framework',
    NULL, true),
 
   ('medium', 'ma',
    'Ein großer deutscher Automobilzulieferer erwägt die Übernahme eines kleineren Batterie-Startups. Bewerte die strategische Logik dieser Akquisition.',
-   'Zulieferer: Umsatz 2 Mrd €, 8.000 Mitarbeiter. Startup: Umsatz 15 Mio €, 80 Mitarbeiter, Festkörperbatterie-Technologie, 3 Patente',
+   'Großer Zulieferer, Startup mit Festkörperbatterie-Technologie und Patentportfolio',
    'M&A Framework',
    NULL, true),
 
   ('medium', 'growth',
    'Ein traditioneller Verlag (Bücher und Zeitschriften) verliert seit Jahren Marktanteile. Der Vorstand möchte eine digitale Wachstumsstrategie. Strukturiere deinen Ansatz.',
-   'Umsatz: 150 Mio €, Rückgang 5% p.a., 1.200 Mitarbeiter, starke Marke, keine nennenswerte digitale Präsenz',
+   'Sinkender Umsatz, starke Marke, kaum digitale Präsenz',
    'Digital Transformation / Growth Framework',
    NULL, true);
 
@@ -335,26 +335,26 @@ VALUES
 INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, recommended_framework, reference_solution, active)
 VALUES
   ('hard', 'profitability',
-   'Ein internationaler Industriekonzern mit 4 Geschäftsbereichen hat trotz Umsatzwachstum eine sinkende Gesamtprofitabilität. Zwei Bereiche sind profitabel, zwei verlieren Geld. Der Vorstand bittet dich um eine umfassende Analyse mit konkreten Handlungsempfehlungen.',
-   'Umsatz: 5 Mrd €. Bereich A (Automotive): 2 Mrd €, EBIT +8%. Bereich B (Chemicals): 1,5 Mrd €, EBIT +12%. Bereich C (Energy): 1 Mrd €, EBIT -5%. Bereich D (Digital): 500 Mio €, EBIT -15%. 25.000 Mitarbeiter, 12 Länder.',
+   'Ein internationaler Industriekonzern mit 4 Geschäftsbereichen hat trotz Umsatzwachstum sinkende Gesamtprofitabilität. 2 Bereiche sind profitabel, 2 verlieren Geld. Strukturiere Analyse und Handlungsempfehlungen.',
+   'Konzernumsatz ~5 Mrd €. Profitabel: Automotive und Chemicals. Negatives EBIT: Energy und Digital.',
    'Profitability Framework mit Portfolio-Analyse',
    NULL, true),
 
   ('hard', 'market_entry',
    'Ein europäischer Luxusmodehersteller plant den Eintritt in den chinesischen Markt über ein Direct-to-Consumer-Modell. Es gibt bereits lokale und internationale Wettbewerber. Entwickle eine umfassende Markteintritts-Strategie.',
-   'Marke: 80 Jahre Tradition, Umsatz 800 Mio € (nur Europa), keine Erfahrung in Asien, hohe Markenbekanntheit in Europa, Budget für Markteintritt: 50 Mio €',
+   'Traditionsmarke mit ~800 Mio € Umsatz (nur Europa), hohe EU-Markenbekanntheit, kein Asien-Track-Record, definiertes Markteintrittsbudget',
    'Market Entry Framework mit Customer Journey & Channel Strategy',
    NULL, true),
 
   ('hard', 'ma',
    'Eine große Versicherungsgruppe plant die Übernahme eines InsurTech-Startups mit KI-basierter Schadensregulierung. Führe eine umfassende Due Diligence durch und bewerte den strategischen Fit.',
-   'Versicherer: 10 Mrd € Prämienvolumen, 15.000 Mitarbeiter, konservative IT-Landschaft. InsurTech: 30 Mio € Umsatz, 200 Mitarbeiter, Bewertung 300 Mio €, proprietärer ML-Algorithmus, 50 B2B-Kunden',
+   'Großversicherer (~10 Mrd € Prämienvolumen, konservative IT). InsurTech: kleines Umsatzvolumen, proprietärer ML-Algorithmus, B2B-Kundenstamm.',
    'M&A Framework mit Tech Due Diligence',
    NULL, true),
 
   ('hard', 'pricing',
    'Ein Pharmaunternehmen bringt ein neuartiges Medikament gegen eine seltene Krankheit auf den deutschen Markt. Es gibt keine vergleichbare Therapie. Entwickle eine Preisstrategie, die regulatorische, ethische und wirtschaftliche Aspekte berücksichtigt.',
-   'Patientenpopulation: ca. 5.000 in DE, F&E-Kosten: 800 Mio €, Patentschutz: 12 Jahre, klinische Studien zeigen 70% Wirksamkeit, GKV-Erstattung notwendig',
+   'Kleine Patientenpopulation in DE, hohe F&E-Kosten, Patentschutz vorhanden, hohe klinische Wirksamkeit, GKV-Erstattung notwendig',
    'Value-Based Pricing Framework mit Stakeholder-Analyse',
    NULL, true);
 

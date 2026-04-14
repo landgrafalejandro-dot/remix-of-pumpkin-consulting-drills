@@ -8,8 +8,8 @@
 INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, recommended_framework, reference_solution, active)
 VALUES
   ('easy', 'profitability',
-   'Eine regionale Fluggesellschaft verzeichnet seit drei Quartalen sinkende Gewinne, obwohl die Passagierzahlen stabil geblieben sind. Der CFO vermutet steigende Betriebskosten als Hauptursache und bittet dich um eine strukturierte Analyse.',
-   'Passagierzahlen: 4,2 Mio/Jahr, Flottenauslastung: 76%, Kerosinkosten +28% YoY, 35 Kurz- und Mittelstreckenrouten in Europa',
+   'Eine regionale Fluggesellschaft verzeichnet sinkende Gewinne trotz stabiler Passagierzahlen. Der CFO vermutet steigende Betriebskosten als Hauptursache.',
+   'Kurz- und Mittelstreckenrouten in Europa, Kerosinkosten stark gestiegen',
    'Profitability Framework',
    '• Kostenanalyse: Variable Kosten (Kerosin, Handling) vs. Fixkosten (Leasing, Personal) aufschlüsseln und Kostentreiber identifizieren
 • Revenue-Seite: Yield pro Passagier und Ancillary Revenue analysieren, Preisgestaltung auf unprofitablen Routen prüfen
@@ -17,8 +17,8 @@ VALUES
    true),
 
   ('easy', 'market_entry',
-   'Ein deutsches Pharmaunternehmen mit starkem OTC-Portfolio möchte in den indischen Markt eintreten. Indien hat eine wachsende Mittelschicht und steigende Gesundheitsausgaben. Strukturiere deine Analyse für den Markteintritt.',
-   'OTC-Umsatz in DACH: 600 Mio €, 12 Marken, Indien OTC-Markt wächst 11% p.a., starke lokale Wettbewerber wie Sun Pharma und Cipla',
+   'Ein deutsches Pharmaunternehmen mit starkem OTC-Portfolio möchte in den indischen Markt eintreten. Strukturiere deine Analyse für den Markteintritt.',
+   'Wachsende Mittelschicht in Indien, starke lokale Wettbewerber (Sun Pharma, Cipla)',
    'Market Entry Framework',
    '• Marktattraktivität: Marktgrösse, Wachstum, regulatorische Hürden (CDSCO-Zulassung), Preissensitivität bewerten
 • Wettbewerbsanalyse: Positionierung gegenüber lokalen Generika-Herstellern, Differenzierung durch Markenqualität
@@ -26,8 +26,8 @@ VALUES
    true),
 
   ('easy', 'growth',
-   'Ein Abo-basierter Essenslieferdienst (Kochboxen) hat in Deutschland 120.000 aktive Abonnenten, wächst aber nur noch einstellig. Der Gründer möchte die nächste Wachstumsphase einleiten. Strukturiere mögliche Wachstumshebel.',
-   'ARPU: 45 €/Monat, Churn: 6% monatlich, CAC: 80 €, LTV: 350 €, NPS: 52, Zielgruppe: urbane Doppelverdiener 25-45',
+   'Ein Abo-basierter Essenslieferdienst (Kochboxen) in Deutschland wächst nur noch einstellig. Strukturiere mögliche Wachstumshebel.',
+   'Zielgruppe: urbane Doppelverdiener, Churn hoch, CAC gestiegen',
    'Growth Strategy Framework (Ansoff-Matrix)',
    '• Marktdurchdringung: Churn-Reduktion durch Personalisierung und Treueprogramme, Empfehlungsprogramm aktivieren
 • Produktentwicklung: Neue Boxen (Diät, Familienbox, Snack-Abo), Erweiterung auf Frühstück und Mittagessen
@@ -35,8 +35,8 @@ VALUES
    true),
 
   ('easy', 'ma',
-   'Ein großer FMCG-Konzern erwägt die Übernahme einer aufstrebenden D2C-Naturkosmetikmarke. Die Marke hat eine loyale Community und starkes Social-Media-Wachstum. Bewerte die strategische Logik der Akquisition.',
-   'FMCG-Konzern: 8 Mrd € Umsatz, 40 Marken. D2C-Marke: 25 Mio € Umsatz, +60% YoY, 500.000 Instagram-Follower, 85% Online-Anteil',
+   'Ein großer FMCG-Konzern erwägt die Übernahme einer aufstrebenden D2C-Naturkosmetikmarke. Bewerte die strategische Logik der Akquisition.',
+   'Marke mit loyaler Community, starkem Social-Media-Wachstum und hohem Online-Anteil',
    'M&A Framework',
    '• Strategischer Fit: Zugang zu D2C-Expertise, jüngere Zielgruppe, Naturkosmetik-Trend als Wachstumssegment
 • Bewertung: Multiples vergleichbarer D2C-Exits, Umsatz- und Synergiepotenziale quantifizieren
@@ -44,8 +44,8 @@ VALUES
    true),
 
   ('easy', 'pricing',
-   'Ein FinTech-Unternehmen bietet ein kostenloses Girokonto an und möchte nun ein Premium-Modell mit Zusatzfunktionen einführen. Entwickle einen strukturierten Ansatz für die Preisfindung.',
-   '800.000 Gratis-Nutzer, Conversion-Ziel: 8% auf Premium, Wettbewerber-Premium-Konten: 5-15 €/Monat, geplante Features: Versicherungen, Cashback, Priority-Support',
+   'Ein FinTech mit kostenlosem Girokonto möchte ein Premium-Modell mit Zusatzfunktionen einführen. Entwickle einen strukturierten Ansatz für die Preisfindung.',
+   'Große Gratis-Nutzerbasis, geplante Features: Versicherungen, Cashback, Priority-Support',
    'Pricing Framework',
    '• Zahlungsbereitschaft: Conjoint-Analyse und Kundenbefragung zur Ermittlung der Preiselastizität und Feature-Präferenzen
 • Wettbewerbsvergleich: Preis-Leistungs-Positionierung gegenüber N26, Vivid und traditionellen Banken
@@ -53,8 +53,8 @@ VALUES
    true),
 
   ('easy', 'operations',
-   'Ein Luxusmöbelhersteller hat Lieferzeiten von 14 Wochen, während der Branchendurchschnitt bei 6 Wochen liegt. Die Kundenbeschwerden häufen sich. Strukturiere deine Analyse zur Verbesserung der operativen Effizienz.',
-   '200 Aufträge/Monat, handgefertigte Produktion, 3 Zulieferer für Edelholz, kein ERP-System, 85 Mitarbeiter in der Fertigung',
+   'Ein Luxusmöbelhersteller hat deutlich längere Lieferzeiten als der Branchendurchschnitt, und Kundenbeschwerden häufen sich. Strukturiere deine Analyse zur Verbesserung der operativen Effizienz.',
+   'Handgefertigte Produktion, wenige Zulieferer für Edelholz, kein ERP-System',
    'Operations Framework',
    '• Prozessanalyse: Wertschöpfungskette von Auftragseingang bis Auslieferung kartieren, Engpässe identifizieren (Materialverfügbarkeit, Fertigungskapazität)
 • Quick Wins: ERP-System einführen, Lagerbestand kritischer Materialien aufbauen, Standardisierung von Teilkomponenten
@@ -66,8 +66,8 @@ VALUES
 INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, recommended_framework, reference_solution, active)
 VALUES
   ('medium', 'profitability',
-   'Ein D2C-Matratzenhersteller wächst stark, schreibt aber trotz hoher Margen weiterhin Verluste. Das Marketing-Budget wurde in den letzten zwei Jahren verdreifacht, und die Unit Economics verschlechtern sich zunehmend. Der Vorstand fragt, ob das Geschäftsmodell grundsätzlich tragfähig ist.',
-   'Umsatz: 45 Mio € (+80% YoY), Bruttomarge: 65%, EBITDA: -12 Mio €, CAC: 180 € (vor 2 Jahren: 60 €), LTV: 320 €, Retourenquote: 22%, Performance-Marketing-Anteil: 78% des Marketings',
+   'Ein D2C-Matratzenhersteller wächst stark, schreibt aber trotz hoher Bruttomarge Verluste. Das Performance-Marketing-Budget wurde zuletzt deutlich erhöht, und die Unit Economics verschlechtern sich.',
+   'EBITDA negativ, CAC stark gestiegen, LTV/CAC-Verhältnis unter 2, hohe Retourenquote',
    'Profitability Framework mit Unit Economics',
    '• Unit Economics: LTV/CAC-Verhältnis analysieren (aktuell 1,8x, fallend), CAC-Payback-Period berechnen, Retourenkosten in CLTV einpreisen
 • Kostenstruktur: Marketing-Mix diversifizieren (Brandbuilding vs. Performance), Retouren-Ursachen analysieren und reduzieren
@@ -75,8 +75,8 @@ VALUES
    true),
 
   ('medium', 'market_entry',
-   'Ein europäischer Online-Marktplatz für Handwerkerdienstleistungen plant die Expansion nach Japan. Der japanische Markt ist fragmentiert und stark von persönlichen Empfehlungen geprägt. Entwickle eine differenzierte Markteintrittsstrategie.',
-   'Plattform: 500.000 Handwerker, 3 Mio Kunden in Europa, GMV: 800 Mio €, Japan Marktvolumen Handwerkerservices: 120 Mrd €, Digitalisierungsgrad: unter 5%, kulturelle Besonderheiten: Vertrauen durch persönliche Beziehungen',
+   'Ein europäischer Online-Marktplatz für Handwerkerdienstleistungen plant die Expansion nach Japan. Entwickle eine differenzierte Markteintrittsstrategie.',
+   'Etablierte EU-Plattform, japanischer Markt fragmentiert, sehr niedriger Digitalisierungsgrad, Vertrauen durch persönliche Beziehungen',
    'Market Entry Framework mit 3C-Analyse',
    '• Markt- und Kulturanalyse: Japanische Geschäftskultur (Vertrauen, Qualitätsstandards), lokale Regulierung, Zahlungsgewohnheiten verstehen
 • Wettbewerbs- und Kundenanalyse: Lokale Incumbents, Customer Journey kartieren, Akzeptanz digitaler Plattformen nach Segmenten bewerten
@@ -84,8 +84,8 @@ VALUES
    true),
 
   ('medium', 'growth',
-   'Ein B2B-SaaS-Unternehmen für Supply-Chain-Management hat 200 Enterprise-Kunden im DACH-Raum und stagniert beim Umsatz. Der Net Revenue Retention liegt unter 100%. Entwickle eine Strategie zur Reaktivierung des Wachstums.',
-   'ARR: 18 Mio €, Net Revenue Retention: 94%, Gross Retention: 88%, ARPC: 90.000 €, Sales Cycle: 9 Monate, Feature-Requests der Kunden bleiben oft unbearbeitet, Wettbewerber investieren stark in KI-Features',
+   'Ein B2B-SaaS-Unternehmen für Supply-Chain-Management stagniert beim Umsatz und hat eine Net Revenue Retention unter 100%. Entwickle eine Strategie zur Reaktivierung des Wachstums.',
+   'Enterprise-Fokus im DACH-Raum, langer Sales Cycle, Feature-Requests unbearbeitet, Wettbewerber mit KI-Features',
    '3C Framework mit Growth Strategy',
    '• Customer: Churn-Ursachen analysieren (Feature-Gaps, Kundenzufriedenheit), Expansion Revenue durch Upselling und Cross-Selling steigern
 • Competition: KI-Features auf Produkt-Roadmap priorisieren, Wettbewerbs-Benchmarking durchführen
@@ -93,8 +93,8 @@ VALUES
    true),
 
   ('medium', 'ma',
-   'Ein mittelständischer Versicherer prüft die Übernahme eines InsurTech-Unternehmens, das dynamische Kfz-Versicherungen auf Basis von Telematikdaten anbietet. Die Technologie ist vielversprechend, aber das Startup verbrennt stark Cash. Führe eine strukturierte Bewertung durch.',
-   'Versicherer: Prämienvolumen 3 Mrd €, 5.000 Mitarbeiter, Kfz-Anteil: 40%. InsurTech: 8 Mio € Prämien, -5 Mio € EBITDA, proprietäre Telematik-Plattform, 40.000 Policen, 95 Mitarbeiter, Bewertung: 80 Mio €',
+   'Ein mittelständischer Versicherer prüft die Übernahme eines InsurTech mit Telematik-basierten Kfz-Versicherungen. Die Technologie ist vielversprechend, aber das Startup verbrennt stark Cash. Führe eine strukturierte Bewertung durch.',
+   'Versicherer mit starkem Kfz-Anteil, InsurTech mit proprietärer Telematik-Plattform und negativem EBITDA',
    'M&A Framework mit Technology Assessment',
    '• Strategischer Mehrwert: Telematik-Kompetenz als Differenzierung im Kfz-Segment, Zugang zu digitalaffiner Zielgruppe, Daten-Assets bewerten
 • Finanzielle Bewertung: DCF und Multiples, Cash-Burn-Rate und Runway analysieren, Synergiepotenziale quantifizieren (Vertrieb, Schadensprävention)
@@ -103,7 +103,7 @@ VALUES
 
   ('medium', 'pricing',
    'Ein Industrieunternehmen für Spezialchemikalien möchte von kostenbasierter auf wertbasierte Preisgestaltung umstellen. Die Kunden nutzen die Produkte in sehr unterschiedlichen Anwendungen mit stark variierendem Mehrwert. Entwickle eine Transformationsstrategie für das Pricing.',
-   'Umsatz: 350 Mio €, 800 Produkte, 1.200 Kunden, aktuelle Marge: 18%, geschätzte Marge bei Value Pricing: 25-30%, Vertrieb hat Angst vor Kundenverlusten, kein systematisches Pricing-Tool',
+   'Breites Produktportfolio, heterogene Kundenanwendungen, Vertrieb hat Angst vor Kundenverlusten, kein systematisches Pricing-Tool',
    'Value-Based Pricing Framework',
    '• Wertanalyse: Kundensegmentierung nach Anwendung und Zahlungsbereitschaft, Total Cost of Ownership für Kunden berechnen, Referenzwert vs. Differenzierungswert ermitteln
 • Implementierung: Pilotprojekt mit 50 Kunden und 20 Produkten starten, Pricing-Tool und Dateninfrastruktur aufbauen
@@ -111,8 +111,8 @@ VALUES
    true),
 
   ('medium', 'operations',
-   'Ein großes Krankenhaus-Netzwerk mit 8 Standorten betreibt dezentrale Shared-Services (IT, Einkauf, HR) und hat dadurch hohe Redundanzen und inkonsistente Prozesse. Der Vorstand erwägt eine Zentralisierung. Analysiere die operativen Implikationen.',
-   '8 Krankenhäuser, 12.000 Mitarbeiter, jeder Standort hat eigene IT-, Einkaufs- und HR-Abteilung, geschätzte Redundanzkosten: 25 Mio €/Jahr, unterschiedliche Software-Systeme an jedem Standort',
+   'Ein großes Krankenhaus-Netzwerk betreibt dezentrale Shared-Services (IT, Einkauf, HR) und hat dadurch hohe Redundanzen und inkonsistente Prozesse. Der Vorstand erwägt eine Zentralisierung.',
+   'Mehrere Standorte mit je eigener IT-, Einkaufs- und HR-Abteilung, heterogene Software-Systeme',
    'Operations Framework mit Shared Services Analyse',
    '• Ist-Analyse: Prozesslandkarte erstellen, Redundanzen und Ineffizienzen quantifizieren, Best Practices einzelner Standorte identifizieren
 • Zentralisierungsmodell: Shared Service Center für IT, Einkauf und HR designen, Standortwahl, Governance-Struktur definieren
@@ -124,8 +124,8 @@ VALUES
 INSERT INTO public.framework_cases (difficulty, category, prompt, context_info, recommended_framework, reference_solution, active)
 VALUES
   ('hard', 'profitability',
-   'Ein europäischer Airline-Konzern betreibt neben dem Passagiergeschäft auch Cargo, MRO (Maintenance) und ein Loyalty-Programm als eigenständige Geschäftsbereiche. Während COVID hatte der Konzern massive Verluste, nun ist das Passagiergeschäft zurück, aber die Gesamtprofitabilität bleibt unter dem Vorkrisenniveau. Gleichzeitig erwägt der Vorstand, das Loyalty-Programm als eigenständiges Unternehmen an die Börse zu bringen.',
-   'Konzernumsatz: 28 Mrd €, EBIT-Marge: 4,2% (vor COVID: 7,8%). Passage: 22 Mrd € (EBIT 3%), Cargo: 3 Mrd € (EBIT 12%), MRO: 2 Mrd € (EBIT 8%), Loyalty: 1 Mrd € (EBIT 35%). Nettoverschuldung: 8 Mrd €, 95.000 Mitarbeiter, Kerosinhedging deckt 65% des Bedarfs',
+   'Ein europäischer Airline-Konzern betreibt neben dem Passagiergeschäft auch Cargo, MRO und ein Loyalty-Programm. Passagiergeschäft ist post-COVID zurück, aber Gesamtprofitabilität bleibt unter Vorkrisenniveau. Der Vorstand erwägt, das Loyalty-Programm an die Börse zu bringen.',
+   'Konzernumsatz ~28 Mrd €. Passage und MRO margenschwach, Cargo und Loyalty deutlich profitabler. Hohe Nettoverschuldung.',
    'Profitability Framework mit Portfolio-Strategie und Sum-of-Parts-Bewertung',
    '• Portfolio-Analyse: Jedes Segment einzeln bewerten (ROIC, Wachstum, strategische Rolle), Cross-Subsidies identifizieren, Sum-of-Parts vs. Konglomeratsabschlag berechnen
 • Passagiergeschäft: Yield Management optimieren, Flotteneffizienz steigern, Streckenportfolio bereinigen, Kostenprogramm für Rückkehr zur Vorkrisenmarge
@@ -133,8 +133,8 @@ VALUES
    true),
 
   ('hard', 'market_entry',
-   'Ein deutsches Vertical-SaaS-Unternehmen für die Bauindustrie möchte nach Nordamerika expandieren. Der US-Markt ist deutlich größer, aber es gibt bereits etablierte Wettbewerber, und die regulatorischen Anforderungen (Baucodes, Zertifizierungen) unterscheiden sich fundamental von Europa. Gleichzeitig hat ein US-Wettbewerber Interesse an einer strategischen Partnerschaft signalisiert.',
-   'DACH-ARR: 35 Mio €, 1.500 Kunden, NPS: 62, Produkt: Projektmanagement und BIM-Integration, US-Markt: 15x größer als DACH, Top-3-Wettbewerber halten 45% Marktanteil, potenzieller Partner: ARR 80 Mio $, komplementäres Produkt (Estimating), strategischer Partner sucht europäische Expansion',
+   'Ein deutsches Vertical-SaaS-Unternehmen für die Bauindustrie möchte nach Nordamerika expandieren. Der US-Markt ist deutlich größer, die Regulierung unterscheidet sich fundamental, und ein US-Wettbewerber hat Interesse an einer strategischen Partnerschaft signalisiert.',
+   'Produkt: Projektmanagement und BIM-Integration. US-Markt vielfach größer als DACH, Top-3-Wettbewerber konsolidiert. Potenzieller Partner mit komplementärem Produkt (Estimating) sucht europäische Expansion.',
    'Market Entry Framework mit Partnerschafts- und Build-vs-Buy-Analyse',
    '• Make-or-Ally: Eigenständiger Markteintritt vs. strategische Partnerschaft vs. Akquisition bewerten, Opportunity Cost jeder Option modellieren
 • Partnerschaftsanalyse: Strategischen Fit mit US-Partner prüfen (Produktkomplementarität, Kundenbasis-Overlap, kulturelle Passung), Deal-Strukturen evaluieren (JV, Cross-Licensing, Merger)
@@ -142,8 +142,8 @@ VALUES
    true),
 
   ('hard', 'growth',
-   'Ein digitaler Versicherungsbroker hat in 4 Jahren 300.000 Kunden gewonnen und ist damit der größte unabhängige Online-Broker in Deutschland. Das Wachstum verlangsamt sich, und der Vorstand diskutiert drei strategische Optionen: (1) vertikale Integration durch Gründung einer eigenen Versicherung, (2) horizontale Expansion in angrenzende Finanzprodukte, (3) internationale Expansion. Bewerte alle drei Optionen und gib eine priorisierte Empfehlung.',
-   'Umsatz: 55 Mio € (Provisionen), 300.000 Kunden, Wachstum: +25% (Vorjahr: +60%), Kundensegment: 25-40 Jahre, durchschnittlich 2,1 Produkte pro Kunde, NPS: 58, Tech-Stack: modern und skalierbar, verfügbares Kapital: 80 Mio € (Series C)',
+   'Ein digitaler Versicherungsbroker ist Marktführer unter den unabhängigen Online-Brokern in Deutschland. Das Wachstum verlangsamt sich. Der Vorstand diskutiert drei strategische Optionen: (1) vertikale Integration durch eigene Versicherung, (2) horizontale Expansion in angrenzende Finanzprodukte, (3) internationale Expansion. Bewerte die Optionen und priorisiere.',
+   'Etablierte Kundenbasis, stark gebremstes Wachstum, moderner Tech-Stack, solide Kapitalausstattung aus Series C',
    'Growth Strategy Framework mit Ansoff-Matrix und Strategiebewertung',
    '• Optionsbewertung: Jede Option nach Marktpotenzial, Umsetzungskomplexität, Kapitalbedarf und strategischem Fit bewerten, Risiko-Rendite-Matrix erstellen
 • Vertikale Integration: Regulatorische Hürden (BaFin-Lizenz), Kapitalanforderungen, Interessenkonflikt mit bestehenden Versicherungspartnern abwägen
@@ -151,8 +151,8 @@ VALUES
    true),
 
   ('hard', 'ma',
-   'Ein Private-Equity-Fonds prüft die Übernahme einer notleidenden mittelständischen Zulieferkette für die Automobilindustrie mit 3 Werken in Deutschland und 2 in Osteuropa. Das Unternehmen hat eine starke Technologieposition in Leichtbaukomponenten, steht aber unter erheblichem finanziellen Druck durch verlorene Aufträge und steigende Energiekosten. Bewerte die Investmentthese und den Turnaround-Plan.',
-   'Umsatz: 420 Mio € (Vorjahr: 580 Mio €), EBITDA: -15 Mio €, Nettoverschuldung: 280 Mio €, 2.800 Mitarbeiter, 8 OEM-Kunden (Top 3 = 70% Umsatz), 12 Patente für Karbon-Leichtbau, Werke in DE auf 55% Auslastung, Energiekosten +45% in 2 Jahren, 2 Kunden haben Aufträge an asiatische Wettbewerber verloren',
+   'Ein Private-Equity-Fonds prüft die Übernahme einer notleidenden Automobilzuliefererkette mit Werken in Deutschland und Osteuropa. Starke Technologieposition in Leichtbau, aber erheblicher finanzieller Druck durch verlorene Aufträge und steigende Energiekosten. Bewerte Investmentthese und Turnaround-Plan.',
+   'Umsatz rückläufig, EBITDA negativ, hohe Nettoverschuldung. Starke Kundenkonzentration auf wenige OEMs, Patentportfolio für Karbon-Leichtbau, Werke unterausgelastet.',
    'M&A Framework mit Distressed-Asset-Bewertung und Turnaround-Strategie',
    '• Investment Thesis: Technologie-Assets (Patente, Know-how) vs. operative Risiken bewerten, Downside-Szenario und Liquidationswert berechnen
 • Turnaround-Plan: Restrukturierung der Schulden, Werkkonsolidierung (DE-Werke von 3 auf 2), Verlagerung von Produktion nach Osteuropa, Neuverhandlung der OEM-Verträge
@@ -160,8 +160,8 @@ VALUES
    true),
 
   ('hard', 'pricing',
-   'Eine große europäische Hotelkette mit 250 Hotels (Budget bis Luxury) möchte ihr Pricing grundlegend transformieren. Aktuell werden Preise halbjährlich auf Basis historischer Daten festgelegt. Der Vorstand möchte Dynamic Pricing einführen, das auch externe Daten (Events, Wetter, Flugauslastung) einbezieht. Gleichzeitig besteht die Sorge, dass aggressive Preisgestaltung die Markenwerte im Luxussegment beschädigen könnte.',
-   'Umsatz: 4,5 Mrd €, 250 Hotels in 18 Ländern, 3 Marken (Budget: 120 Hotels, Business: 90, Luxury: 40), durchschnittliche Auslastung: 72%, RevPAR liegt 8% unter Benchmark, Wettbewerber nutzen bereits AI-basiertes Pricing, Kundenbeschwerden über Preisintransparenz nehmen zu',
+   'Eine große europäische Hotelkette mit 3 Marken (Budget, Business, Luxury) möchte ihr Pricing grundlegend transformieren. Aktuell halbjährliche Preise auf Basis historischer Daten; Dynamic Pricing mit externen Signalen (Events, Wetter, Flugauslastung) steht zur Debatte. Sorge: aggressive Preisgestaltung könnte die Marke im Luxussegment beschädigen.',
+   'RevPAR unter Benchmark, Wettbewerber bereits mit AI-Pricing, Kundenbeschwerden über Preisintransparenz nehmen zu',
    'Dynamic Pricing Framework mit Marken- und Segmentierungsstrategie',
    '• Segmentierte Pricing-Strategie: Unterschiedliche Pricing-Logiken je Marke (Budget: aggressiv dynamisch, Business: nachfragebasiert, Luxury: zurückhaltend mit Fokus auf Wertwahrnehmung)
 • Technologie und Daten: KI-Pricing-Engine aufbauen, externe Datenquellen integrieren (Events, Wetter, Flüge, Wettbewerberpreise), A/B-Testing-Infrastruktur implementieren
@@ -169,8 +169,8 @@ VALUES
    true),
 
   ('hard', 'operations',
-   'Ein globaler Konsumgüterhersteller (Lebensmittel und Getränke) mit Produktionsstätten in 12 Ländern will seine Supply Chain bis 2030 klimaneutral gestalten und gleichzeitig die Kosten um 15% senken. Die aktuelle Supply Chain ist historisch gewachsen, hochkomplex und teilweise redundant. Zudem fordern große Handelspartner zunehmend Transparenz über den CO2-Fußabdruck jedes Produkts.',
-   'Umsatz: 12 Mrd €, 45 Fabriken, 200 Lagerstandorte, 3.000 SKUs, Supply-Chain-Kosten: 22% vom Umsatz (Branchendurchschnitt: 18%), CO2-Emissionen Scope 1+2: 1,2 Mio Tonnen, 60% der Rohstoffe aus Schwellenländern, 5 der Top-10-Handelskunden verlangen ab 2027 Product Carbon Footprint Daten',
+   'Ein globaler Konsumgüterhersteller (Lebensmittel und Getränke) will seine Supply Chain klimaneutral gestalten und gleichzeitig die Kosten deutlich senken. Die aktuelle Supply Chain ist historisch gewachsen und redundant. Große Handelspartner fordern zunehmend Transparenz über den CO2-Fußabdruck jedes Produkts.',
+   'Umsatz ~12 Mrd €. Supply-Chain-Kosten deutlich über Branchendurchschnitt, hoher Rohstoffanteil aus Schwellenländern, Top-Handelskunden fordern Product Carbon Footprint Daten.',
    'Operations Framework mit Supply-Chain-Transformation und Nachhaltigkeitsstrategie',
    '• Netzwerk-Optimierung: Supply-Chain-Footprint analysieren, Fabrik- und Lagerkonsolidierung modellieren, Nearshoring-Potenziale evaluieren, Zielkosten von 18% vom Umsatz anstreben
 • Dekarbonisierung: Scope-1+2-Reduktionspfad definieren (Elektrifizierung, erneuerbare Energien), Scope-3-Hotspots identifizieren, CO2-Tracking-System implementieren
