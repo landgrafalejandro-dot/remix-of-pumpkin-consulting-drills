@@ -1,12 +1,20 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { MarketSizingCase } from "@/types/marketSizing";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
-import FrameworkNodeCard from "@/components/frameworkBuilder/FrameworkNodeCard";
+import {
+  getLeaves,
+  computeProduct,
+  serializeMarketSizing,
+} from "@/lib/marketSizingHelpers";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
-import { AudioRecorder } from "@/components/ui/AudioRecorder";
-import { X, Send, Info, Plus } from "lucide-react";
+import { X, Send, Info, ArrowLeft, ArrowRight } from "lucide-react";
+import StepperHeader, { STEP_LABELS } from "./steps/StepperHeader";
+import StructureStep from "./steps/StructureStep";
+import AssumptionsStep from "./steps/AssumptionsStep";
+import CalculationStep from "./steps/CalculationStep";
+import ResultStep from "./steps/ResultStep";
 
 interface MarketSizingGameProps {
   currentCase: MarketSizingCase | null;
@@ -18,227 +26,93 @@ interface MarketSizingGameProps {
   onOpenIntro?: () => void;
 }
 
-const MAX_TOP_LEVEL = 6;
-const MAX_CHILDREN = 4;
-const MAX_DEPTH = 3;
-
-function updateNodeInTree(
-  nodes: FrameworkNode[],
-  targetId: string,
-  updater: (n: FrameworkNode) => FrameworkNode
-): FrameworkNode[] {
-  return nodes.map((n) => {
-    if (n.id === targetId) return updater(n);
-    if (n.children.length > 0) {
-      return { ...n, children: updateNodeInTree(n.children, targetId, updater) };
-    }
-    return n;
-  });
-}
-
-function removeNodeFromTree(nodes: FrameworkNode[], targetId: string): FrameworkNode[] {
-  return nodes
-    .filter((n) => n.id !== targetId)
-    .map((n) =>
-      n.children.length > 0 ? { ...n, children: removeNodeFromTree(n.children, targetId) } : n
-    );
-}
-
-const NODE_COLORS = [
-  "border-t-amber-500",
-  "border-t-blue-500",
-  "border-t-emerald-500",
-  "border-t-violet-500",
-  "border-t-rose-500",
-  "border-t-cyan-500",
-];
-
-/* ─── Tree connector lines ─── */
-
-const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
-  children,
-  childCount,
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (!containerRef.current || !barRef.current || childCount <= 1) return;
-    const container = containerRef.current;
-    const cols = container.querySelectorAll<HTMLElement>("[data-child-col]");
-    if (cols.length < 2) return;
-    const first = cols[0];
-    const last = cols[cols.length - 1];
-    const rect = container.getBoundingClientRect();
-    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - rect.left;
-    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - rect.left;
-    barRef.current.style.left = `${firstCenter}px`;
-    barRef.current.style.width = `${lastCenter - firstCenter}px`;
-  });
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="w-px h-5 bg-border" />
-      <div ref={containerRef} className="relative flex gap-3 pt-5">
-        {childCount > 1 && (
-          <div ref={barRef} className="absolute top-0 h-px bg-border" style={{ left: 0, width: 0 }} />
-        )}
-        {children}
-      </div>
-    </div>
-  );
-};
-
-const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div data-child-col className="flex flex-col items-center">
-    <div className="w-px h-5 bg-border" />
-    {children}
-  </div>
-);
-
-/* ─── Recursive Tree Branch ─── */
-
-interface TreeBranchProps {
-  node: FrameworkNode;
-  colorClass: string;
-  depth: number;
-  isEvaluating: boolean;
-  lastAddedId: string | null;
-  onUpdate: (id: string, updated: FrameworkNode) => void;
-  onRemove: (id: string) => void;
-  onAddChild: (parentId: string) => void;
-}
-
-const TreeBranch: React.FC<TreeBranchProps> = ({
-  node,
-  colorClass,
-  depth,
-  isEvaluating,
-  lastAddedId,
-  onUpdate,
-  onRemove,
-  onAddChild,
-}) => {
-  const canAddChild = node.children.length < MAX_CHILDREN && depth < MAX_DEPTH;
-
-  return (
-    <div className="flex flex-col items-center">
-      <FrameworkNodeCard
-        node={node}
-        colorClass={colorClass}
-        onUpdate={(updated) => onUpdate(node.id, updated)}
-        onRemove={() => onRemove(node.id)}
-        disabled={isEvaluating}
-        autoFocusTitle={node.id === lastAddedId}
-      />
-      {canAddChild && (
-        <button
-          type="button"
-          onClick={() => onAddChild(node.id)}
-          disabled={isEvaluating}
-          className="mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] text-muted-foreground/60 transition-colors hover:bg-muted hover:text-primary disabled:opacity-30"
-        >
-          <Plus className="h-3 w-3" /> Unterast
-        </button>
-      )}
-      {node.children.length > 0 && (
-        <ChildrenConnector childCount={node.children.length}>
-          {node.children.map((child) => (
-            <ChildColumn key={child.id}>
-              <TreeBranch
-                node={child}
-                colorClass={colorClass}
-                depth={depth + 1}
-                isEvaluating={isEvaluating}
-                lastAddedId={lastAddedId}
-                onUpdate={onUpdate}
-                onRemove={onRemove}
-                onAddChild={onAddChild}
-              />
-            </ChildColumn>
-          ))}
-        </ChildrenConnector>
-      )}
-    </div>
-  );
-};
-
-/* ─── Main Component ─── */
-
 const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
-  currentCase, timeRemaining, totalDuration, onSubmit, onEnd, isEvaluating, onOpenIntro,
+  currentCase,
+  timeRemaining,
+  totalDuration,
+  onSubmit,
+  onEnd,
+  isEvaluating,
+  onOpenIntro,
 }) => {
-  // Tree state
+  // Step state
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // Data state
   const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
-
-  // Text fields
-  const [methodText, setMethodText] = useState("");
-  const [estimateValue, setEstimateValue] = useState("");
+  const [assumptions, setAssumptions] = useState<Record<string, string>>({});
+  const [numbers, setNumbers] = useState<Record<string, string>>({});
+  const [finalEstimate, setFinalEstimate] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
+  const [sanityCheck, setSanityCheck] = useState("");
 
-  // Reset on new case
+  // Reset when a new case loads
   useEffect(() => {
     if (currentCase) {
+      setCurrentStep(0);
       setNodes([createEmptyNode()]);
       setLastAddedId(null);
-      setMethodText("");
-      setEstimateValue("");
+      setAssumptions({});
+      setNumbers({});
+      setFinalEstimate("");
       setEstimateUnit(currentCase.unit_hint || "");
+      setSanityCheck("");
     }
   }, [currentCase?.id]);
 
-  /* ── Tree helpers (recursive, work at any depth) ── */
+  // Derived state
+  const leaves = useMemo(() => getLeaves(nodes), [nodes]);
+  const product = useMemo(() => computeProduct(leaves, numbers), [leaves, numbers]);
 
-  const updateNode = useCallback((nodeId: string, updated: FrameworkNode) => {
-    setNodes((prev) => updateNodeInTree(prev, nodeId, () => updated));
+  // Advance guards
+  const canAdvanceFromStructure = isFrameworkValid({ nodes });
+  const canSubmit =
+    !isEvaluating &&
+    (finalEstimate.trim().length > 0 || product.parsedCount > 0);
+
+  const goNext = useCallback(() => {
+    setCurrentStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
   }, []);
 
-  const removeNode = useCallback((nodeId: string) => {
-    setNodes((prev) => {
-      const result = removeNodeFromTree(prev, nodeId);
-      return result.length === 0 ? [createEmptyNode()] : result;
-    });
+  const goBack = useCallback(() => {
+    setCurrentStep((s) => Math.max(s - 1, 0));
   }, []);
 
-  const addNode = useCallback(() => {
-    if (nodes.length >= MAX_TOP_LEVEL) return;
-    const n = createEmptyNode();
-    setNodes((prev) => [...prev, n]);
-    setLastAddedId(n.id);
-  }, [nodes.length]);
-
-  const addChildNode = useCallback((parentId: string) => {
-    const child = createEmptyNode();
-    setNodes((prev) =>
-      updateNodeInTree(prev, parentId, (parent) => {
-        if (parent.children.length >= MAX_CHILDREN) return parent;
-        return { ...parent, children: [...parent.children, child] };
-      })
-    );
-    setLastAddedId(child.id);
-  }, []);
-
-  /* ── Submit ── */
-
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
+    if (!canSubmit) return;
     const treeText = serializeFramework({ nodes });
-    const method = methodText.trim();
-    const estVal = estimateValue.trim();
-    const estUnit = estimateUnit.trim();
-
-    let combined = `STRUKTUR:\n${treeText}`;
-    if (method) combined += `\n\nMETHODE:\n${method}`;
-    if (estVal) combined += `\n\nFINALE SCHÄTZUNG: ${estVal} ${estUnit}`;
-
-    const numValue = estimateValue ? parseFloat(estimateValue.replace(",", ".")) : null;
-    onSubmit(combined, numValue, estUnit);
-  };
+    const serialized = serializeMarketSizing({
+      treeText,
+      leaves,
+      assumptions,
+      numbers,
+      product,
+      finalEstimateInput: finalEstimate,
+      finalEstimateUnit: estimateUnit,
+      sanityCheck,
+    });
+    onSubmit(
+      serialized.answerText,
+      serialized.finalEstimateValue,
+      serialized.finalEstimateUnit
+    );
+  }, [
+    canSubmit,
+    nodes,
+    leaves,
+    assumptions,
+    numbers,
+    product,
+    finalEstimate,
+    estimateUnit,
+    sanityCheck,
+    onSubmit,
+  ]);
 
   if (!currentCase) return null;
 
-  const hasContent = isFrameworkValid({ nodes }) || methodText.trim().length > 0;
-  const canSubmit = hasContent && !isEvaluating;
+  const isLastStep = currentStep === STEP_LABELS.length - 1;
 
   return (
     <div className="flex flex-col gap-5">
@@ -273,7 +147,10 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         {currentCase.unit_hint && (
           <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="h-3.5 w-3.5" />
-            <span>Zieleinheit: <span className="font-medium text-primary">{currentCase.unit_hint}</span></span>
+            <span>
+              Zieleinheit:{" "}
+              <span className="font-medium text-primary">{currentCase.unit_hint}</span>
+            </span>
           </div>
         )}
         {currentCase.allowed_methods && (
@@ -283,100 +160,92 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         )}
       </div>
 
-      {/* ── Issue Tree ── */}
-      <label className="text-sm font-medium text-foreground">Deine Struktur</label>
-      <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
-        <div className="flex items-start justify-center gap-6 min-w-max">
-          {nodes.map((node, i) => (
-            <TreeBranch
-              key={node.id}
-              node={node}
-              colorClass={NODE_COLORS[i % NODE_COLORS.length]}
-              depth={1}
-              isEvaluating={isEvaluating}
-              lastAddedId={lastAddedId}
-              onUpdate={updateNode}
-              onRemove={removeNode}
-              onAddChild={addChildNode}
-            />
-          ))}
-          {nodes.length < MAX_TOP_LEVEL && (
-            <button
-              type="button"
-              onClick={addNode}
-              disabled={isEvaluating}
-              className="flex h-[80px] min-w-[80px] flex-col items-center justify-center gap-1 self-start rounded-lg border-2 border-dashed border-border text-muted-foreground/50 transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-30"
-            >
-              <Plus className="h-5 w-5" />
-              <span className="text-[10px]">Ast</span>
-            </button>
-          )}
-        </div>
-      </div>
+      {/* Stepper */}
+      <StepperHeader currentStep={currentStep} onJumpTo={setCurrentStep} />
 
-      {/* ── Method & Explanation ── */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">Methode & Erklärung</label>
-          <AudioRecorder
-            onTranscript={(text) => setMethodText((prev) => prev ? prev + " " + text : text)}
-            disabled={isEvaluating}
-          />
-        </div>
-        <textarea
-          value={methodText}
-          onChange={(e) => setMethodText(e.target.value)}
-          placeholder="z.B. Top-down von Bevölkerung DE, Zielgruppe eingegrenzt nach Alter und Nutzungsverhalten..."
-          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-y"
-          rows={3}
+      {/* Active step */}
+      {currentStep === 0 && (
+        <StructureStep
+          nodes={nodes}
+          onChange={setNodes}
+          lastAddedId={lastAddedId}
+          onLastAddedIdChange={setLastAddedId}
           disabled={isEvaluating}
         />
-      </div>
+      )}
+      {currentStep === 1 && (
+        <AssumptionsStep
+          leaves={leaves}
+          assumptions={assumptions}
+          onChange={setAssumptions}
+          disabled={isEvaluating}
+        />
+      )}
+      {currentStep === 2 && (
+        <CalculationStep
+          leaves={leaves}
+          numbers={numbers}
+          onChange={setNumbers}
+          product={product}
+          unitHint={currentCase.unit_hint || undefined}
+          disabled={isEvaluating}
+        />
+      )}
+      {currentStep === 3 && (
+        <ResultStep
+          product={product}
+          finalEstimate={finalEstimate}
+          onFinalEstimateChange={setFinalEstimate}
+          unit={estimateUnit}
+          onUnitChange={setEstimateUnit}
+          sanityCheck={sanityCheck}
+          onSanityCheckChange={setSanityCheck}
+          disabled={isEvaluating}
+          unitHint={currentCase.unit_hint || undefined}
+        />
+      )}
 
-      {/* ── Final Estimate ── */}
-      <div className="rounded-xl border border-border bg-muted/30 p-4">
-        <label className="mb-3 block text-sm font-semibold text-foreground">
-          Finale Schätzung (Pflichtfeld)
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={estimateValue}
-            onChange={(e) => setEstimateValue(e.target.value)}
-            placeholder="z.B. 12000000000 oder 12 Mrd"
-            className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            disabled={isEvaluating}
-          />
-          <input
-            type="text"
-            value={estimateUnit}
-            onChange={(e) => setEstimateUnit(e.target.value)}
-            placeholder="€ / Jahr"
-            className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            disabled={isEvaluating}
-          />
-        </div>
-      </div>
-
-      {/* Submit */}
-      <div className="flex justify-center pt-2">
+      {/* Navigation */}
+      <div className="flex items-center justify-between gap-3 pt-2">
         <DrillButton
-          variant="active"
-          size="lg"
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="gap-2 px-8"
+          variant="inactive"
+          size="md"
+          onClick={goBack}
+          disabled={currentStep === 0 || isEvaluating}
+          className="gap-2"
         >
-          {isEvaluating ? (
-            <>
-              <span className="animate-spin">&#9203;</span> KI bewertet...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4" /> Abgeben & Bewerten
-            </>
-          )}
+          <ArrowLeft className="h-4 w-4" /> Zurück
         </DrillButton>
+
+        {!isLastStep ? (
+          <DrillButton
+            variant="active"
+            size="md"
+            onClick={goNext}
+            disabled={currentStep === 0 && !canAdvanceFromStructure}
+            className="gap-2"
+          >
+            Weiter <ArrowRight className="h-4 w-4" />
+          </DrillButton>
+        ) : (
+          <DrillButton
+            variant="active"
+            size="md"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="gap-2 px-6"
+          >
+            {isEvaluating ? (
+              <>
+                <span className="animate-spin">&#9203;</span> KI bewertet...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" /> Abgeben &amp; Bewerten
+              </>
+            )}
+          </DrillButton>
+        )}
       </div>
     </div>
   );
