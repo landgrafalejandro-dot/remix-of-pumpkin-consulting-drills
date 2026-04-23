@@ -32,7 +32,7 @@ export interface FeedbackState {
 }
 
 // Sprint Mode Types
-export type SprintDuration = 120 | 300 | 600; // 2, 5, or 10 minutes in seconds
+export type SprintDuration = 120 | 300 | 480 | 600; // 2, 5, 8, or 10 minutes in seconds
 
 export interface SprintResult {
   task: Task;

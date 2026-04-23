@@ -15,11 +15,10 @@ interface RubricItem {
 
 const RUBRICS: Record<string, RubricItem[]> = {
   frameworks: [
-    { key: "framework_choice", label: "Framework-Wahl", max: 25, description: "Richtiges Framework gewählt? Passt es zum Szenario?" },
-    { key: "structure_mece", label: "Struktur & MECE", max: 25, description: "MECE-Struktur? Logisch aufgebaut? Klare Äste/Ebenen?" },
-    { key: "completeness", label: "Vollständigkeit", max: 25, description: "Alle relevanten Aspekte abgedeckt? Wichtige Punkte nicht vergessen?" },
-    { key: "prioritization", label: "Priorisierung", max: 15, description: "Priorisierung der wichtigsten Hebel? Fokus auf Key Issues?" },
-    { key: "communication", label: "Kommunikation", max: 10, description: "Klar, strukturiert, auf den Punkt?" },
+    { key: "framework_choice", label: "Framework-Wahl", max: 25, description: "Passendes Framework zum Szenario? Erkennbar aus Struktur?" },
+    { key: "structure_mece", label: "Struktur & MECE", max: 30, description: "MECE-Äste ohne Überschneidung? Logische Ebenen? Saubere Hierarchie?" },
+    { key: "completeness", label: "Vollständigkeit", max: 25, description: "Alle zentralen Hebel abgedeckt? Wichtige Aspekte nicht vergessen?" },
+    { key: "prioritization", label: "Priorisierung", max: 20, description: "Top-Priority markiert (Stern)? Tiefere Analyse der Kern-Hebel?" },
   ],
   charts: [
     { key: "data_reading", label: "Daten-Ablesung", max: 25, description: "Daten korrekt abgelesen? Werte richtig interpretiert?" },
@@ -54,18 +53,41 @@ function buildSystemPrompt(drillType: string, difficulty: string): string {
     drillType === "frameworks" ? `
 HINWEIS ZUM ANTWORT-FORMAT:
 Die Antwort kommt als hierarchischer Issue Tree:
-- "[Ast N] Titel" = Hauptäste (top-level)
+- "[Ast N] Titel" = Hauptäste (top-level). Prefix "⭐" = vom User als Top-Priorität markiert.
 - "  - Punkt" = Unterpunkte je Ast
 - "  [Unterast N.M] Titel" = Unteräste (children)
 - "    - Punkt" = Unterpunkte der Unteräste
 Bewerte Baumstruktur, MECE-Eigenschaft, Tiefe der Analyse, und ob die Aufteilung logisch zum Szenario passt.
 
-SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
-- Framework-Wahl: Passendes Framework erkennbar aus Baumstruktur = 20-25. Ansatz passt teilweise = 12-19. Falscher/kein erkennbarer Ansatz = 0-11.
-- Struktur & MECE: 3+ MECE-Äste mit Unterästen und Unterpunkten = 20-25. 2-3 Äste, teilweise MECE = 12-19. Keine klare Struktur = 0-11.
-- Vollständigkeit: Alle wesentlichen Aspekte abgedeckt = 20-25. Wichtigste Punkte da, Lücken = 12-19. Nur oberflächlich = 0-11.
-- Priorisierung: Tiefe Analyse der wichtigsten Hebel (mehr Unteräste/Punkte) = 12-15. Gleichmäßig ohne Fokus = 6-11. Keine erkennbare Priorisierung = 0-5.
-- Kommunikation: Klar und prägnant = 8-10. Verständlich = 4-7. Unstrukturiert = 0-3.` :
+SCORING-ANKER (5 Stufen pro Dimension – wende IMMER gleich an):
+
+Framework-Wahl (max 25):
+- 23-25: Passendes Framework klar erkennbar, Top-Level-Äste decken Kern-Dimensionen des Szenarios ab.
+- 19-22: Richtiger Ansatz, aber nicht perfekt zugeschnitten (z.B. generisches Framework statt spezifisch).
+- 15-18: Grundlegend richtig, aber Äste passen nur teilweise.
+- 10-14: Ansatz erkennbar, aber Framework passt schlecht.
+- 0-9: Kein erkennbares/falsches Framework.
+
+Struktur & MECE (max 30):
+- 27-30: 3+ MECE-Äste, saubere Hierarchie, keine Überschneidungen, konsistente Tiefe.
+- 22-26: 3+ Äste mit kleinen MECE-Lücken oder leicht unterschiedlicher Tiefe.
+- 17-21: 2-3 Äste, grundsätzlich logisch, aber Überschneidungen oder fehlende Ebenen.
+- 10-16: Struktur vorhanden, aber nicht MECE oder sehr flach.
+- 0-9: Keine erkennbare Struktur.
+
+Vollständigkeit (max 25):
+- 23-25: Alle zentralen Hebel abgedeckt, keine wichtigen Aspekte fehlen.
+- 19-22: Zentrale Hebel da, 1-2 kleinere Lücken.
+- 15-18: Wichtigste Punkte da, aber sichtbare Lücken in Kern-Dimensionen.
+- 10-14: Mehrere wichtige Aspekte fehlen.
+- 0-9: Nur oberflächlich, meiste zentrale Hebel fehlen.
+
+Priorisierung (max 20):
+- 18-20: Top-Priorität markiert UND genau diese Äste tiefer analysiert (mehr Unteräste/Bullets).
+- 14-17: Top-Priorität markiert, aber Analyse-Tiefe nicht fokussiert, ODER keine Markierung aber klarer Fokus über Tiefe.
+- 10-13: Kein Stern + gleichmäßige Analyse (neutral).
+- 5-9: Kein Stern + unpassende Tiefen-Verteilung (z.B. Nebensache vertieft).
+- 0-4: Keine erkennbare Priorisierung.` :
     drillType === "charts" ? `
 SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
 - Daten-Ablesung: Zahlen korrekt gelesen und benannt = 20-25. Größtenteils korrekt = 12-19. Falsche/fehlende Werte = 0-11.
@@ -81,9 +103,25 @@ SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
 - Kommunikation: Überzeugend und klar = 8-10. Verständlich = 4-7. Unklar = 0-3.`;
 
   const difficultyGuidance =
-    difficulty === "easy" ? "Schwierigkeit: EINFACH. Sei großzügig – ein grundlegend richtiger Ansatz verdient 60+ Punkte. Erwarte keine Tiefe." :
-    difficulty === "medium" ? "Schwierigkeit: MITTEL. Erwarte solide Struktur und mehrere Aspekte. 50+ Punkte bei erkennbar gutem Ansatz." :
-    "Schwierigkeit: SCHWER. Erwarte Tiefe, Nuancen und Priorisierung. Aber auch hier: 40+ Punkte bei erkennbarem, strukturiertem Ansatz.";
+    drillType === "frameworks" ? (
+      difficulty === "easy" ? "Schwierigkeit: EINFACH (ca. 5 Min Bearbeitung). Ziel: 2-3 MECE-Äste mit je 2-3 Bullets. Ein solider, strukturierter Ansatz verdient 75-85 Punkte. 90+ nur wenn Framework-Wahl UND Priorisierung klar erkennbar UND Tiefe stimmt." :
+      difficulty === "medium" ? "Schwierigkeit: MITTEL (ca. 5-7 Min). Ziel: 3-4 MECE-Äste mit Unterästen, klare Priorisierung. Ein solider Ansatz verdient 70-80 Punkte. 85+ wenn alle Kern-Dimensionen sauber ausgebaut sind." :
+      "Schwierigkeit: SCHWER (ca. 7-10 Min). Ziel: 4+ MECE-Äste, tiefe Unterebenen, klare Priorisierung mit Begründungs-Logik. Ein guter Ansatz verdient 65-75 Punkte. 85+ wenn auch Trade-offs und sekundäre Hebel erkennbar sind."
+    ) : (
+      difficulty === "easy" ? "Schwierigkeit: EINFACH. Sei großzügig – ein grundlegend richtiger Ansatz verdient 60+ Punkte. Erwarte keine Tiefe." :
+      difficulty === "medium" ? "Schwierigkeit: MITTEL. Erwarte solide Struktur und mehrere Aspekte. 50+ Punkte bei erkennbar gutem Ansatz." :
+      "Schwierigkeit: SCHWER. Erwarte Tiefe, Nuancen und Priorisierung. Aber auch hier: 40+ Punkte bei erkennbarem, strukturiertem Ansatz."
+    );
+
+  const realismNote =
+    drillType === "frameworks"
+      ? `
+INTERVIEW-REALISMUS:
+Der User hat eine feste Bearbeitungszeit. Bewerte an realistischen Interview-Erwartungen, NICHT an einer idealen Consulting-Master-Lösung.
+- 100% = klar strukturiert, MECE, passendes Framework, Priorisierung erkennbar. KEIN Anspruch auf Vollständigkeit einer 2-wöchigen Consulting-Analyse.
+- Wenn unten eine BEISPIEL-LÖSUNG mitgegeben wurde, nutze sie als Referenz für *Tiefe und Breite*, die man erwarten darf. User muss sie NICHT wörtlich treffen – gleichwertige alternative Strukturen verdienen genauso die volle Punktzahl.
+- Ziehe NICHT Punkte ab für fehlende Aspekte, die über das Interview-Format hinausgehen würden.`
+      : "";
 
   return `Du bist ein fairer, konsistenter Bewertungsassistent für ${drillLabel}-Übungen im Consulting-Interview-Training.
 
@@ -99,6 +137,7 @@ ${rubricText}
 ${scoringAnchors}
 
 ${difficultyGuidance}
+${realismNote}
 
 FEEDBACK-REGELN:
 - Jede Stärke muss konkret benennen, WAS gut war (z.B. "Gute MECE-Struktur mit 4 klar abgegrenzten Ästen").
@@ -193,6 +232,7 @@ serve(async (req) => {
       answer_text,
       difficulty,
       context_info,
+      reference_solution,
     } = body;
 
     if (!drill_type || !case_prompt || !answer_text) {
@@ -215,7 +255,11 @@ serve(async (req) => {
       ? `\nKONTEXT / HINWEISE:\n${context_info}`
       : "";
 
-    const userPrompt = `AUFGABE: ${case_prompt}${contextBlock}
+    const referenceBlock = reference_solution
+      ? `\nBEISPIEL-LÖSUNG (nur als Referenz für Tiefe und Breite – User muss sie nicht wörtlich treffen):\n${reference_solution}`
+      : "";
+
+    const userPrompt = `AUFGABE: ${case_prompt}${contextBlock}${referenceBlock}
 
 ANTWORT DES USERS:
 ${answer_text}

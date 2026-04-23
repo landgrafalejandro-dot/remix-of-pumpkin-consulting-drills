@@ -1,7 +1,7 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useLayoutEffect } from "react";
 import { FrameworkNode, FrameworkBulletPoint } from "@/types/frameworkBuilder";
 import { createEmptyBullet } from "@/lib/frameworkSerializer";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Star } from "lucide-react";
 
 interface FrameworkNodeCardProps {
   node: FrameworkNode;
@@ -10,6 +10,20 @@ interface FrameworkNodeCardProps {
   onRemove: () => void;
   disabled: boolean;
   autoFocusTitle?: boolean;
+  /** If true, shows the star toggle for priority marking (top-level nodes only). */
+  showPriorityToggle?: boolean;
+  /** If false, star toggle is visually present but cannot be set (max stars reached elsewhere). */
+  canSetPriority?: boolean;
+  onTogglePriority?: () => void;
+}
+
+/**
+ * Resize a textarea so its height matches its scrollHeight (auto-grow).
+ */
+function autoResize(el: HTMLTextAreaElement | null) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
 }
 
 const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
@@ -19,15 +33,30 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
   onRemove,
   disabled,
   autoFocusTitle,
+  showPriorityToggle = false,
+  canSetPriority = true,
+  onTogglePriority,
 }) => {
-  const titleRef = useRef<HTMLInputElement>(null);
-  const bulletRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const bulletRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
 
   useEffect(() => {
     if (autoFocusTitle) {
       titleRef.current?.focus();
     }
   }, [autoFocusTitle]);
+
+  // Resize title whenever its value changes
+  useLayoutEffect(() => {
+    autoResize(titleRef.current);
+  }, [node.title]);
+
+  // Resize each bullet whenever its value changes
+  useLayoutEffect(() => {
+    node.bulletPoints.forEach((bp) => {
+      autoResize(bulletRefs.current.get(bp.id) ?? null);
+    });
+  }, [node.bulletPoints]);
 
   const updateTitle = (title: string) => {
     onUpdate({ ...node, title });
@@ -80,7 +109,7 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
 
   const handleBulletKeyDown = (e: React.KeyboardEvent, bullet: FrameworkBulletPoint) => {
     if (disabled) return;
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       addBullet(bullet.id);
     }
@@ -92,7 +121,7 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
 
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       const first = node.bulletPoints[0];
       if (first) bulletRefs.current.get(first.id)?.focus();
@@ -101,7 +130,7 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
 
   return (
     <div
-      className={`relative min-w-[160px] max-w-[220px] rounded-lg border border-border bg-card ${colorClass} border-t-[3px] transition-all duration-200 animate-in fade-in`}
+      className={`relative min-w-[140px] max-w-[200px] rounded-lg border border-border bg-card ${colorClass} border-t-[3px] transition-all duration-200 animate-in fade-in`}
     >
       {/* Delete button */}
       <button
@@ -115,14 +144,39 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
       </button>
 
       {/* Title */}
-      <div className="px-3 pt-2.5 pb-1">
-        <input
+      <div className="flex items-start gap-1.5 px-3 pt-2.5 pb-1">
+        {showPriorityToggle && (
+          <button
+            type="button"
+            onClick={onTogglePriority}
+            disabled={disabled || (!node.isPriority && !canSetPriority)}
+            title={
+              node.isPriority
+                ? "Top-Priorität entfernen"
+                : canSetPriority
+                ? "Als Top-Priorität markieren"
+                : "Max. 2 Top-Prioritäten"
+            }
+            className={`mt-0.5 shrink-0 transition-colors ${
+              node.isPriority
+                ? "text-amber-500"
+                : "text-muted-foreground/30 hover:text-amber-500/70"
+            } disabled:cursor-not-allowed disabled:opacity-30`}
+          >
+            <Star className={`h-3.5 w-3.5 ${node.isPriority ? "fill-current" : ""}`} />
+          </button>
+        )}
+        <textarea
           ref={titleRef}
           value={node.title}
-          onChange={(e) => updateTitle(e.target.value)}
+          onChange={(e) => {
+            updateTitle(e.target.value);
+            autoResize(e.currentTarget);
+          }}
           onKeyDown={handleTitleKeyDown}
           placeholder="Titel..."
-          className="w-full bg-transparent text-sm font-semibold text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+          rows={1}
+          className="w-full resize-none overflow-hidden break-words bg-transparent text-sm font-semibold leading-snug text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
           disabled={disabled}
         />
       </div>
@@ -131,18 +185,26 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
       <div className="px-3 pb-2">
         <div className="space-y-0.5">
           {node.bulletPoints.map((bullet) => (
-            <div key={bullet.id} className="flex items-center gap-1.5">
-              <span className="shrink-0 text-muted-foreground/40 text-[10px]">•</span>
-              <input
+            <div key={bullet.id} className="flex items-start gap-1.5">
+              <span className="shrink-0 pt-1 text-muted-foreground/40 text-[10px]">•</span>
+              <textarea
                 ref={(el) => {
-                  if (el) bulletRefs.current.set(bullet.id, el);
-                  else bulletRefs.current.delete(bullet.id);
+                  if (el) {
+                    bulletRefs.current.set(bullet.id, el);
+                    autoResize(el);
+                  } else {
+                    bulletRefs.current.delete(bullet.id);
+                  }
                 }}
                 value={bullet.text}
-                onChange={(e) => updateBullet(bullet.id, e.target.value)}
+                onChange={(e) => {
+                  updateBullet(bullet.id, e.target.value);
+                  autoResize(e.currentTarget);
+                }}
                 onKeyDown={(e) => handleBulletKeyDown(e, bullet)}
                 placeholder="..."
-                className="flex-1 min-w-0 bg-transparent py-0.5 text-xs text-foreground placeholder:text-muted-foreground/25 focus:outline-none"
+                rows={1}
+                className="flex-1 min-w-0 resize-none overflow-hidden break-words bg-transparent py-0.5 text-xs leading-snug text-foreground placeholder:text-muted-foreground/25 focus:outline-none"
                 disabled={disabled}
               />
               {node.bulletPoints.length > 1 && (
@@ -150,7 +212,7 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
                   type="button"
                   onClick={() => removeBullet(bullet.id)}
                   disabled={disabled}
-                  className="shrink-0 rounded p-0.5 text-muted-foreground/20 transition-colors hover:text-destructive disabled:opacity-0"
+                  className="shrink-0 rounded p-0.5 pt-1 text-muted-foreground/20 transition-colors hover:text-destructive disabled:opacity-0"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>

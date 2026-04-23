@@ -10,6 +10,7 @@ export function createEmptyNode(): FrameworkNode {
     title: "",
     bulletPoints: [createEmptyBullet()],
     children: [],
+    isPriority: false,
   };
 }
 
@@ -17,7 +18,8 @@ function serializeNode(node: FrameworkNode, path: string, depth: number): string
   const indent = "  ".repeat(depth);
   const label = depth === 0 ? "Ast" : "Unterast";
   const nodeTitle = node.title.trim() || "(kein Titel)";
-  let result = `${indent}[${label} ${path}] ${nodeTitle}\n`;
+  const priorityMark = depth === 0 && node.isPriority ? "⭐ " : "";
+  let result = `${indent}[${label} ${path}] ${priorityMark}${nodeTitle}\n`;
 
   const bullets = node.bulletPoints.filter((bp) => bp.text.trim());
   bullets.forEach((bp) => {

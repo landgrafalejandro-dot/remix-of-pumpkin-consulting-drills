@@ -29,9 +29,6 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
   const avgPlausibility = evaluated.length > 0
     ? Math.round(evaluated.reduce((s, r) => s + (r.evaluation?.scores.plausibility_sanity ?? 0), 0) / evaluated.length)
     : 0;
-  const avgComm = evaluated.length > 0
-    ? Math.round(evaluated.reduce((s, r) => s + (r.evaluation?.scores.communication ?? 0), 0) / evaluated.length)
-    : 0;
 
   const emoji = avgScore >= 80 ? "🏆" : avgScore >= 60 ? "🎯" : avgScore >= 40 ? "💪" : "📈";
 
@@ -65,7 +62,7 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
         </div>
         <div className="flex flex-col items-center rounded-xl border border-border bg-card/50 p-4">
           <BarChart3 className="mb-2 h-6 w-6 text-primary" />
-          <span className="text-3xl font-bold text-foreground">{avgStructure}/30</span>
+          <span className="text-3xl font-bold text-foreground">{avgStructure}/35</span>
           <span className="text-xs text-muted-foreground">Ø Struktur</span>
         </div>
       </div>
@@ -74,11 +71,10 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
       <div className="rounded-xl border border-border p-4">
         <h3 className="text-sm font-semibold text-foreground mb-3">Durchschnittliche Rubrik-Scores</h3>
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex justify-between"><span className="text-muted-foreground">Struktur & MECE</span><span className="font-medium">{avgStructure}/30</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Annahmen</span><span className="font-medium">{avgAssumptions}/20</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Struktur & MECE</span><span className="font-medium">{avgStructure}/35</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">Annahmen</span><span className="font-medium">{avgAssumptions}/25</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">Math. Konsistenz</span><span className="font-medium">{avgMath}/20</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">Plausibilität</span><span className="font-medium">{avgPlausibility}/20</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Kommunikation</span><span className="font-medium">{avgComm}/10</span></div>
         </div>
       </div>
 

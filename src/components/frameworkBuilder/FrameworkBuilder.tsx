@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TextDrillCase, DrillConfig } from "@/types/textDrill";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
 import FrameworkNodeCard from "./FrameworkNodeCard";
+import { ChildrenConnector, ChildColumn } from "./FrameworkTreeConnectors";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
-import { X, Send, Info, ChevronDown, ChevronUp, Award, Plus } from "lucide-react";
+import { X, Send, Info, Plus } from "lucide-react";
 
 interface FrameworkBuilderProps {
   config: DrillConfig;
@@ -15,10 +16,12 @@ interface FrameworkBuilderProps {
   onSubmit: (answerText: string) => void;
   onEnd: () => void;
   isEvaluating: boolean;
+  onOpenIntro?: () => void;
 }
 
 const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
+const MAX_PRIORITIES = 2;
 
 const NODE_COLORS = [
   "border-t-amber-500",
@@ -28,61 +31,6 @@ const NODE_COLORS = [
   "border-t-rose-500",
   "border-t-cyan-500",
 ];
-
-/* ─── Tree connector lines between parent and children ─── */
-
-const ChildrenConnector: React.FC<{ children: React.ReactNode; childCount: number }> = ({
-  children,
-  childCount,
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (!containerRef.current || !barRef.current || childCount <= 1) return;
-
-    const container = containerRef.current;
-    const childColumns = container.querySelectorAll<HTMLElement>("[data-child-col]");
-    if (childColumns.length < 2) return;
-
-    const first = childColumns[0];
-    const last = childColumns[childColumns.length - 1];
-    const containerRect = container.getBoundingClientRect();
-
-    const firstCenter = first.getBoundingClientRect().left + first.getBoundingClientRect().width / 2 - containerRect.left;
-    const lastCenter = last.getBoundingClientRect().left + last.getBoundingClientRect().width / 2 - containerRect.left;
-
-    barRef.current.style.left = `${firstCenter}px`;
-    barRef.current.style.width = `${lastCenter - firstCenter}px`;
-  });
-
-  return (
-    <div className="flex flex-col items-center">
-      {/* Vertical stem from parent */}
-      <div className="w-px h-5 bg-border" />
-
-      {/* Children row with horizontal connector */}
-      <div ref={containerRef} className="relative flex gap-3 pt-5">
-        {/* Horizontal bar */}
-        {childCount > 1 && (
-          <div
-            ref={barRef}
-            className="absolute top-0 h-px bg-border"
-            style={{ left: 0, width: 0 }}
-          />
-        )}
-        {children}
-      </div>
-    </div>
-  );
-};
-
-const ChildColumn: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div data-child-col className="flex flex-col items-center">
-    <div className="w-px h-5 bg-border" />
-    {children}
-  </div>
-);
 
 /* ─── Main FrameworkBuilder ─── */
 
@@ -94,11 +42,10 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
   onSubmit,
   onEnd,
   isEvaluating,
+  onOpenIntro,
 }) => {
   const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
-  const [rubrikOpen, setRubrikOpen] = useState(true);
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
-  const hasSeenRubrik = useRef(false);
 
   // Reset on new case
   useEffect(() => {
@@ -106,12 +53,6 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
       setNodes([createEmptyNode()]);
       setLastAddedId(null);
     }
-  }, [currentCase?.id]);
-
-  // Collapse rubric after first case
-  useEffect(() => {
-    if (currentCase && hasSeenRubrik.current) setRubrikOpen(false);
-    if (currentCase) hasSeenRubrik.current = true;
   }, [currentCase?.id]);
 
   /* ── State helpers ── */
@@ -133,6 +74,21 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
     setNodes((prev) => [...prev, n]);
     setLastAddedId(n.id);
   }, [nodes.length]);
+
+  const togglePriority = useCallback((nodeId: string) => {
+    setNodes((prev) => {
+      const target = prev.find((n) => n.id === nodeId);
+      if (!target) return prev;
+      if (target.isPriority) {
+        return prev.map((n) => (n.id === nodeId ? { ...n, isPriority: false } : n));
+      }
+      const currentCount = prev.filter((n) => n.isPriority).length;
+      if (currentCount >= MAX_PRIORITIES) return prev;
+      return prev.map((n) => (n.id === nodeId ? { ...n, isPriority: true } : n));
+    });
+  }, []);
+
+  const priorityCount = nodes.filter((n) => n.isPriority).length;
 
   const updateChildNode = useCallback((parentId: string, childId: string, updated: FrameworkNode) => {
     setNodes((prev) =>
@@ -177,8 +133,8 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Timer + End */}
-      <div className="flex w-full items-center gap-4">
+      {/* Timer + Actions */}
+      <div className="flex w-full items-center gap-3">
         <div className="flex-1">
           {config.sprintMode !== false ? (
             <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
@@ -186,6 +142,16 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
             <span className="text-xs text-muted-foreground">Nimm dir die Zeit, die du brauchst.</span>
           )}
         </div>
+        {onOpenIntro && (
+          <button
+            type="button"
+            onClick={onOpenIntro}
+            title="So funktioniert's"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Info className="h-4 w-4" />
+          </button>
+        )}
         <DrillButton
           variant="inactive"
           size="sm"
@@ -207,52 +173,11 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
         )}
       </div>
 
-      {/* Rubric */}
-      {config.rubricLabels.length > 0 && (
-        <div className="rounded-xl border border-border bg-card">
-          <button
-            onClick={() => setRubrikOpen((o) => !o)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Award className="h-4 w-4" /> Bewertungskriterien
-            </span>
-            {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
-          {rubrikOpen && (
-            <div className="border-t border-border px-4 pb-4 pt-3">
-              <div className="flex flex-wrap gap-3">
-                {config.rubricLabels.map(({ key, label, max }) => (
-                  <div key={key} className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
-                    <span className="font-medium text-foreground">{label}</span>
-                    <span className="text-muted-foreground">({max} Pkt)</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Structure Guide */}
-      {config.structureGuide && config.structureGuide.length > 0 && (
-        <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">So baust du dein Framework:</p>
-          <ol className="space-y-1">
-            {config.structureGuide.map((step, i) => (
-              <li key={i} className="text-xs text-muted-foreground">
-                <span className="font-medium text-foreground/70">{i + 1}.</span> {step}
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
       <label className="text-sm font-medium text-foreground">Dein Framework</label>
 
-      {/* ── Horizontal Tree ── */}
-      <div className="overflow-x-auto rounded-xl border border-border bg-muted/20 p-4">
-        <div className="flex items-start justify-center gap-6 min-w-max">
+      {/* ── Horizontal Tree (wraps to multi-row when too wide) ── */}
+      <div className="rounded-xl border border-border bg-muted/20 p-4">
+        <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-6">
           {nodes.map((node, i) => {
             const color = NODE_COLORS[i % NODE_COLORS.length];
             return (
@@ -265,6 +190,9 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
                   onRemove={() => removeNode(node.id)}
                   disabled={isEvaluating}
                   autoFocusTitle={node.id === lastAddedId}
+                  showPriorityToggle
+                  canSetPriority={priorityCount < MAX_PRIORITIES}
+                  onTogglePriority={() => togglePriority(node.id)}
                 />
 
                 {/* Add child button */}

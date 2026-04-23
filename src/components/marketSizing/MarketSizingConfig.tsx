@@ -14,9 +14,9 @@ interface MarketSizingConfigProps {
 }
 
 const durationOptions: { value: SprintDuration; label: string; desc: string }[] = [
-  { value: 120, label: "2 Min", desc: "Schneller Sprint" },
-  { value: 300, label: "5 Min", desc: "Standard" },
-  { value: 600, label: "10 Min", desc: "Marathon" },
+  { value: 300, label: "5 Min", desc: "Einfach-Standard" },
+  { value: 480, label: "8 Min", desc: "Mittel-Standard" },
+  { value: 600, label: "10 Min", desc: "Schwer-Standard" },
 ];
 
 const difficultyOptions = [

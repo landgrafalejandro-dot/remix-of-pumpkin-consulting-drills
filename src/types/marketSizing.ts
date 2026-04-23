@@ -20,7 +20,6 @@ export interface MarketSizingEvaluation {
     assumptions: number;
     math_consistency: number;
     plausibility_sanity: number;
-    communication: number;
   };
   strengths: string[];
   improvements: string[];

@@ -6,7 +6,7 @@ import FrameworkNodeCard from "@/components/frameworkBuilder/FrameworkNodeCard";
 import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
 import { AudioRecorder } from "@/components/ui/AudioRecorder";
-import { X, Send, Info, ChevronDown, ChevronUp, Award, Plus } from "lucide-react";
+import { X, Send, Info, Plus } from "lucide-react";
 
 interface MarketSizingGameProps {
   currentCase: MarketSizingCase | null;
@@ -15,6 +15,7 @@ interface MarketSizingGameProps {
   onSubmit: (answerText: string, estimateValue: number | null, estimateUnit: string) => void;
   onEnd: () => void;
   isEvaluating: boolean;
+  onOpenIntro?: () => void;
 }
 
 const MAX_TOP_LEVEL = 6;
@@ -165,7 +166,7 @@ const TreeBranch: React.FC<TreeBranchProps> = ({
 /* ─── Main Component ─── */
 
 const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
-  currentCase, timeRemaining, totalDuration, onSubmit, onEnd, isEvaluating,
+  currentCase, timeRemaining, totalDuration, onSubmit, onEnd, isEvaluating, onOpenIntro,
 }) => {
   // Tree state
   const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
@@ -176,9 +177,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   const [estimateValue, setEstimateValue] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
 
-  const [rubrikOpen, setRubrikOpen] = useState(true);
-  const hasSeenRubrik = useRef(false);
-
   // Reset on new case
   useEffect(() => {
     if (currentCase) {
@@ -187,8 +185,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       setMethodText("");
       setEstimateValue("");
       setEstimateUnit(currentCase.unit_hint || "");
-      if (hasSeenRubrik.current) setRubrikOpen(false);
-      hasSeenRubrik.current = true;
     }
   }, [currentCase?.id]);
 
@@ -246,11 +242,21 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Timer + End */}
-      <div className="flex w-full items-center gap-4">
+      {/* Timer + Actions */}
+      <div className="flex w-full items-center gap-3">
         <div className="flex-1">
           <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
         </div>
+        {onOpenIntro && (
+          <button
+            type="button"
+            onClick={onOpenIntro}
+            title="So funktioniert's"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Info className="h-4 w-4" />
+          </button>
+        )}
         <DrillButton
           variant="inactive"
           size="sm"
@@ -275,54 +281,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
             <span>Methode: {currentCase.allowed_methods.replace(/,/g, " / ")}</span>
           </div>
         )}
-      </div>
-
-      {/* Rubric */}
-      <div className="rounded-xl border border-border bg-card">
-        <button
-          onClick={() => setRubrikOpen((o) => !o)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span className="flex items-center gap-2">
-            <Award className="h-4 w-4" /> Bewertungskriterien
-          </span>
-          {rubrikOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
-        {rubrikOpen && (
-          <div className="border-t border-border px-4 pb-4 pt-3">
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: "Struktur & MECE", pts: 30 },
-                { label: "Annahmen", pts: 20 },
-                { label: "Math. Konsistenz", pts: 20 },
-                { label: "Plausibilität", pts: 20 },
-                { label: "Kommunikation", pts: 10 },
-              ].map(({ label, pts }) => (
-                <div key={label} className="flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5 text-xs">
-                  <span className="font-medium text-foreground">{label}</span>
-                  <span className="text-muted-foreground">({pts} Pkt)</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Structure Guide */}
-      <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
-        <p className="mb-2 text-xs font-medium text-muted-foreground">So strukturierst du deine Schätzung:</p>
-        <ol className="space-y-1">
-          {[
-            "Boxen anlegen für jeden Rechenschritt (z.B. Bevölkerung → Zielgruppe → Nutzung → Preis)",
-            "Unteräste für Detailschritte und Annahmen",
-            "Methode kurz erklären (Top-down / Bottom-up)",
-            "Sanity Check durchführen und Ergebnis eingeben",
-          ].map((step, i) => (
-            <li key={i} className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground/70">{i + 1}.</span> {step}
-            </li>
-          ))}
-        </ol>
       </div>
 
       {/* ── Issue Tree ── */}

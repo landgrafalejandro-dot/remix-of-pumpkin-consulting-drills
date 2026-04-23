@@ -6,6 +6,7 @@ import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 import { ListTree, ArrowLeft } from "lucide-react";
 import TextDrillConfig from "@/components/textDrill/TextDrillConfig";
 import FrameworkBuilder from "@/components/frameworkBuilder/FrameworkBuilder";
+import FrameworkIntroModal from "@/components/frameworkBuilder/FrameworkIntroModal";
 import TextDrillResultView from "@/components/textDrill/TextDrillResult";
 import TextDrillDebrief from "@/components/textDrill/TextDrillDebrief";
 import { SprintDuration } from "@/types/drill";
@@ -42,10 +43,9 @@ const drillConfig: DrillConfig = {
   startButtonText: "Case starten \u2192",
   rubricLabels: [
     { key: "framework_choice", label: "Framework-Wahl", max: 25 },
-    { key: "structure_mece", label: "Struktur & MECE", max: 25 },
+    { key: "structure_mece", label: "Struktur & MECE", max: 30 },
     { key: "completeness", label: "Vollständigkeit", max: 25 },
-    { key: "prioritization", label: "Priorisierung", max: 15 },
-    { key: "communication", label: "Kommunikation", max: 10 },
+    { key: "prioritization", label: "Priorisierung", max: 20 },
   ],
   placeholder: "",
   structureGuide: [
@@ -76,6 +76,8 @@ const FrameworksDrill: React.FC = () => {
   const sprintStartTime = useRef<number>(0);
 
   const isSprint = drillConfig.sprintMode !== false;
+  const [introOpen, setIntroOpen] = useState(false);
+  const INTRO_STORAGE_KEY = "frameworksDrill.intro.seen";
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
@@ -95,6 +97,17 @@ const FrameworksDrill: React.FC = () => {
     setCurrentResult(null);
     setElapsedSeconds(0);
     sprintStartTime.current = Date.now();
+
+    // Show intro modal on first ever start
+    try {
+      if (!localStorage.getItem(INTRO_STORAGE_KEY)) {
+        setIntroOpen(true);
+        localStorage.setItem(INTRO_STORAGE_KEY, "1");
+      }
+    } catch {
+      // localStorage may be unavailable (private mode) — silently skip
+    }
+
     loadNextCase();
 
     if (isSprint) {
@@ -153,6 +166,7 @@ const FrameworksDrill: React.FC = () => {
           answer_text: answerText,
           difficulty,
           context_info: currentCase.context_info,
+          reference_solution: currentCase.reference_solution,
         },
       });
 
@@ -197,7 +211,7 @@ const FrameworksDrill: React.FC = () => {
   }, [currentCase, userEmail, difficulty]);
 
   const handleNext = useCallback(() => {
-    if (!isSprint || timeRemaining <= 0) {
+    if (isSprint && timeRemaining <= 0) {
       if (timerRef.current) clearInterval(timerRef.current);
       setPhase("debrief");
     } else {
@@ -259,6 +273,12 @@ const FrameworksDrill: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <FrameworkIntroModal
+        open={introOpen}
+        onClose={() => setIntroOpen(false)}
+        rubricLabels={drillConfig.rubricLabels}
+        structureGuide={drillConfig.structureGuide}
+      />
       {(phase === "config" || phase === "debrief") && <NavHeader showStats={false} />}
       {(phase === "answering" || phase === "evaluating" || phase === "result") && (
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
@@ -305,6 +325,7 @@ const FrameworksDrill: React.FC = () => {
               onSubmit={handleSubmit}
               onEnd={handleEnd}
               isEvaluating={isEvaluating}
+              onOpenIntro={() => setIntroOpen(true)}
             />
           </div>
         </main>

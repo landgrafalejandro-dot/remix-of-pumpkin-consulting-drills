@@ -26,6 +26,7 @@ serve(async (req) => {
       final_estimate_value,
       final_estimate_unit,
       difficulty,
+      reference_structure,
     } = body;
 
     const rangeInfo =
@@ -33,10 +34,14 @@ serve(async (req) => {
         ? `Erwartete Größenordnung: ${expected_min} bis ${expected_max} (${final_estimate_unit}).`
         : "Keine erwartete Größenordnung vorhanden. Bewerte Plausibilität nur qualitativ und setze flagged=true wenn unsicher.";
 
+    const referenceBlock = reference_structure
+      ? `\nBEISPIEL-LÖSUNGSWEG (Referenz für Tiefe/Breite – User muss nicht wörtlich treffen):\n${reference_structure}`
+      : "";
+
     const difficultyGuidance =
-      difficulty === "easy" ? "Schwierigkeit: EINFACH. Sei großzügig – ein nachvollziehbarer Top-down-Ansatz mit 3+ Schritten verdient 60+ Punkte." :
-      difficulty === "medium" ? "Schwierigkeit: MITTEL. Erwarte klare Struktur und plausible Annahmen. 50+ Punkte bei solidem Ansatz." :
-      "Schwierigkeit: SCHWER. Erwarte Segmentierung, Sensitivitätsanalyse und Sanity Checks. Aber: 40+ Punkte bei strukturiertem Ansatz.";
+      difficulty === "easy" ? "Schwierigkeit: EINFACH (ca. 5 Min Bearbeitung). Ziel: nachvollziehbarer Top-down-Ansatz mit 3+ Schritten, plausible Annahmen. Solider Ansatz verdient 75-85 Punkte. 90+ nur bei sauberer MECE-Struktur UND korrekter Größenordnung UND Sanity Check." :
+      difficulty === "medium" ? "Schwierigkeit: MITTEL (ca. 6-8 Min). Ziel: klare MECE-Struktur, 2+ Segmente, plausible Annahmen mit Begründung. Solider Ansatz verdient 70-80 Punkte. 85+ bei differenzierter Segmentierung." :
+      "Schwierigkeit: SCHWER (ca. 8-10 Min). Ziel: Multi-Segment-Analyse, Sensitivität, mehrere Sanity Checks. Guter Ansatz verdient 65-75 Punkte. 85+ nur bei Sensitivität UND Cross-Check-Logik.";
 
     const systemPrompt = `Du bist ein fairer, konsistenter Bewertungsassistent für Market-Sizing-Übungen im Consulting-Interview-Training.
 
@@ -60,20 +65,47 @@ Die Antwort kommt in strukturiertem Format:
 Bewerte jeden Bereich nach der Rubrik.
 
 RUBRIK (0-100 Punkte):
-A) Struktur & MECE (0-30): Klare Methode (top-down/bottom-up/mixed)? Logisch und MECE? Nachvollziehbare Schritte?
-B) Annahmenqualität (0-20): Explizit genannt? Plausibel? Keine falschen Datenquellen behauptet?
+A) Struktur & MECE (0-35): Klare Methode (top-down/bottom-up/mixed)? Logisch und MECE? Nachvollziehbare Schritte?
+B) Annahmenqualität (0-25): Explizit genannt? Plausibel? Keine falschen Datenquellen behauptet?
 C) Mathematische Konsistenz (0-20): Rechenlogik korrekt? Einheiten konsistent? Keine widersprüchlichen Zwischenergebnisse?
 D) Plausibilität / Sanity Check (0-20): Größenordnung sinnvoll? Mindestens ein Sanity Check? Vergleiche/Anker genutzt?
-E) Kommunikation (0-10): Klar, kurz, strukturiert? Finale Antwort eindeutig (Zahl + Einheit + Zeitraum)?
 
-SCORING-ANKER (für Konsistenz – wende diese IMMER gleich an):
-- Struktur: Top-down/Bottom-up mit 4+ nachvollziehbaren Schritten = 25-30. Mit 2-3 Schritten = 18-24. Nur eine Annahme ohne Herleitung = 0-10.
-- Annahmen: Alle Annahmen explizit und plausibel = 16-20. Meist explizit = 10-15. Annahmen fehlen oder unplausibel = 0-9.
-- Mathe: Rechnung nachvollziehbar und Einheiten konsistent = 16-20. Kleinere Fehler = 10-15. Grobe Rechenfehler = 0-9.
-- Plausibilität: Ergebnis innerhalb Faktor 3 der erwarteten Größenordnung UND Sanity Check vorhanden = 16-20. Richtige Größenordnung ohne Check = 10-15. Falsche Größenordnung = 0-9.
-- Kommunikation: Finale Antwort klar (Zahl + Einheit) = 8-10. Verständlich = 4-7. Unklar = 0-3.
+SCORING-ANKER (5 Stufen pro Dimension – wende IMMER gleich an):
+
+Struktur & MECE (max 35):
+- 31-35: 4+ klare Rechenschritte, saubere MECE, nachvollziehbarer Top-down/Bottom-up.
+- 25-30: 3-4 Schritte, grundsätzlich MECE, kleine Logik-Lücken.
+- 18-24: 2-3 Schritte, erkennbare Struktur, aber Überschneidungen.
+- 10-17: Wenige Schritte, Struktur flach oder unvollständig.
+- 0-9: Keine erkennbare Methode, nur eine Annahme.
+
+Annahmenqualität (max 25):
+- 22-25: Alle Annahmen explizit UND plausibel UND begründet.
+- 18-21: Annahmen explizit und meist plausibel, kleine Lücken in Begründung.
+- 13-17: Annahmen meist explizit, teils unplausibel oder unbegründet.
+- 7-12: Annahmen implizit oder mehrere unplausibel.
+- 0-6: Annahmen fehlen oder klar falsch.
+
+Mathematische Konsistenz (max 20):
+- 18-20: Rechnung vollständig nachvollziehbar, Einheiten konsistent, keine Fehler.
+- 14-17: Rechnung nachvollziehbar mit 1 kleinen Fehler oder Ungenauigkeit.
+- 10-13: Rechnung grundsätzlich ok, aber mehrere kleine Fehler ODER eine Unstimmigkeit.
+- 5-9: Rechnung mit groben Fehlern oder inkonsistenten Einheiten.
+- 0-4: Keine nachvollziehbare Rechnung.
+
+Plausibilität / Sanity Check (max 20):
+- 18-20: Ergebnis innerhalb Faktor 3 der erwarteten Größenordnung UND expliziter Sanity Check/Vergleich.
+- 14-17: Richtige Größenordnung (Faktor 3) OHNE Sanity Check, oder Sanity Check mit leichter Abweichung.
+- 10-13: Ergebnis innerhalb Faktor 10, kein Sanity Check.
+- 5-9: Größenordnung schief (Faktor 10-100 daneben).
+- 0-4: Ergebnis offensichtlich falsche Größenordnung.
 
 ${difficultyGuidance}
+
+INTERVIEW-REALISMUS:
+Der User hat eine feste Bearbeitungszeit. Bewerte an realistischen Interview-Erwartungen, NICHT an einer idealen Consulting-Master-Lösung.
+- 100% = klar strukturiert, MECE, plausible Annahmen, richtige Größenordnung, Sanity Check. KEINE Perfektion oder echte Datenquellen verlangt.
+- Wenn unten ein BEISPIEL-LÖSUNGSWEG mitgegeben wurde, nutze ihn als Referenz für *Tiefe und Breite*. User muss NICHT wörtlich treffen – gleichwertige alternative Methoden (top-down vs. bottom-up) verdienen die volle Punktzahl, wenn sauber ausgeführt.
 
 FEEDBACK-REGELN:
 - Jede Stärke muss konkret benennen, WAS gut war.
@@ -84,7 +116,7 @@ FEEDBACK-REGELN:
     const userPrompt = `AUFGABE: ${case_prompt}
 Einheit: ${unit_hint || "nicht angegeben"}
 Erlaubte Methoden: ${allowed_methods}
-${rangeInfo}
+${rangeInfo}${referenceBlock}
 
 ANTWORT DES USERS:
 ${answer_text}
@@ -127,9 +159,9 @@ Bewerte diese Antwort strikt nach der Rubrik.`;
                       properties: {
                         structure_mece: {
                           type: "number",
-                          description: "0-30",
+                          description: "0-35",
                         },
-                        assumptions: { type: "number", description: "0-20" },
+                        assumptions: { type: "number", description: "0-25" },
                         math_consistency: {
                           type: "number",
                           description: "0-20",
@@ -138,17 +170,12 @@ Bewerte diese Antwort strikt nach der Rubrik.`;
                           type: "number",
                           description: "0-20",
                         },
-                        communication: {
-                          type: "number",
-                          description: "0-10",
-                        },
                       },
                       required: [
                         "structure_mece",
                         "assumptions",
                         "math_consistency",
                         "plausibility_sanity",
-                        "communication",
                       ],
                       additionalProperties: false,
                     },

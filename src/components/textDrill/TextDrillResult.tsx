@@ -1,6 +1,7 @@
 import React from "react";
 import { TextDrillResult as TDResult, DrillConfig } from "@/types/textDrill";
 import { DrillButton } from "@/components/ui/drill-button";
+import FrameworkTreeViewer from "@/components/frameworkBuilder/FrameworkTreeViewer";
 import { ArrowRight, CheckCircle, AlertTriangle, Star, TrendingUp, BookOpen } from "lucide-react";
 
 interface TextDrillResultProps {
@@ -118,14 +119,20 @@ const TextDrillResultView: React.FC<TextDrillResultProps> = ({
       )}
 
       {/* Reference Solution */}
-      {result.case.reference_solution && (
+      {(result.case.reference_tree?.length || result.case.reference_solution) && (
         <details className="rounded-xl border border-border p-4">
           <summary className="text-sm font-semibold text-foreground cursor-pointer flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary" /> Beispiel-Lösung anzeigen
           </summary>
-          <p className="mt-3 text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
-            {result.case.reference_solution}
-          </p>
+          <div className="mt-3">
+            {result.case.reference_tree?.length ? (
+              <FrameworkTreeViewer nodes={result.case.reference_tree} />
+            ) : (
+              <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                {result.case.reference_solution}
+              </p>
+            )}
+          </div>
         </details>
       )}
 
@@ -134,7 +141,7 @@ const TextDrillResultView: React.FC<TextDrillResultProps> = ({
         {config.sprintMode === false ? (
           <>
             <DrillButton variant="inactive" size="lg" onClick={onFinish} className="gap-2">
-              Zurück zur Übersicht
+              Session beenden
             </DrillButton>
             <DrillButton variant="active" size="lg" onClick={onNext} className="gap-2">
               Neuer Case <ArrowRight className="h-4 w-4" />

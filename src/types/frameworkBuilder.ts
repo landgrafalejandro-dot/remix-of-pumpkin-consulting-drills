@@ -8,6 +8,7 @@ export interface FrameworkNode {
   title: string;
   bulletPoints: FrameworkBulletPoint[];
   children: FrameworkNode[];
+  isPriority?: boolean;
 }
 
 export interface FrameworkBuilderState {

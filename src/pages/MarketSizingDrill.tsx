@@ -6,6 +6,7 @@ import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
 import { Globe, ArrowLeft } from "lucide-react";
 import MarketSizingConfig from "@/components/marketSizing/MarketSizingConfig";
 import MarketSizingGame from "@/components/marketSizing/MarketSizingGame";
+import MarketSizingIntroModal from "@/components/marketSizing/MarketSizingIntroModal";
 import MarketSizingResultView from "@/components/marketSizing/MarketSizingResult";
 import MarketSizingDebrief from "@/components/marketSizing/MarketSizingDebrief";
 import { SprintDuration } from "@/types/drill";
@@ -17,10 +18,24 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const DIFFICULTY_DEFAULT_DURATION: Record<"easy" | "medium" | "hard", SprintDuration> = {
+  easy: 300,
+  medium: 480,
+  hard: 600,
+};
+
 const MarketSizingDrill: React.FC = () => {
   const userEmail = useUserEmail();
-  const [duration, setDuration] = useState<SprintDuration>(300);
+  const [duration, setDuration] = useState<SprintDuration>(DIFFICULTY_DEFAULT_DURATION.easy);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
+
+  const handleDifficultyChange = useCallback((next: "easy" | "medium" | "hard") => {
+    setDifficulty(next);
+    setDuration(DIFFICULTY_DEFAULT_DURATION[next]);
+  }, []);
+
+  const [introOpen, setIntroOpen] = useState(false);
+  const INTRO_STORAGE_KEY = "marketSizingDrill.intro.seen";
   const [industryTag, setIndustryTag] = useState("all");
   const [phase, setPhase] = useState<MarketSizingPhase>("config");
   const [currentCase, setCurrentCase] = useState<MarketSizingCase | null>(null);
@@ -51,6 +66,16 @@ const MarketSizingDrill: React.FC = () => {
     setCurrentResult(null);
     setTimeRemaining(duration);
     sprintStartTime.current = Date.now();
+
+    try {
+      if (!localStorage.getItem(INTRO_STORAGE_KEY)) {
+        setIntroOpen(true);
+        localStorage.setItem(INTRO_STORAGE_KEY, "1");
+      }
+    } catch {
+      // localStorage may be unavailable
+    }
+
     loadNextCase();
 
     timerRef.current = setInterval(() => {
@@ -110,6 +135,7 @@ const MarketSizingDrill: React.FC = () => {
           final_estimate_value: estimateValue,
           final_estimate_unit: estimateUnit,
           difficulty,
+          reference_structure: currentCase.reference_structure,
         },
       });
 
@@ -218,6 +244,7 @@ const MarketSizingDrill: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <MarketSizingIntroModal open={introOpen} onClose={() => setIntroOpen(false)} />
       {(phase === "config" || phase === "debrief") && <NavHeader showStats={false} />}
       {(phase === "answering" || phase === "evaluating" || phase === "result") && (
         <header className="flex items-center justify-between border-b border-border px-6 py-3">
@@ -243,7 +270,7 @@ const MarketSizingDrill: React.FC = () => {
             <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
               <MarketSizingConfig
                 duration={duration} onDurationChange={setDuration}
-                difficulty={difficulty} onDifficultyChange={setDifficulty}
+                difficulty={difficulty} onDifficultyChange={handleDifficultyChange}
                 industryTag={industryTag} onIndustryTagChange={setIndustryTag}
                 onStart={handleStart}
               />
@@ -262,6 +289,7 @@ const MarketSizingDrill: React.FC = () => {
               onSubmit={handleSubmit}
               onEnd={handleEnd}
               isEvaluating={isEvaluating}
+              onOpenIntro={() => setIntroOpen(true)}
             />
           </div>
         </main>

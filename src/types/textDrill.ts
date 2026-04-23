@@ -1,3 +1,5 @@
+import { FrameworkNode } from "./frameworkBuilder";
+
 export interface TextDrillCase {
   id: string;
   difficulty: "easy" | "medium" | "hard";
@@ -5,6 +7,7 @@ export interface TextDrillCase {
   category?: string; // frameworks: category, charts: chart_type, creativity: industry
   context_info?: string | null;
   reference_solution?: string | null;
+  reference_tree?: FrameworkNode[] | null; // only for frameworks drill: graphical sample solution
   chart_data?: any; // only for charts drill
   chart_title?: string | null; // only for charts drill
 }
