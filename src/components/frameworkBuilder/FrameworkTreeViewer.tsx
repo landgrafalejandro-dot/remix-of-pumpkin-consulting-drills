@@ -8,7 +8,7 @@ interface FrameworkTreeViewerProps {
 }
 
 const NODE_COLORS = [
-  "border-t-amber-500",
+  "border-t-primary",
   "border-t-blue-500",
   "border-t-emerald-500",
   "border-t-violet-500",
@@ -26,7 +26,7 @@ const NodeView: React.FC<{
   >
     <div className="flex items-start gap-1.5 px-3 pt-2.5 pb-1">
       {showPriorityStar && node.isPriority && (
-        <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-500" />
+        <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-primary text-primary" />
       )}
       <p className="text-sm font-semibold leading-snug text-foreground break-words">
         {node.title || "–"}

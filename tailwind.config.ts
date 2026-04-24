@@ -96,7 +96,7 @@ export default {
         'section-gap': '24px',
       },
       boxShadow: {
-        'active': '0 0 40px rgba(245, 158, 11, 0.1)',
+        'active': '0 0 40px rgba(255, 153, 0, 0.1)',
       },
       borderRadius: {
         lg: "var(--radius)",

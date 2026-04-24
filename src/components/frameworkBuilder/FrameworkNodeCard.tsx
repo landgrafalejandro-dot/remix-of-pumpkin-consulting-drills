@@ -159,8 +159,8 @@ const FrameworkNodeCard: React.FC<FrameworkNodeCardProps> = ({
             }
             className={`mt-0.5 shrink-0 transition-colors ${
               node.isPriority
-                ? "text-amber-500"
-                : "text-muted-foreground/30 hover:text-amber-500/70"
+                ? "text-primary"
+                : "text-muted-foreground/30 hover:text-primary/70"
             } disabled:cursor-not-allowed disabled:opacity-30`}
           >
             <Star className={`h-3.5 w-3.5 ${node.isPriority ? "fill-current" : ""}`} />

@@ -10,7 +10,7 @@ const MAX_CHILDREN = 4;
 const MAX_DEPTH = 3;
 
 const NODE_COLORS = [
-  "border-t-amber-500",
+  "border-t-primary",
   "border-t-blue-500",
   "border-t-emerald-500",
   "border-t-violet-500",

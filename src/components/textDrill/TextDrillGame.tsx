@@ -21,7 +21,7 @@ interface TextDrillGameProps {
 }
 
 const CHART_COLORS = [
-  "#f59e0b", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6",
+  "#ff9900", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6",
   "#f97316", "#06b6d4", "#ec4899", "#84cc16", "#6366f1",
 ];
 
