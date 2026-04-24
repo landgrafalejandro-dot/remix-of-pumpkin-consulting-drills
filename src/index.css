@@ -1,78 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&family=Space+Grotesk:wght@700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Variant A — Refined Dark Pumpkin
- * All colors MUST be HSL. Hex references in comments for clarity.
- */
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
 
 @layer base {
   :root {
-    /* Layered surfaces */
-    --background: 240 7% 4%;            /* #0a0a0c */
-    --foreground: 0 0% 100%;            /* #ffffff */
+    /* Refined Dark Theme */
+    --background: 240 33% 4%;          /* #0A0A0F */
+    --foreground: 0 0% 98%;            /* #FAFAFA */
 
-    --card: 240 8% 6%;                  /* #0d0d10 */
-    --card-foreground: 0 0% 100%;
+    --card: 240 20% 8%;                /* #12121A */
+    --card-foreground: 0 0% 98%;       /* #FAFAFA */
 
-    --popover: 240 8% 6%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 240 20% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary — Pumpkin */
-    --primary: 36 100% 50%;             /* #ff9900 */
-    --primary-foreground: 240 7% 4%;    /* text on pumpkin CTAs */
-    --primary-hover: 36 100% 65%;       /* #ffb74d */
+    /* Primary: Warm Amber */
+    --primary: 43 96% 56%;             /* #F59E0B */
+    --primary-foreground: 240 33% 4%;
 
-    /* Secondary — elevated surface */
-    --secondary: 240 8% 12%;            /* #1c1c22 */
-    --secondary-foreground: 0 0% 66%;
+    /* Secondary accent (lighter amber for gradients) */
+    --secondary: 240 17% 12%;          /* #1A1A24 */
+    --secondary-foreground: 0 0% 66%;  /* #A1A1AA */
 
-    /* Muted — low-contrast surface */
-    --muted: 240 8% 7%;                 /* #101013 */
-    --muted-foreground: 240 4% 68%;     /* #a8a8b0 */
-    --subtle-foreground: 240 4% 42%;    /* #65656e */
+    /* Muted */
+    --muted: 240 20% 8%;
+    --muted-foreground: 240 4% 46%;    /* #71717A */
 
-    /* Accent — mid-tier surface */
-    --accent: 240 7% 10%;               /* #16161a */
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Elevated surfaces */
+    --accent: 240 17% 12%;             /* #1A1A24 */
+    --accent-foreground: 0 0% 98%;
 
-    /* Status */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 25 95% 53%;
-    --warning-foreground: 0 0% 100%;
+    /* Destructive / Error */
+    --destructive: 0 84% 60%;          /* #EF4444 */
+    --destructive-foreground: 0 0% 98%;
+
+    /* Success */
+    --success: 142 71% 45%;            /* #22C55E */
+    --success-foreground: 0 0% 98%;
+
+    /* Warning */
+    --warning: 25 95% 53%;             /* #F97316 */
+    --warning-foreground: 0 0% 98%;
 
     /* Disabled */
-    --disabled: 240 8% 7%;
-    --disabled-foreground: 240 4% 42%;
+    --disabled: 240 17% 10%;
+    --disabled-foreground: 240 4% 46%;
 
-    --border: 0 0% 100% / 0.06;
-    --input: 240 8% 7%;
-    --ring: 36 100% 50%;
+    --border: 0 0% 100% / 0.08;
+    --input: 240 20% 8%;
+    --ring: 43 96% 56%;
 
-    --radius: 0.875rem;         /* 14px */
-    --radius-button: 0.625rem;  /* 10px */
-    --radius-input: 0.625rem;
+    --radius: 1rem;
+    --radius-button: 0.75rem;
+    --radius-input: 0.5rem;
+    --shadow-active: 0 0 40px rgba(245, 158, 11, 0.1);
 
-    /* Pumpkin glow and highlights */
-    --accent-glow: 36 100% 50% / 0.15;
-    --accent-secondary: 36 100% 65%;    /* #ffb74d */
-    --shadow-active: 0 0 0 1px rgba(255, 153, 0, 0.2), 0 0 40px rgba(255, 153, 0, 0.08);
+    /* Accent glow for special effects */
+    --accent-glow: 43 96% 56% / 0.15;
+    /* Secondary amber for gradients */
+    --accent-secondary: 45 97% 56%;    /* #FBBF24 */
 
-    /* Sidebar */
-    --sidebar-background: 240 7% 4%;
+    --sidebar-background: 240 33% 4%;
     --sidebar-foreground: 0 0% 66%;
-    --sidebar-primary: 36 100% 50%;
-    --sidebar-primary-foreground: 240 7% 4%;
-    --sidebar-accent: 240 7% 10%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 100% / 0.06;
-    --sidebar-ring: 36 100% 50%;
+    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary-foreground: 240 33% 4%;
+    --sidebar-accent: 240 17% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 100% / 0.08;
+    --sidebar-ring: 43 96% 56%;
   }
 }
 
@@ -83,32 +84,5 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    letter-spacing: -0.01em;
-  }
-
-  h1, h2, h3, h4 {
-    letter-spacing: -0.015em;
-  }
-}
-
-@layer components {
-  /* Variant-A signature motif: small uppercase mono meta labels. */
-  .text-meta {
-    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-  }
-
-  .text-meta-strong {
-    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: hsl(var(--primary));
   }
 }

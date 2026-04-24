@@ -34,121 +34,102 @@ const ModuleCardBase: React.FC<
 
   return (
     <div
-      className={`relative flex h-full flex-col rounded-[inherit] p-5 ${
-        isActive ? "bg-[#101013]" : "bg-[#101013]/50 opacity-50 grayscale"
+      className={`relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center ${
+        isActive
+          ? "bg-gradient-to-b from-accent to-card"
+          : "bg-card/50 opacity-50 grayscale"
       }`}
     >
       {status === "beta" && (
-        <span className="text-meta absolute right-4 top-4 text-primary">Beta</span>
+        <Badge className="absolute right-4 top-4 border-primary/30 bg-primary/15 text-xs text-primary">
+          Beta
+        </Badge>
       )}
       {isComingSoon && (
         <div className="absolute inset-0 z-10 flex items-center justify-center">
-          <Lock className="h-8 w-8 text-white/30" />
+          <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
       )}
-
-      {/* Icon sub-card */}
-      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-[10px] border border-white/5 bg-[#16161a] text-white">
-        {icon}
-      </div>
-
-      <h3 className="mb-1.5 text-[18px] font-semibold leading-tight tracking-tight text-white">
+      <h3 className={`text-h3 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
         {title}
       </h3>
-      <p className="mb-5 flex-1 text-[13px] leading-[1.45] text-white/55">
-        {description}
-      </p>
-
+      <p className="text-body text-secondary-foreground">{description}</p>
       {isActive && stats && (
-        <div className="mb-3 flex items-center gap-3 text-[10px] text-white/50">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle className="h-3 w-3 text-white/40" />
-            {stats.accuracy}
-          </span>
-          <span className="h-3 w-px bg-white/10" />
-          <span className="flex items-center gap-1.5">
-            <Target className="h-3 w-3 text-white/40" />
-            {stats.solved}
-          </span>
+        <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border bg-secondary px-4 py-2.5">
+          <div className="flex items-center gap-1.5 text-label">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-secondary-foreground">Ø {stats.avgTime}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-label">
+            <CheckCircle className="h-3.5 w-3.5 text-success" />
+            <span className="text-secondary-foreground">{stats.accuracy}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-label">
+            <Target className="h-3.5 w-3.5 text-primary" />
+            <span className="text-secondary-foreground">{stats.solved}</span>
+          </div>
         </div>
       )}
-
-      {/* Footer with divider */}
-      <div className="flex items-center justify-between border-t border-white/5 pt-3.5">
-        <span className="text-meta flex items-center gap-1.5 text-white/50">
-          <Clock className="h-3 w-3" />
-          {stats?.avgTime ?? (isComingSoon ? "Bald" : "—")}
-        </span>
-        {isActive && (
-          <span className="flex items-center gap-1 text-xs text-white/50">
-            Starten <ArrowRight className="h-3 w-3" />
-          </span>
-        )}
-        {isComingSoon && (
-          <Badge variant="secondary" className="h-5 rounded-md bg-white/5 text-[10px] font-normal text-white/40">
-            Coming Soon
-          </Badge>
-        )}
-      </div>
+      {isComingSoon && (
+        <Badge variant="secondary" className="text-xs">
+          Coming Soon
+        </Badge>
+      )}
     </div>
   );
 };
 
-/** Pumpkin-ghost overlay face shown on hover. Same content + prominent CTA. */
+/** Amber-accented overlay face shown on hover. Same content + prominent CTA. */
 const ModuleCardOverlay: React.FC<
   Pick<ModuleCardProps, "title" | "description" | "icon" | "stats">
 > = ({ title, description, icon, stats }) => (
   <div
-    className="relative flex h-full flex-col rounded-[inherit] p-5"
-    style={{
-      background:
-        "linear-gradient(180deg, rgba(255,153,0,0.14) 0%, rgba(255,153,0,0.04) 100%)",
-    }}
+    className="relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center"
+    style={{ backgroundColor: "var(--accent-color)" }}
   >
-    {/* Icon sub-card with pumpkin tint */}
-    <div
-      className="mb-5 flex h-12 w-12 items-center justify-center rounded-[10px] border text-[#ff9900]"
-      style={{
-        backgroundColor: "rgba(255,153,0,0.15)",
-        borderColor: "rgba(255,153,0,0.35)",
-      }}
+    <h3
+      className="text-h3"
+      style={{ color: "var(--on-accent-foreground)" }}
     >
-      {icon}
-    </div>
-
-    <h3 className="mb-1.5 text-[18px] font-semibold leading-tight tracking-tight text-white">
       {title}
     </h3>
-    <p className="mb-5 flex-1 text-[13px] leading-[1.45] text-white/75">
+    <p
+      className="text-body"
+      style={{ color: "var(--on-accent-foreground)", opacity: 0.85 }}
+    >
       {description}
     </p>
-
     {stats && (
-      <div className="mb-3 flex items-center gap-3 text-[10px] text-white/65">
-        <span className="flex items-center gap-1.5">
-          <CheckCircle className="h-3 w-3" />
-          {stats.accuracy}
-        </span>
-        <span className="h-3 w-px bg-white/20" />
-        <span className="flex items-center gap-1.5">
-          <Target className="h-3 w-3" />
-          {stats.solved}
-        </span>
+      <div
+        className="flex w-full items-center justify-center gap-4 rounded-xl px-4 py-2.5"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.08)",
+          color: "var(--on-accent-muted-foreground)",
+        }}
+      >
+        <div className="flex items-center gap-1.5 text-label">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Ø {stats.avgTime}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-label">
+          <CheckCircle className="h-3.5 w-3.5" />
+          <span>{stats.accuracy}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-label">
+          <Target className="h-3.5 w-3.5" />
+          <span>{stats.solved}</span>
+        </div>
       </div>
     )}
-
-    {/* CTA */}
-    <div className="mt-auto flex items-center justify-between gap-3">
-      <span className="text-meta flex items-center gap-1.5 text-white/60">
-        <Clock className="h-3 w-3" />
-        {stats?.avgTime ?? "—"}
-      </span>
-      <span
-        className="flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-[13px] font-semibold"
-        style={{ backgroundColor: "#ff9900", color: "#0a0a0c" }}
-      >
-        Jetzt starten <ArrowRight className="h-3.5 w-3.5" />
-      </span>
+    <div
+      className="mt-auto flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md"
+      style={{
+        backgroundColor: "hsl(var(--foreground))",
+        color: "hsl(var(--background))",
+      }}
+    >
+      <span>Jetzt starten</span>
+      <ArrowRight className="h-4 w-4" />
     </div>
   </div>
 );
@@ -161,11 +142,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   const card = (
     <RevealCardContainer
       disabled={!isActive}
-      accent="rgba(255,153,0,0.25)"
-      textOnAccent="#ffffff"
-      mutedOnAccent="rgba(255,255,255,0.65)"
-      className={`min-h-[22rem] transition-transform duration-200 ${
-        isActive ? "cursor-pointer hover:-translate-y-0.5" : "cursor-not-allowed"
+      className={`min-h-[22rem] transition-transform duration-300 ${
+        isActive ? "shadow-active hover:-translate-y-1 cursor-pointer" : "cursor-not-allowed"
       }`}
       base={<ModuleCardBase title={title} description={description} icon={icon} status={status} stats={stats} />}
       overlay={<ModuleCardOverlay title={title} description={description} icon={icon} stats={stats} />}
@@ -180,12 +158,12 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 };
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [
-  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-6 w-6" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
-  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-6 w-6" />, status: "active", href: "/case-math-drill", drillType: "case_math" },
-  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-6 w-6" />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
-  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-6 w-6" />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
-  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-6 w-6" />, status: "active", href: "/chart-drill", drillType: "charts" },
-  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-6 w-6" />, status: "active", href: "/creativity-drill", drillType: "creativity" },
+  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
+  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "active", href: "/case-math-drill", drillType: "case_math" },
+  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
+  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-8 w-8" />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
+  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "active", href: "/chart-drill", drillType: "charts" },
+  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-8 w-8" />, status: "active", href: "/creativity-drill", drillType: "creativity" },
 ];
 
 const timeAgo = (dateStr: string): string => {
@@ -200,7 +178,7 @@ const timeAgo = (dateStr: string): string => {
 
 const durationLabel = (s: number): string => {
   const m = Math.round(s / 60);
-  return `${m} MIN SESSION`;
+  return `${m} Min Sprint`;
 };
 
 const LandingPage: React.FC = () => {
@@ -218,40 +196,40 @@ const LandingPage: React.FC = () => {
 
       {/* Hero */}
       <section className="flex flex-col items-center px-4 pt-12 pb-8">
-        <h1 className="mb-2 text-center text-[26px] font-semibold tracking-tight text-white">
+        <h1 className="mb-3 text-center text-h1 text-foreground">
           Consulting Case Prep Hub
         </h1>
-        <p className="max-w-xl text-center text-[14px] text-white/55">
+        <p className="max-w-xl text-center text-body text-secondary-foreground">
           Dein persönliches Training für das Consulting-Interview. Wähle ein Modul und starte deine Vorbereitung.
         </p>
 
         {/* Inline Stats */}
         {userEmail && (
-          <div className="mt-6 flex items-center gap-6 rounded-xl border border-white/6 bg-[#1c1c22] px-6 py-2.5">
+          <div className="mt-6 flex items-center gap-6 rounded-xl border border-border bg-secondary px-6 py-2.5">
             <div className="flex items-center gap-2 text-sm">
               <Flame className="h-4 w-4 text-primary" />
-              <span className="font-medium text-white">{streak}-Tage-Streak</span>
+              <span className="font-medium text-foreground">{streak}-Tage-Streak</span>
             </div>
-            <div className="h-4 w-px bg-white/10" />
+            <div className="h-4 w-px bg-border" />
             <div className="flex items-center gap-2 text-sm">
               <Target className="h-4 w-4 text-primary" />
-              <span className="font-medium text-white">{totalSolved} Gelöste Aufgaben</span>
+              <span className="font-medium text-foreground">{totalSolved} Gelöste Aufgaben</span>
             </div>
           </div>
         )}
 
         {/* CTAs */}
         {userEmail && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
             <Link
               to={buildLink("/mental-math-drill")}
-              className="flex items-center gap-2 rounded-[10px] bg-[#ff9900] px-5 py-2.5 text-sm font-semibold text-[#0a0a0c] transition-colors hover:bg-[#ffb74d]"
+              className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110"
             >
               Weitermachen: Mental Math <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to={buildLink("/dashboard")}
-              className="flex items-center gap-2 rounded-[10px] border border-white/12 bg-transparent px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:border-white/25 hover:text-white"
+              className="flex items-center gap-2 rounded-xl border border-border bg-secondary px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent"
             >
               <BarChart3 className="h-4 w-4" /> Mein Fortschritt
             </Link>
@@ -262,7 +240,7 @@ const LandingPage: React.FC = () => {
       {/* Module Grid */}
       <main className="flex flex-col items-center px-4 pb-16">
         <div className="w-full max-w-dashboard">
-          <div className="grid w-full gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full gap-section-gap sm:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, i) => (
               <ModuleCard
                 key={i}
@@ -273,38 +251,39 @@ const LandingPage: React.FC = () => {
             ))}
           </div>
 
+
           {/* Recent Activity */}
           {userEmail && activities.length > 0 && (
-            <section className="mt-12">
-              <h2 className="text-meta mb-4 text-white/60">Letzte Aktivität</h2>
-              <div className="overflow-hidden rounded-[14px] border border-white/6 bg-[#0d0d10]">
+            <section className="mt-section-gap">
+              <h2 className="mb-6 text-h2 text-foreground">Letzte Aktivität</h2>
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 {activities.map((a, i) => (
-                  <div key={i} className="flex items-center gap-4 border-b border-white/5 px-5 py-3.5 last:border-b-0">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-white/5 bg-[#16161a]">
-                      {a.drillType === "mental_math" ? (
-                        <Brain className="h-4 w-4 text-white/70" />
+                  <div key={i} className="flex items-center gap-4 border-b border-border/50 px-6 py-4 last:border-b-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    {a.drillType === "mental_math" ? (
+                        <Brain className="h-4 w-4 text-primary" />
                       ) : a.drillType === "market_sizing" ? (
-                        <Globe className="h-4 w-4 text-white/70" />
+                        <Globe className="h-4 w-4 text-primary" />
                       ) : (
-                        <FileText className="h-4 w-4 text-white/70" />
+                        <FileText className="h-4 w-4 text-primary" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-[13px] font-medium text-white">
+                      <p className="text-sm font-medium text-foreground">
                         {a.drillType === "mental_math" ? "Mental Math" : a.drillType === "market_sizing" ? "Market Sizing" : "Case Math"}
                       </p>
-                      <p className="text-meta text-white/45">{durationLabel(a.durationSeconds)}</p>
+                      <p className="text-label text-muted-foreground">{durationLabel(a.durationSeconds)}</p>
                     </div>
-                    <div className="flex items-center gap-1 text-[13px]">
+                    <div className="flex items-center gap-1 text-sm">
                       <span className="font-medium text-success">{a.correctCount}/{a.totalCount}</span>
                       <CheckCircle className="h-3.5 w-3.5 text-success" />
                     </div>
-                    <span className="text-meta text-white/45">{timeAgo(a.createdAt)}</span>
+                    <span className="text-label text-muted-foreground">{timeAgo(a.createdAt)}</span>
                   </div>
                 ))}
                 <Link
                   to={buildLink("/dashboard")}
-                  className="block border-t border-white/5 px-5 py-3 text-center text-sm text-primary transition-colors hover:bg-white/5"
+                  className="block border-t border-border/50 px-6 py-3 text-center text-sm text-primary hover:bg-accent/50 transition-colors"
                 >
                   Alle Aktivitäten anzeigen
                 </Link>

@@ -59,7 +59,7 @@ const FrameworkIntroModal: React.FC<FrameworkIntroModalProps> = ({
             Priorisierung
           </h3>
           <p className="flex items-start gap-2 text-sm text-foreground">
-            <Star className="mt-0.5 h-4 w-4 shrink-0 fill-primary text-primary" />
+            <Star className="mt-0.5 h-4 w-4 shrink-0 fill-amber-500 text-amber-500" />
             <span>
               Markiere mit dem Stern neben dem Titel bis zu 2 Haupt-Äste als{" "}
               <strong>Top-Priorität</strong>. Der Stern signalisiert, welche Hebel du im Interview

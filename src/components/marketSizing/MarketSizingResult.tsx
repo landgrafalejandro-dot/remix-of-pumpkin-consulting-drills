@@ -54,7 +54,7 @@ const MarketSizingResultView: React.FC<MarketSizingResultProps> = ({
         <span className={`text-4xl font-bold ${scoreColor}`}>{eval_.total_score}/100</span>
         <p className="text-sm text-muted-foreground text-center max-w-md">{eval_.one_line_summary}</p>
         {eval_.flagged && (
-          <div className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
+          <div className="flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-600">
             <AlertTriangle className="h-3 w-3" /> Plausibilität unsicher
           </div>
         )}

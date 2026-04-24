@@ -28,17 +28,17 @@ const LevelPrompt: React.FC<LevelPromptProps> = ({
   return (
     <div className={`mt-6 rounded-xl border-2 p-4 ${
       isLevelUp 
-        ? "border-success/50 bg-success/10" 
-        : "border-warning/50 bg-warning/10"
+        ? "border-emerald-500/50 bg-emerald-500/10" 
+        : "border-amber-500/50 bg-amber-500/10"
     }`}>
       <div className="flex items-center gap-3">
         {isLevelUp ? (
-          <TrendingUp className="h-6 w-6 text-success" />
+          <TrendingUp className="h-6 w-6 text-emerald-500" />
         ) : (
-          <TrendingDown className="h-6 w-6 text-warning" />
+          <TrendingDown className="h-6 w-6 text-amber-500" />
         )}
         <div className="flex-1">
-          <p className={`font-semibold ${isLevelUp ? "text-success" : "text-warning"}`}>
+          <p className={`font-semibold ${isLevelUp ? "text-emerald-500" : "text-amber-500"}`}>
             {isLevelUp 
               ? `Stark! Level Up auf "${levelNames[targetLevel]}"?`
               : `Kurz auf "${levelNames[targetLevel]}" zurückschalten?`
@@ -57,8 +57,8 @@ const LevelPrompt: React.FC<LevelPromptProps> = ({
           onClick={onAccept}
           className={`flex-1 rounded-lg px-4 py-2 font-medium text-white transition-all ${
             isLevelUp
-              ? "bg-success hover:bg-success/80"
-              : "bg-warning hover:bg-warning/80"
+              ? "bg-emerald-500 hover:bg-emerald-600"
+              : "bg-amber-500 hover:bg-amber-600"
           }`}
         >
           {isLevelUp ? "Level Up! 🚀" : "Ja, gute Idee"}

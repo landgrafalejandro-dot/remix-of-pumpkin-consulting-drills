@@ -40,7 +40,7 @@ const AssumptionsStep: React.FC<AssumptionsStepProps> = ({
               className="rounded-xl border border-border bg-card p-3"
             >
               <label className="mb-1.5 flex items-start gap-2 text-xs font-medium text-foreground">
-                <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
                 <span className="leading-snug">{l.labelChain}</span>
               </label>
               <textarea

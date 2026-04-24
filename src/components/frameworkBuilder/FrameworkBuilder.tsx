@@ -23,8 +23,14 @@ const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
 const MAX_PRIORITIES = 2;
 
-const NODE_BORDER_DEFAULT = "border-t-white/10";
-const NODE_BORDER_PRIORITY = "border-t-[#ff9900]";
+const NODE_COLORS = [
+  "border-t-amber-500",
+  "border-t-blue-500",
+  "border-t-emerald-500",
+  "border-t-violet-500",
+  "border-t-rose-500",
+  "border-t-cyan-500",
+];
 
 /* ─── Main FrameworkBuilder ─── */
 
@@ -157,11 +163,10 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
       </div>
 
       {/* Case Prompt */}
-      <div className="rounded-[14px] border border-border bg-card p-5">
-        <div className="text-meta-strong mb-3">Case-Prompt</div>
-        <p className="text-[19px] font-medium text-foreground leading-[1.45]">{currentCase.prompt}</p>
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+        <p className="text-lg font-medium text-foreground leading-relaxed">{currentCase.prompt}</p>
         {currentCase.context_info && (
-          <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span>{currentCase.context_info}</span>
           </div>
@@ -174,7 +179,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
       <div className="rounded-xl border border-border bg-muted/20 p-4">
         <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-6">
           {nodes.map((node, i) => {
-            const color = node.isPriority ? NODE_BORDER_PRIORITY : NODE_BORDER_DEFAULT;
+            const color = NODE_COLORS[i % NODE_COLORS.length];
             return (
               <div key={node.id} className="flex flex-col items-center">
                 {/* Parent node card */}

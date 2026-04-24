@@ -9,7 +9,14 @@ const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
 const MAX_DEPTH = 3;
 
-const NODE_BORDER = "border-t-white/10";
+const NODE_COLORS = [
+  "border-t-amber-500",
+  "border-t-blue-500",
+  "border-t-emerald-500",
+  "border-t-violet-500",
+  "border-t-rose-500",
+  "border-t-cyan-500",
+];
 
 function updateNodeInTree(
   nodes: FrameworkNode[],
@@ -162,7 +169,7 @@ const StructureStep: React.FC<StructureStepProps> = ({
             <TreeBranch
               key={node.id}
               node={node}
-              colorClass={NODE_BORDER}
+              colorClass={NODE_COLORS[i % NODE_COLORS.length]}
               depth={1}
               disabled={disabled}
               lastAddedId={lastAddedId}
