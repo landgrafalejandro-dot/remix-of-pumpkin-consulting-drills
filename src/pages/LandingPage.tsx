@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  ListTree, Globe, BarChart3, FileText, Brain, Lightbulb,
+  Globe, BarChart3, FileText, Brain,
   Lock, Clock, CheckCircle, Flame, ArrowRight, Target,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,9 @@ import { useUserEmail } from "@/hooks/useUserEmail";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useModuleStats } from "@/hooks/useModuleStats";
+import {
+  IconMentalMath, IconCaseMath, IconFrameworks, IconMarketSizing, IconDiagramme, IconCreativity,
+} from "@/components/drillIcons";
 
 type ModuleStatus = "active" | "beta" | "coming_soon";
 
@@ -50,6 +53,11 @@ const ModuleCardBase: React.FC<
           <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
       )}
+      {icon && (
+        <div className="flex h-14 w-14 items-center justify-center rounded-[10px] border border-white/[0.05] bg-[#16161a]">
+          {icon}
+        </div>
+      )}
       <h3 className={`text-h3 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
         {title}
       </h3>
@@ -87,6 +95,17 @@ const ModuleCardOverlay: React.FC<
     className="relative flex h-full flex-col items-center justify-center gap-section-gap rounded-[inherit] p-card-padding text-center"
     style={{ backgroundColor: "var(--accent-color)" }}
   >
+    {icon && (
+      <div
+        className="flex h-14 w-14 items-center justify-center rounded-[10px] border"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.15)",
+          borderColor: "rgba(0,0,0,0.2)",
+        }}
+      >
+        {icon}
+      </div>
+    )}
     <h3
       className="text-h3"
       style={{ color: "var(--on-accent-foreground)" }}
@@ -158,12 +177,12 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 };
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [
-  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <Brain className="h-8 w-8" />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
-  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <FileText className="h-8 w-8" />, status: "active", href: "/case-math-drill", drillType: "case_math" },
-  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <ListTree className="h-8 w-8" />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
-  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <Globe className="h-8 w-8" />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
-  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <BarChart3 className="h-8 w-8" />, status: "active", href: "/chart-drill", drillType: "charts" },
-  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <Lightbulb className="h-8 w-8" />, status: "active", href: "/creativity-drill", drillType: "creativity" },
+  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <IconMentalMath size={40} />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
+  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <IconCaseMath size={40} />, status: "active", href: "/case-math-drill", drillType: "case_math" },
+  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <IconFrameworks size={40} />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
+  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <IconMarketSizing size={40} />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
+  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <IconDiagramme size={40} />, status: "active", href: "/chart-drill", drillType: "charts" },
+  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <IconCreativity size={40} />, status: "active", href: "/creativity-drill", drillType: "creativity" },
 ];
 
 const timeAgo = (dateStr: string): string => {

@@ -9,7 +9,8 @@ import { Task, TaskType, SprintDuration, SprintResult, SprintStats, GamePhase } 
 import { generateTask, checkAnswer, resetTaskHistory } from "@/lib/taskGenerator";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
-import { Brain, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { IconMentalMath } from "@/components/drillIcons";
 
 const DIFFICULTY_MAP: Record<DifficultyLevel, "easy" | "medium" | "hard"> = {
   1: "easy",
@@ -166,8 +167,8 @@ const Index = () => {
 
           {/* Hero */}
           <div className="flex items-start gap-5 pt-8 pb-10">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013] text-foreground">
-              <Brain className="h-7 w-7" />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013]">
+              <IconMentalMath size={48} />
             </div>
             <div className="flex-1">
               <h1 className="text-[34px] font-semibold leading-tight tracking-tight text-foreground">

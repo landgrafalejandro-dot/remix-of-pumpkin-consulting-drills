@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
-import { Globe, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { IconMarketSizing } from "@/components/drillIcons";
 import MarketSizingConfig from "@/components/marketSizing/MarketSizingConfig";
 import MarketSizingGame from "@/components/marketSizing/MarketSizingGame";
 import MarketSizingIntroModal from "@/components/marketSizing/MarketSizingIntroModal";
@@ -214,8 +215,8 @@ const MarketSizingDrill: React.FC = () => {
       {phase === "config" && (
         <>
           <section className="flex flex-col items-center px-4 pt-8 pb-4">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-              <Globe className="h-7 w-7 text-primary" />
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-white/[0.08] bg-[#16161a]">
+              <IconMarketSizing size={40} />
             </div>
             <h1 className="mb-2 text-center text-h2 text-foreground">Market Sizing Drill</h1>
             <p className="max-w-md text-center text-body text-secondary-foreground">

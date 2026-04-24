@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
-import { Lightbulb, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { IconCreativity } from "@/components/drillIcons";
 import TextDrillConfig from "@/components/textDrill/TextDrillConfig";
 import TextDrillGame from "@/components/textDrill/TextDrillGame";
 import TextDrillResultView from "@/components/textDrill/TextDrillResult";
@@ -289,8 +290,8 @@ const CreativityDrill: React.FC = () => {
           </Link>
 
           <div className="flex items-start gap-5 pt-8 pb-10">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013] text-foreground">
-              <Lightbulb className="h-7 w-7" />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013]">
+              <IconCreativity size={48} />
             </div>
             <div className="flex-1">
               <h1 className="text-[34px] font-semibold leading-tight tracking-tight text-foreground">

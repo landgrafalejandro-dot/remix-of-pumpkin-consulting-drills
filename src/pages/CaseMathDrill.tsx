@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { saveDrillSession, saveDrillAttempts } from "@/lib/sessionTracker";
-import { FileText, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { IconCaseMath } from "@/components/drillIcons";
 import CaseMathConfig from "@/components/caseMath/CaseMathConfig";
 import CaseMathGame from "@/components/caseMath/CaseMathGame";
 import CaseMathDebrief from "@/components/caseMath/CaseMathDebrief";
@@ -156,8 +157,8 @@ const CaseMathDrill = () => {
 
           {/* Hero */}
           <div className="flex items-start gap-5 pt-8 pb-10">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013] text-foreground">
-              <FileText className="h-7 w-7" />
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013]">
+              <IconCaseMath size={48} />
             </div>
             <div className="flex-1">
               <h1 className="text-[34px] font-semibold leading-tight tracking-tight text-foreground">
