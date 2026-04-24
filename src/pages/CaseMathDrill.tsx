@@ -143,30 +143,42 @@ const CaseMathDrill = () => {
       ) : null}
 
       {phase === "config" && (
-        <>
-          <section className="flex flex-col items-center px-4 pt-8 pb-4">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-              <FileText className="h-7 w-7 text-primary" />
+        <main className="mx-auto w-full max-w-[900px] px-4 pb-12">
+          {/* Breadcrumb */}
+          <Link
+            to={buildLink("/")}
+            className="mt-6 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3 w-3" /> Dashboard
+            <span className="text-white/30">·</span>
+            <span>Case Math</span>
+          </Link>
+
+          {/* Hero */}
+          <div className="flex items-start gap-5 pt-8 pb-10">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.08] bg-[#101013] text-foreground">
+              <FileText className="h-7 w-7" />
             </div>
-            <h1 className="mb-2 text-center text-h2 text-foreground">Case Math Drill</h1>
-            <p className="max-w-md text-center text-body text-secondary-foreground">
-              Business-Textaufgaben unter Zeitdruck lösen.
-            </p>
-            <Link to={buildLink("/")} className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Zurück zum Dashboard
-            </Link>
-          </section>
-          <main className="flex flex-1 flex-col items-center px-4 pb-12">
-            <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
-              <CaseMathConfig
-                duration={duration} onDurationChange={setDuration}
-                difficulty={difficulty} onDifficultyChange={setDifficulty}
-                selectedCategories={selectedCategories} onCategoriesChange={setSelectedCategories}
-                onStart={handleStart}
-              />
+            <div className="flex-1">
+              <h1 className="text-[34px] font-semibold leading-tight tracking-tight text-foreground">
+                Case Math Drill
+              </h1>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Business-Textaufgaben unter Zeitdruck lösen.
+              </div>
             </div>
-          </main>
-        </>
+            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground/60">
+              Drill 02 / 06
+            </div>
+          </div>
+
+          <CaseMathConfig
+            duration={duration} onDurationChange={setDuration}
+            difficulty={difficulty} onDifficultyChange={setDifficulty}
+            selectedCategories={selectedCategories} onCategoriesChange={setSelectedCategories}
+            onStart={handleStart}
+          />
+        </main>
       )}
 
       {phase === "sprint" && (
