@@ -13,7 +13,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const VOICE_ID = "pNInz6obpgDQGcFmaJgB"; // Adam — professional male, supports German
+const VOICE_ID = "GoXyzBapJk3AoCJoMQl9";
 const TTS_MODEL = "eleven_multilingual_v2";
 
 async function synthesizeTTS(text: string, apiKey: string): Promise<Uint8Array> {
