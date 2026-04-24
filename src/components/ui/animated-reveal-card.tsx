@@ -99,11 +99,10 @@ export const RevealCardContainer = forwardRef<
             "--accent-color": accent,
             "--on-accent-foreground": textOnAccent,
             "--on-accent-muted-foreground": mutedOnAccent,
-            borderColor: disabled ? "hsl(var(--border))" : "var(--accent-color)",
           } as React.CSSProperties
         }
         className={cn(
-          "relative w-full overflow-hidden rounded-3xl border-2",
+          "relative w-full overflow-hidden rounded-[14px] border border-white/6",
           disabled && "pointer-events-none-wrapper",
           className
         )}
