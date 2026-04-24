@@ -307,12 +307,13 @@ const TextDrillGame: React.FC<TextDrillGameProps> = ({
       </div>
 
       {/* Case Prompt */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-        <p className="text-lg font-medium text-foreground leading-relaxed">
+      <div className="rounded-[14px] border border-border bg-card p-5">
+        <div className="text-meta-strong mb-3">Case-Prompt</div>
+        <p className="text-[19px] font-medium text-foreground leading-[1.45]">
           {currentCase.prompt}
         </p>
         {currentCase.context_info && (
-          <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span>{currentCase.context_info}</span>
           </div>

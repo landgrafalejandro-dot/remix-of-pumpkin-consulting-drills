@@ -60,7 +60,7 @@ const TextDrillResultView: React.FC<TextDrillResultProps> = ({
           </p>
         )}
         {eval_.flagged && (
-          <div className="flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-600">
+          <div className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
             <AlertTriangle className="h-3 w-3" /> Qualität unsicher
           </div>
         )}
