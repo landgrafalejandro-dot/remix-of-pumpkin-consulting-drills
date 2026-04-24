@@ -7,14 +7,8 @@ interface FrameworkTreeViewerProps {
   nodes: FrameworkNode[];
 }
 
-const NODE_COLORS = [
-  "border-t-amber-500",
-  "border-t-blue-500",
-  "border-t-emerald-500",
-  "border-t-violet-500",
-  "border-t-rose-500",
-  "border-t-cyan-500",
-];
+const NODE_BORDER_DEFAULT = "border-t-white/10";
+const NODE_BORDER_PRIORITY = "border-t-[#ff9900]";
 
 const NodeView: React.FC<{
   node: FrameworkNode;
@@ -26,7 +20,7 @@ const NodeView: React.FC<{
   >
     <div className="flex items-start gap-1.5 px-3 pt-2.5 pb-1">
       {showPriorityStar && node.isPriority && (
-        <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-500 text-amber-500" />
+        <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-[#ff9900] text-[#ff9900]" />
       )}
       <p className="text-sm font-semibold leading-snug text-foreground break-words">
         {node.title || "–"}
@@ -56,8 +50,8 @@ const FrameworkTreeViewer: React.FC<FrameworkTreeViewerProps> = ({ nodes }) => {
   return (
     <div className="rounded-xl border border-border bg-muted/20 p-4">
       <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-6">
-        {nodes.map((node, i) => {
-          const color = NODE_COLORS[i % NODE_COLORS.length];
+        {nodes.map((node) => {
+          const color = node.isPriority ? NODE_BORDER_PRIORITY : NODE_BORDER_DEFAULT;
           return (
             <div key={node.id} className="flex flex-col items-center">
               <NodeView node={node} colorClass={color} showPriorityStar />

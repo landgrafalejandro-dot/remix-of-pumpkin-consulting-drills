@@ -23,14 +23,8 @@ const MAX_TOP_LEVEL = 6;
 const MAX_CHILDREN = 4;
 const MAX_PRIORITIES = 2;
 
-const NODE_COLORS = [
-  "border-t-amber-500",
-  "border-t-blue-500",
-  "border-t-emerald-500",
-  "border-t-violet-500",
-  "border-t-rose-500",
-  "border-t-cyan-500",
-];
+const NODE_BORDER_DEFAULT = "border-t-white/10";
+const NODE_BORDER_PRIORITY = "border-t-[#ff9900]";
 
 /* ─── Main FrameworkBuilder ─── */
 
@@ -179,7 +173,7 @@ const FrameworkBuilder: React.FC<FrameworkBuilderProps> = ({
       <div className="rounded-xl border border-border bg-muted/20 p-4">
         <div className="flex flex-wrap items-start justify-center gap-x-4 gap-y-6">
           {nodes.map((node, i) => {
-            const color = NODE_COLORS[i % NODE_COLORS.length];
+            const color = node.isPriority ? NODE_BORDER_PRIORITY : NODE_BORDER_DEFAULT;
             return (
               <div key={node.id} className="flex flex-col items-center">
                 {/* Parent node card */}
