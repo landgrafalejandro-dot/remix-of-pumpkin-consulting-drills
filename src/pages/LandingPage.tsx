@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   Globe, BarChart3, FileText, Brain,
-  Lock, Clock, CheckCircle, Flame, ArrowRight, Target,
+  Lock, Clock, CheckCircle, Flame, ArrowRight, Target, Mic,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RevealCardContainer } from "@/components/ui/animated-reveal-card";
@@ -183,6 +183,7 @@ const modules: Omit<ModuleCardProps, "emailParam">[] = [
   { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <IconMarketSizing size={96} />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
   { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <IconDiagramme size={96} />, status: "active", href: "/chart-drill", drillType: "charts" },
   { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <IconCreativity size={96} />, status: "active", href: "/creativity-drill", drillType: "creativity" },
+  { title: "IB Mock Interview", description: "30-Min-Sprach-Interview für Investment-Banking-Bewerber mit kritischer KI-Bewertung.", icon: <Mic className="h-16 w-16 text-primary" />, status: "beta", href: "/IB-bot", drillType: "ib_bot" },
 ];
 
 const timeAgo = (dateStr: string): string => {

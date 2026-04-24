@@ -11,6 +11,7 @@ import MarketSizingDrill from "./pages/MarketSizingDrill";
 import FrameworksDrill from "./pages/FrameworksDrill";
 import ChartDrill from "./pages/ChartDrill";
 import CreativityDrill from "./pages/CreativityDrill";
+import IBBotPage from "./pages/IBBotPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import EmbedRedirect from "./pages/EmbedRedirect";
@@ -32,6 +33,8 @@ const App = () => (
           <Route path="/frameworks-drill" element={<FrameworksDrill />} />
           <Route path="/chart-drill" element={<ChartDrill />} />
           <Route path="/creativity-drill" element={<CreativityDrill />} />
+          <Route path="/IB-bot" element={<IBBotPage />} />
+          <Route path="/ib-bot" element={<IBBotPage />} />
           <Route path="/embed" element={<EmbedRedirect />} />
           <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

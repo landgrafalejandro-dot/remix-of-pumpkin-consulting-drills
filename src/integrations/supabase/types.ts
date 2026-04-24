@@ -95,6 +95,78 @@ export type Database = {
         }
         Relationships: []
       }
+      chart_cases: {
+        Row: {
+          active: boolean
+          chart_data: Json
+          chart_title: string | null
+          chart_type: string
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id: string
+          interpretation_hints: string | null
+          prompt: string
+          reference_answer: string | null
+        }
+        Insert: {
+          active?: boolean
+          chart_data: Json
+          chart_title?: string | null
+          chart_type: string
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          interpretation_hints?: string | null
+          prompt: string
+          reference_answer?: string | null
+        }
+        Update: {
+          active?: boolean
+          chart_data?: Json
+          chart_title?: string | null
+          chart_type?: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          interpretation_hints?: string | null
+          prompt?: string
+          reference_answer?: string | null
+        }
+        Relationships: []
+      }
+      creativity_cases: {
+        Row: {
+          active: boolean
+          context_info: string | null
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id: string
+          industry: string
+          prompt: string
+          reference_ideas: string | null
+        }
+        Insert: {
+          active?: boolean
+          context_info?: string | null
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          industry: string
+          prompt: string
+          reference_ideas?: string | null
+        }
+        Update: {
+          active?: boolean
+          context_info?: string | null
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          industry?: string
+          prompt?: string
+          reference_ideas?: string | null
+        }
+        Relationships: []
+      }
       drill_attempts: {
         Row: {
           created_at: string
@@ -210,6 +282,234 @@ export type Database = {
           tolerance?: number
         }
         Relationships: []
+      }
+      framework_cases: {
+        Row: {
+          active: boolean
+          category: string
+          context_info: string | null
+          created_at: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id: string
+          prompt: string
+          recommended_framework: string | null
+          reference_solution: string | null
+          reference_tree: Json | null
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          context_info?: string | null
+          created_at?: string
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          prompt: string
+          recommended_framework?: string | null
+          reference_solution?: string | null
+          reference_tree?: Json | null
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          context_info?: string | null
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          id?: string
+          prompt?: string
+          recommended_framework?: string | null
+          reference_solution?: string | null
+          reference_tree?: Json | null
+        }
+        Relationships: []
+      }
+      ib_questions: {
+        Row: {
+          active: boolean
+          archetype: string
+          company: string | null
+          created_at: string
+          difficulty_level: number
+          id: string
+          key_points: string[] | null
+          optimal_answer: string
+          prompt: string
+          question_type: string
+          topic: string
+        }
+        Insert: {
+          active?: boolean
+          archetype: string
+          company?: string | null
+          created_at?: string
+          difficulty_level: number
+          id?: string
+          key_points?: string[] | null
+          optimal_answer: string
+          prompt: string
+          question_type: string
+          topic: string
+        }
+        Update: {
+          active?: boolean
+          archetype?: string
+          company?: string | null
+          created_at?: string
+          difficulty_level?: number
+          id?: string
+          key_points?: string[] | null
+          optimal_answer?: string
+          prompt?: string
+          question_type?: string
+          topic?: string
+        }
+        Relationships: []
+      }
+      ib_sessions: {
+        Row: {
+          archetype_queue: string[]
+          company: string | null
+          current_archetype: string | null
+          current_difficulty: number
+          current_stage: string | null
+          end_reason: string | null
+          ended_at: string | null
+          failed_topics: string[] | null
+          final_content_score: number | null
+          final_delivery_score: number | null
+          final_feedback: Json | null
+          final_structure_score: number | null
+          id: string
+          max_difficulty: number
+          passed_topics: string[] | null
+          started_at: string
+          starting_difficulty: number
+          topics: string[]
+          user_email: string
+          user_rating: number
+        }
+        Insert: {
+          archetype_queue?: string[]
+          company?: string | null
+          current_archetype?: string | null
+          current_difficulty: number
+          current_stage?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          failed_topics?: string[] | null
+          final_content_score?: number | null
+          final_delivery_score?: number | null
+          final_feedback?: Json | null
+          final_structure_score?: number | null
+          id?: string
+          max_difficulty: number
+          passed_topics?: string[] | null
+          started_at?: string
+          starting_difficulty: number
+          topics: string[]
+          user_email: string
+          user_rating: number
+        }
+        Update: {
+          archetype_queue?: string[]
+          company?: string | null
+          current_archetype?: string | null
+          current_difficulty?: number
+          current_stage?: string | null
+          end_reason?: string | null
+          ended_at?: string | null
+          failed_topics?: string[] | null
+          final_content_score?: number | null
+          final_delivery_score?: number | null
+          final_feedback?: Json | null
+          final_structure_score?: number | null
+          id?: string
+          max_difficulty?: number
+          passed_topics?: string[] | null
+          started_at?: string
+          starting_difficulty?: number
+          topics?: string[]
+          user_email?: string
+          user_rating?: number
+        }
+        Relationships: []
+      }
+      ib_turns: {
+        Row: {
+          archetype: string | null
+          archetype_stage: string | null
+          bot_audio_storage_path: string | null
+          bot_generation_time_ms: number | null
+          bot_response: string | null
+          created_at: string
+          difficulty_level: number | null
+          id: string
+          judge_missing_points: string[] | null
+          judge_rationale: string | null
+          judge_verdict: string | null
+          moved_to_next_archetype: boolean
+          question_id: string | null
+          session_id: string
+          turn_index: number
+          user_input_mode: string | null
+          user_response_time_ms: number | null
+          user_transcript: string | null
+        }
+        Insert: {
+          archetype?: string | null
+          archetype_stage?: string | null
+          bot_audio_storage_path?: string | null
+          bot_generation_time_ms?: number | null
+          bot_response?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          judge_missing_points?: string[] | null
+          judge_rationale?: string | null
+          judge_verdict?: string | null
+          moved_to_next_archetype?: boolean
+          question_id?: string | null
+          session_id: string
+          turn_index: number
+          user_input_mode?: string | null
+          user_response_time_ms?: number | null
+          user_transcript?: string | null
+        }
+        Update: {
+          archetype?: string | null
+          archetype_stage?: string | null
+          bot_audio_storage_path?: string | null
+          bot_generation_time_ms?: number | null
+          bot_response?: string | null
+          created_at?: string
+          difficulty_level?: number | null
+          id?: string
+          judge_missing_points?: string[] | null
+          judge_rationale?: string | null
+          judge_verdict?: string | null
+          moved_to_next_archetype?: boolean
+          question_id?: string | null
+          session_id?: string
+          turn_index?: number
+          user_input_mode?: string | null
+          user_response_time_ms?: number | null
+          user_transcript?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ib_turns_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "ib_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_turns_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ib_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       market_sizing_cases: {
         Row: {
@@ -476,6 +776,77 @@ export type Database = {
           task_type?: Database["public"]["Enums"]["mental_math_task_type"]
           time_limit_sec?: number | null
           tolerance?: number
+        }
+        Relationships: []
+      }
+      text_drill_evaluations: {
+        Row: {
+          created_at: string
+          feedback_json: Json
+          flagged: boolean
+          id: string
+          scores_json: Json
+          submission_id: string
+          total_score: number
+        }
+        Insert: {
+          created_at?: string
+          feedback_json?: Json
+          flagged?: boolean
+          id?: string
+          scores_json?: Json
+          submission_id: string
+          total_score?: number
+        }
+        Update: {
+          created_at?: string
+          feedback_json?: Json
+          flagged?: boolean
+          id?: string
+          scores_json?: Json
+          submission_id?: string
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "text_drill_evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "text_drill_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      text_drill_submissions: {
+        Row: {
+          answer_text: string
+          case_id: string
+          created_at: string
+          drill_type: string
+          id: string
+          session_id: string | null
+          time_spent_sec: number
+          user_email: string
+        }
+        Insert: {
+          answer_text: string
+          case_id: string
+          created_at?: string
+          drill_type: string
+          id?: string
+          session_id?: string | null
+          time_spent_sec?: number
+          user_email: string
+        }
+        Update: {
+          answer_text?: string
+          case_id?: string
+          created_at?: string
+          drill_type?: string
+          id?: string
+          session_id?: string | null
+          time_spent_sec?: number
+          user_email?: string
         }
         Relationships: []
       }
