@@ -5,12 +5,12 @@ import { Trophy, Target, BarChart3, RotateCcw, CheckCircle, X } from "lucide-rea
 
 interface MarketSizingDebriefProps {
   results: MarketSizingResult[];
-  durationSeconds: number;
+  elapsedSeconds: number;
   onRestart: () => void;
 }
 
 const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
-  results, durationSeconds, onRestart,
+  results, elapsedSeconds, onRestart,
 }) => {
   const evaluated = results.filter((r) => r.evaluation);
   const avgScore = evaluated.length > 0
@@ -32,11 +32,12 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
 
   const emoji = avgScore >= 80 ? "🏆" : avgScore >= 60 ? "🎯" : avgScore >= 40 ? "💪" : "📈";
 
-  const getDurationLabel = (s: number) => {
-    if (s <= 120) return "2 Minuten";
-    if (s <= 300) return "5 Minuten";
-    if (s <= 600) return "10 Minuten";
-    return `${Math.floor(s / 60)} Minuten`;
+  const formatElapsed = (s: number) => {
+    if (s <= 0) return "–";
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    if (m === 0) return `${sec} Sek.`;
+    return `${m} Min ${sec.toString().padStart(2, "0")} Sek.`;
   };
 
   return (
@@ -44,8 +45,10 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
       {/* Header */}
       <div className="text-center">
         <span className="text-4xl">{emoji}</span>
-        <h2 className="mt-2 text-2xl font-bold text-foreground">Market Sizing Sprint beendet!</h2>
-        <p className="text-muted-foreground">{getDurationLabel(durationSeconds)} Sprint • {results.length} Aufgabe{results.length !== 1 ? "n" : ""}</p>
+        <h2 className="mt-2 text-2xl font-bold text-foreground">Session beendet!</h2>
+        <p className="text-muted-foreground">
+          {formatElapsed(elapsedSeconds)} • {results.length} Aufgabe{results.length !== 1 ? "n" : ""}
+        </p>
       </div>
 
       {/* Stats */}
@@ -104,7 +107,7 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
       {/* Restart */}
       <div className="flex justify-center pt-2">
         <DrillButton variant="active" size="lg" onClick={onRestart} className="gap-2">
-          <RotateCcw className="h-4 w-4" /> Neuer Sprint
+          <RotateCcw className="h-4 w-4" /> Neue Session
         </DrillButton>
       </div>
     </div>

@@ -9,7 +9,6 @@ import MarketSizingGame from "@/components/marketSizing/MarketSizingGame";
 import MarketSizingIntroModal from "@/components/marketSizing/MarketSizingIntroModal";
 import MarketSizingResultView from "@/components/marketSizing/MarketSizingResult";
 import MarketSizingDebrief from "@/components/marketSizing/MarketSizingDebrief";
-import { SprintDuration } from "@/types/drill";
 import { MarketSizingCase, MarketSizingResult, MarketSizingPhase, MarketSizingEvaluation } from "@/types/marketSizing";
 import {
   fetchMarketSizingCases, getNextMarketSizingCase, resetMarketSizingSession,
@@ -18,35 +17,21 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const DIFFICULTY_DEFAULT_DURATION: Record<"easy" | "medium" | "hard", SprintDuration> = {
-  easy: 300,
-  medium: 480,
-  hard: 600,
-};
-
 const MarketSizingDrill: React.FC = () => {
   const userEmail = useUserEmail();
-  const [duration, setDuration] = useState<SprintDuration>(DIFFICULTY_DEFAULT_DURATION.easy);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-
-  const handleDifficultyChange = useCallback((next: "easy" | "medium" | "hard") => {
-    setDifficulty(next);
-    setDuration(DIFFICULTY_DEFAULT_DURATION[next]);
-  }, []);
-
-  const [introOpen, setIntroOpen] = useState(false);
-  const INTRO_STORAGE_KEY = "marketSizingDrill.intro.seen";
   const [industryTag, setIndustryTag] = useState("all");
   const [phase, setPhase] = useState<MarketSizingPhase>("config");
   const [currentCase, setCurrentCase] = useState<MarketSizingCase | null>(null);
-  const [timeRemaining, setTimeRemaining] = useState(0);
   const [results, setResults] = useState<MarketSizingResult[]>([]);
   const [currentResult, setCurrentResult] = useState<MarketSizingResult | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [introOpen, setIntroOpen] = useState(false);
+  const INTRO_STORAGE_KEY = "marketSizingDrill.intro.seen";
+
   const taskStartTime = useRef<number>(0);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
-  const sprintStartTime = useRef<number>(0);
+  const sessionStartTime = useRef<number>(0);
 
   const buildLink = (path: string) =>
     userEmail ? `${path}?email=${encodeURIComponent(userEmail)}` : path;
@@ -64,8 +49,7 @@ const MarketSizingDrill: React.FC = () => {
     sessionIdRef.current = crypto.randomUUID();
     setResults([]);
     setCurrentResult(null);
-    setTimeRemaining(duration);
-    sprintStartTime.current = Date.now();
+    sessionStartTime.current = Date.now();
 
     try {
       if (!localStorage.getItem(INTRO_STORAGE_KEY)) {
@@ -77,29 +61,11 @@ const MarketSizingDrill: React.FC = () => {
     }
 
     loadNextCase();
-
-    timerRef.current = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, [duration, difficulty, industryTag, loadNextCase]);
+  }, [difficulty, industryTag, loadNextCase]);
 
   const handleEnd = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
     setPhase("debrief");
   }, []);
-
-  // Auto end when timer reaches 0 and we're answering (not evaluating)
-  useEffect(() => {
-    if (timeRemaining === 0 && (phase === "answering") && results.length > 0) {
-      setPhase("debrief");
-    }
-  }, [timeRemaining, phase]);
 
   const handleSubmit = useCallback(async (
     answerText: string, estimateValue: number | null, estimateUnit: string
@@ -183,15 +149,10 @@ const MarketSizingDrill: React.FC = () => {
   }, [currentCase, userEmail, difficulty]);
 
   const handleNext = useCallback(() => {
-    if (timeRemaining <= 0) {
-      setPhase("debrief");
-    } else {
-      loadNextCase();
-    }
-  }, [timeRemaining, loadNextCase]);
+    loadNextCase();
+  }, [loadNextCase]);
 
   const handleFinish = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
     setPhase("debrief");
   }, []);
 
@@ -199,7 +160,7 @@ const MarketSizingDrill: React.FC = () => {
   const prevPhaseRef = useRef<MarketSizingPhase>("config");
   useEffect(() => {
     if (phase === "debrief" && prevPhaseRef.current !== "debrief" && userEmail && results.length > 0) {
-      const actualSeconds = Math.round((Date.now() - sprintStartTime.current) / 1000);
+      const actualSeconds = Math.round((Date.now() - sessionStartTime.current) / 1000);
       const avgScore = results.filter(r => r.evaluation).length > 0
         ? Math.round(results.filter(r => r.evaluation).reduce((s, r) => s + (r.evaluation?.total_score ?? 0), 0) / results.filter(r => r.evaluation).length)
         : 0;
@@ -228,19 +189,17 @@ const MarketSizingDrill: React.FC = () => {
     prevPhaseRef.current = phase;
   }, [phase]);
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
   const handleRestart = useCallback(() => {
     setPhase("config");
     setCurrentCase(null);
     setResults([]);
     setCurrentResult(null);
-    setTimeRemaining(0);
   }, []);
+
+  const debriefSeconds =
+    results.length > 0 && sessionStartTime.current > 0
+      ? Math.round((Date.now() - sessionStartTime.current) / 1000)
+      : 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -269,8 +228,7 @@ const MarketSizingDrill: React.FC = () => {
           <main className="flex flex-1 flex-col items-center px-4 pb-12">
             <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
               <MarketSizingConfig
-                duration={duration} onDurationChange={setDuration}
-                difficulty={difficulty} onDifficultyChange={handleDifficultyChange}
+                difficulty={difficulty} onDifficultyChange={setDifficulty}
                 industryTag={industryTag} onIndustryTagChange={setIndustryTag}
                 onStart={handleStart}
               />
@@ -284,8 +242,6 @@ const MarketSizingDrill: React.FC = () => {
           <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
             <MarketSizingGame
               currentCase={currentCase}
-              timeRemaining={timeRemaining}
-              totalDuration={duration}
               onSubmit={handleSubmit}
               onEnd={handleEnd}
               isEvaluating={isEvaluating}
@@ -302,7 +258,6 @@ const MarketSizingDrill: React.FC = () => {
               result={currentResult}
               onNext={handleNext}
               onFinish={handleFinish}
-              hasTimeLeft={timeRemaining > 0}
             />
           </div>
         </main>
@@ -319,7 +274,7 @@ const MarketSizingDrill: React.FC = () => {
             <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
               <MarketSizingDebrief
                 results={results}
-                durationSeconds={duration}
+                elapsedSeconds={debriefSeconds}
                 onRestart={handleRestart}
               />
             </div>

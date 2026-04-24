@@ -1,23 +1,14 @@
 import React from "react";
 import { DrillButton } from "@/components/ui/drill-button";
-import { SprintDuration } from "@/types/drill";
-import { Clock, Zap, Tag } from "lucide-react";
+import { Zap, Tag } from "lucide-react";
 
 interface MarketSizingConfigProps {
-  duration: SprintDuration;
-  onDurationChange: (d: SprintDuration) => void;
   difficulty: "easy" | "medium" | "hard";
   onDifficultyChange: (d: "easy" | "medium" | "hard") => void;
   industryTag: string;
   onIndustryTagChange: (t: string) => void;
   onStart: () => void;
 }
-
-const durationOptions: { value: SprintDuration; label: string; desc: string }[] = [
-  { value: 300, label: "5 Min", desc: "Einfach-Standard" },
-  { value: 480, label: "8 Min", desc: "Mittel-Standard" },
-  { value: 600, label: "10 Min", desc: "Schwer-Standard" },
-];
 
 const difficultyOptions = [
   { value: "easy" as const, label: "Einfach", desc: "1 Segment, Top-down" },
@@ -48,35 +39,11 @@ const industryLabels: Record<string, string> = {
 };
 
 const MarketSizingConfig: React.FC<MarketSizingConfigProps> = ({
-  duration, onDurationChange, difficulty, onDifficultyChange,
+  difficulty, onDifficultyChange,
   industryTag, onIndustryTagChange, onStart,
 }) => {
   return (
     <div className="flex flex-col gap-8 py-4">
-      {/* Duration */}
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="text-sm font-medium">Zeit pro Aufgabe</span>
-        </div>
-        <div className="flex flex-wrap justify-center gap-3">
-          {durationOptions.map(({ value, label, desc }) => (
-            <button
-              key={value}
-              onClick={() => onDurationChange(value)}
-              className={`flex flex-col items-center rounded-xl border-2 px-6 py-4 transition-all ${
-                duration === value
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/50"
-              }`}
-            >
-              <span className="text-lg font-bold">{label}</span>
-              <span className="mt-1 text-xs opacity-80">{desc}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Difficulty */}
       <div className="flex flex-col items-center gap-4">
         <div className="flex items-center gap-2 text-muted-foreground">

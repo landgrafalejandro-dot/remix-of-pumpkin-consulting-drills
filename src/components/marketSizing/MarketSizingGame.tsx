@@ -7,7 +7,6 @@ import {
   computeProduct,
   serializeMarketSizing,
 } from "@/lib/marketSizingHelpers";
-import SprintTimer from "@/components/sprint/SprintTimer";
 import { DrillButton } from "@/components/ui/drill-button";
 import { X, Send, Info, ArrowLeft, ArrowRight } from "lucide-react";
 import StepperHeader, { STEP_LABELS } from "./steps/StepperHeader";
@@ -18,8 +17,6 @@ import ResultStep from "./steps/ResultStep";
 
 interface MarketSizingGameProps {
   currentCase: MarketSizingCase | null;
-  timeRemaining: number;
-  totalDuration: number;
   onSubmit: (answerText: string, estimateValue: number | null, estimateUnit: string) => void;
   onEnd: () => void;
   isEvaluating: boolean;
@@ -28,8 +25,6 @@ interface MarketSizingGameProps {
 
 const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   currentCase,
-  timeRemaining,
-  totalDuration,
   onSubmit,
   onEnd,
   isEvaluating,
@@ -119,7 +114,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       {/* Timer + Actions */}
       <div className="flex w-full items-center gap-3">
         <div className="flex-1">
-          <SprintTimer timeRemaining={timeRemaining} totalDuration={totalDuration} />
+          <span className="text-xs text-muted-foreground">Nimm dir die Zeit, die du brauchst.</span>
         </div>
         {onOpenIntro && (
           <button

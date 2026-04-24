@@ -5,6 +5,7 @@ import {
   Lock, Clock, CheckCircle, Flame, ArrowRight, Target,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RevealCardContainer } from "@/components/ui/animated-reveal-card";
 import NavHeader from "@/components/NavHeader";
 import { useUserEmail } from "@/hooks/useUserEmail";
 import { useUserStats } from "@/hooks/useUserStats";
@@ -24,39 +25,43 @@ interface ModuleCardProps {
   drillType?: string;
 }
 
-const ModuleCard: React.FC<ModuleCardProps> = ({
-  title, description, icon, status, href, emailParam, stats,
-}) => {
+/** Inner content used as the default (base) card face. */
+const ModuleCardBase: React.FC<
+  Pick<ModuleCardProps, "title" | "description" | "icon" | "status" | "stats">
+> = ({ title, description, icon, status, stats }) => {
   const isActive = status === "active" || status === "beta";
   const isComingSoon = status === "coming_soon";
 
-  const cardContent = (
+  return (
     <div
-      className={`
-        group relative flex flex-col items-center gap-section-gap rounded-2xl border p-card-padding text-center
-        transition-all duration-300
-        ${isActive
-          ? "border-primary/20 bg-gradient-to-b from-accent to-card shadow-active hover:-translate-y-1 hover:border-primary/50 hover:shadow-[0_0_50px_rgba(245,158,11,0.15)] cursor-pointer"
-          : "border-border bg-card/50 cursor-not-allowed opacity-50 grayscale"
-        }
-      `}
+      className={`relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center ${
+        isActive
+          ? "bg-gradient-to-b from-accent to-card"
+          : "bg-card/50 opacity-50 grayscale"
+      }`}
     >
       {status === "beta" && (
-        <Badge className="absolute right-4 top-4 border-primary/30 bg-primary/15 text-xs text-primary">Beta</Badge>
+        <Badge className="absolute right-4 top-4 border-primary/30 bg-primary/15 text-xs text-primary">
+          Beta
+        </Badge>
       )}
       {isComingSoon && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl">
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
           <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
       )}
-      <div className={`flex h-16 w-16 items-center justify-center rounded-xl transition-all duration-300 ${
-        isActive
-          ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(245,158,11,0.1)] group-hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]"
-          : "bg-muted text-muted-foreground"
-      }`}>
+      <div
+        className={`flex h-16 w-16 items-center justify-center rounded-xl ${
+          isActive
+            ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
         {icon}
       </div>
-      <h3 className={`text-h3 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>{title}</h3>
+      <h3 className={`text-h3 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+        {title}
+      </h3>
       <p className="text-body text-secondary-foreground">{description}</p>
       {isActive && stats && (
         <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border bg-secondary px-4 py-2.5">
@@ -74,23 +79,97 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
           </div>
         </div>
       )}
-      {isActive && (
-        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-          <span>Starten</span>
-          <span className="transition-transform group-hover:translate-x-1">→</span>
-        </div>
-      )}
       {isComingSoon && (
-        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+        <Badge variant="secondary" className="text-xs">
+          Coming Soon
+        </Badge>
       )}
     </div>
+  );
+};
+
+/** Amber-accented overlay face shown on hover. Same content + prominent CTA. */
+const ModuleCardOverlay: React.FC<
+  Pick<ModuleCardProps, "title" | "description" | "icon" | "stats">
+> = ({ title, description, icon, stats }) => (
+  <div
+    className="relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center"
+    style={{ backgroundColor: "var(--accent-color)" }}
+  >
+    <div
+      className="flex h-16 w-16 items-center justify-center rounded-xl bg-black/10"
+      style={{ color: "var(--on-accent-foreground)" }}
+    >
+      {icon}
+    </div>
+    <h3
+      className="text-h3"
+      style={{ color: "var(--on-accent-foreground)" }}
+    >
+      {title}
+    </h3>
+    <p
+      className="text-body"
+      style={{ color: "var(--on-accent-foreground)", opacity: 0.85 }}
+    >
+      {description}
+    </p>
+    {stats && (
+      <div
+        className="flex w-full items-center justify-center gap-4 rounded-xl px-4 py-2.5"
+        style={{
+          backgroundColor: "rgba(0,0,0,0.08)",
+          color: "var(--on-accent-muted-foreground)",
+        }}
+      >
+        <div className="flex items-center gap-1.5 text-label">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Ø {stats.avgTime}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-label">
+          <CheckCircle className="h-3.5 w-3.5" />
+          <span>{stats.accuracy}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-label">
+          <Target className="h-3.5 w-3.5" />
+          <span>{stats.solved}</span>
+        </div>
+      </div>
+    )}
+    <div
+      className="mt-auto flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md"
+      style={{
+        backgroundColor: "hsl(var(--foreground))",
+        color: "hsl(var(--background))",
+      }}
+    >
+      <span>Jetzt starten</span>
+      <ArrowRight className="h-4 w-4" />
+    </div>
+  </div>
+);
+
+const ModuleCard: React.FC<ModuleCardProps> = ({
+  title, description, icon, status, href, emailParam, stats,
+}) => {
+  const isActive = status === "active" || status === "beta";
+
+  const card = (
+    <RevealCardContainer
+      disabled={!isActive}
+      className={`transition-transform duration-300 ${
+        isActive ? "shadow-active hover:-translate-y-1 cursor-pointer" : "cursor-not-allowed"
+      }`}
+      base={<ModuleCardBase title={title} description={description} icon={icon} status={status} stats={stats} />}
+      overlay={<ModuleCardOverlay title={title} description={description} icon={icon} stats={stats} />}
+    />
   );
 
   if (isActive && href) {
     const linkTo = emailParam ? `${href}?email=${encodeURIComponent(emailParam)}` : href;
-    return <Link to={linkTo} className="block">{cardContent}</Link>;
+    return <Link to={linkTo} className="block">{card}</Link>;
   }
-  return cardContent;
+  return card;
 };
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [

@@ -7,7 +7,6 @@ interface MarketSizingResultProps {
   result: MSResult;
   onNext: () => void;
   onFinish: () => void;
-  hasTimeLeft: boolean;
 }
 
 const ScoreBar: React.FC<{ label: string; score: number; max: number }> = ({ label, score, max }) => {
@@ -25,7 +24,7 @@ const ScoreBar: React.FC<{ label: string; score: number; max: number }> = ({ lab
 };
 
 const MarketSizingResultView: React.FC<MarketSizingResultProps> = ({
-  result, onNext, onFinish, hasTimeLeft,
+  result, onNext, onFinish,
 }) => {
   const eval_ = result.evaluation;
   if (!eval_) {
@@ -33,9 +32,14 @@ const MarketSizingResultView: React.FC<MarketSizingResultProps> = ({
       <div className="flex flex-col items-center gap-4 py-8">
         <AlertTriangle className="h-8 w-8 text-destructive" />
         <p className="text-muted-foreground">Bewertung konnte nicht geladen werden.</p>
-        <DrillButton variant="active" onClick={hasTimeLeft ? onNext : onFinish}>
-          {hasTimeLeft ? "Nächste Aufgabe →" : "Sprint beenden"}
-        </DrillButton>
+        <div className="flex gap-3">
+          <DrillButton variant="inactive" onClick={onFinish}>
+            Session beenden
+          </DrillButton>
+          <DrillButton variant="active" onClick={onNext}>
+            Neuer Case →
+          </DrillButton>
+        </div>
       </div>
     );
   }
@@ -123,15 +127,12 @@ const MarketSizingResultView: React.FC<MarketSizingResultProps> = ({
 
       {/* Next / Finish */}
       <div className="flex justify-center gap-4 pt-2">
-        {hasTimeLeft ? (
-          <DrillButton variant="active" size="lg" onClick={onNext} className="gap-2">
-            Nächste Aufgabe <ArrowRight className="h-4 w-4" />
-          </DrillButton>
-        ) : (
-          <DrillButton variant="active" size="lg" onClick={onFinish} className="gap-2">
-            Sprint Auswertung →
-          </DrillButton>
-        )}
+        <DrillButton variant="inactive" size="lg" onClick={onFinish} className="gap-2">
+          Session beenden
+        </DrillButton>
+        <DrillButton variant="active" size="lg" onClick={onNext} className="gap-2">
+          Neuer Case <ArrowRight className="h-4 w-4" />
+        </DrillButton>
       </div>
     </div>
   );
