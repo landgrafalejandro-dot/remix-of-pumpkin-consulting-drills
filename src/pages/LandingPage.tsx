@@ -50,15 +50,6 @@ const ModuleCardBase: React.FC<
           <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
       )}
-      <div
-        className={`flex h-16 w-16 items-center justify-center rounded-xl ${
-          isActive
-            ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(245,158,11,0.1)]"
-            : "bg-muted text-muted-foreground"
-        }`}
-      >
-        {icon}
-      </div>
       <h3 className={`text-h3 ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
         {title}
       </h3>
@@ -96,12 +87,6 @@ const ModuleCardOverlay: React.FC<
     className="relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center"
     style={{ backgroundColor: "var(--accent-color)" }}
   >
-    <div
-      className="flex h-16 w-16 items-center justify-center rounded-xl bg-black/10"
-      style={{ color: "var(--on-accent-foreground)" }}
-    >
-      {icon}
-    </div>
     <h3
       className="text-h3"
       style={{ color: "var(--on-accent-foreground)" }}

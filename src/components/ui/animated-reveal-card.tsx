@@ -60,8 +60,8 @@ export const RevealCardContainer = forwardRef<
       [ref]
     );
 
-    const startClip = "circle(50px at 64px 64px)";
-    const expandClip = "circle(160% at 64px 64px)";
+    const startClip = "circle(20px at 28px 28px)";
+    const expandClip = "circle(160% at 28px 28px)";
 
     useGSAP(
       () => {
