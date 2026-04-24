@@ -142,7 +142,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   const card = (
     <RevealCardContainer
       disabled={!isActive}
-      className={`transition-transform duration-300 ${
+      className={`min-h-[22rem] transition-transform duration-300 ${
         isActive ? "shadow-active hover:-translate-y-1 cursor-pointer" : "cursor-not-allowed"
       }`}
       base={<ModuleCardBase title={title} description={description} icon={icon} status={status} stats={stats} />}
