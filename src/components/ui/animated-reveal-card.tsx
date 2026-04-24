@@ -103,13 +103,13 @@ export const RevealCardContainer = forwardRef<
           } as React.CSSProperties
         }
         className={cn(
-          "relative w-full overflow-hidden rounded-3xl border-2",
+          "relative flex w-full flex-col overflow-hidden rounded-3xl border-2",
           disabled && "pointer-events-none-wrapper",
           className
         )}
         {...rest}
       >
-        <div>{base}</div>
+        <div className="flex-1">{base}</div>
         {!disabled && (
           <div
             ref={overlayRef}
