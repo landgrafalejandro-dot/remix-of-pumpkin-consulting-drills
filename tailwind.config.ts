@@ -73,9 +73,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        logo: ['Space Grotesk', 'sans-serif'],
+        sans: ['Geist', 'system-ui', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        logo: ['Geist', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'h1': ['48px', { lineHeight: '1.1', fontWeight: '700' }],
@@ -96,7 +96,7 @@ export default {
         'section-gap': '24px',
       },
       boxShadow: {
-        'active': '0 0 40px rgba(245, 158, 11, 0.1)',
+        'active': 'var(--shadow-active)',
       },
       borderRadius: {
         lg: "var(--radius)",
