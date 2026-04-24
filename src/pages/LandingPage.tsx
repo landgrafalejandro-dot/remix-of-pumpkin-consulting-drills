@@ -34,7 +34,7 @@ const ModuleCardBase: React.FC<
 
   return (
     <div
-      className={`relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center ${
+      className={`relative flex h-full flex-col items-center justify-center gap-section-gap rounded-[inherit] p-card-padding text-center ${
         isActive
           ? "bg-gradient-to-b from-accent to-card"
           : "bg-card/50 opacity-50 grayscale"
@@ -84,7 +84,7 @@ const ModuleCardOverlay: React.FC<
   Pick<ModuleCardProps, "title" | "description" | "icon" | "stats">
 > = ({ title, description, icon, stats }) => (
   <div
-    className="relative flex h-full flex-col items-center gap-section-gap rounded-[inherit] p-card-padding text-center"
+    className="relative flex h-full flex-col items-center justify-center gap-section-gap rounded-[inherit] p-card-padding text-center"
     style={{ backgroundColor: "var(--accent-color)" }}
   >
     <h3
