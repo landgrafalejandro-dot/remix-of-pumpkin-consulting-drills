@@ -54,7 +54,7 @@ const ModuleCardBase: React.FC<
         </div>
       )}
       {icon && (
-        <div className="flex h-14 w-14 items-center justify-center rounded-[10px] border border-white/[0.05] bg-[#16161a]">
+        <div className="flex h-20 w-20 items-center justify-center rounded-[12px] border border-white/[0.05] bg-[#16161a]">
           {icon}
         </div>
       )}
@@ -97,7 +97,7 @@ const ModuleCardOverlay: React.FC<
   >
     {icon && (
       <div
-        className="flex h-14 w-14 items-center justify-center rounded-[10px] border"
+        className="flex h-20 w-20 items-center justify-center rounded-[12px] border"
         style={{
           backgroundColor: "rgba(0,0,0,0.15)",
           borderColor: "rgba(0,0,0,0.2)",
@@ -177,12 +177,12 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
 };
 
 const modules: Omit<ModuleCardProps, "emailParam">[] = [
-  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <IconMentalMath size={40} />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
-  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <IconCaseMath size={40} />, status: "active", href: "/case-math-drill", drillType: "case_math" },
-  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <IconFrameworks size={40} />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
-  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <IconMarketSizing size={40} />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
-  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <IconDiagramme size={40} />, status: "active", href: "/chart-drill", drillType: "charts" },
-  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <IconCreativity size={40} />, status: "active", href: "/creativity-drill", drillType: "creativity" },
+  { title: "Mental Math", description: "Trainiere Kopfrechnen unter Zeitdruck mit Consulting-Shortcuts.", icon: <IconMentalMath size={60} />, status: "active", href: "/mental-math-drill", drillType: "mental_math" },
+  { title: "Case Math", description: "Löse realistische Rechenaufgaben aus echten Case-Interviews.", icon: <IconCaseMath size={60} />, status: "active", href: "/case-math-drill", drillType: "case_math" },
+  { title: "Frameworks", description: "Lerne die wichtigsten Case-Frameworks und strukturierte Problemlösung.", icon: <IconFrameworks size={60} />, status: "active", href: "/frameworks-drill", drillType: "frameworks" },
+  { title: "Market Sizing", description: "Schätze Marktgrößen mit Struktur, Annahmen & KI-Bewertung.", icon: <IconMarketSizing size={60} />, status: "active", href: "/market-sizing-drill", drillType: "market_sizing" },
+  { title: "Diagramme", description: "Analysiere Charts, Graphen und Tabellen wie ein Berater.", icon: <IconDiagramme size={60} />, status: "active", href: "/chart-drill", drillType: "charts" },
+  { title: "Creativity", description: "Entwickle kreative Lösungen und schärfe deinen Geschäftssinn.", icon: <IconCreativity size={60} />, status: "active", href: "/creativity-drill", drillType: "creativity" },
 ];
 
 const timeAgo = (dateStr: string): string => {
