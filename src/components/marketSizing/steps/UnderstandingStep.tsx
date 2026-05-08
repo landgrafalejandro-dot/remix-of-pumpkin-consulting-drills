@@ -118,7 +118,7 @@ const UnderstandingStep: React.FC<UnderstandingStepProps> = ({
 
         {understanding.clarifications.length === 0 ? (
           <p className="text-[11px] italic text-muted-foreground/70">
-            Wenn der Case Interpretationsspielraum hat (z.B. „Welche Stühle?", „Was bedeutet 'Betreten'?"), notiere deine Annahmen.
+            Wenn der Case Interpretationsspielraum hat (z.B. &quot;Welche Stühle?&quot;, &quot;Was bedeutet Betreten?&quot;), notiere deine Annahmen.
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -138,7 +138,7 @@ const UnderstandingStep: React.FC<UnderstandingStepProps> = ({
                       onChange={(e) =>
                         updateClarification(c.id, { question: e.target.value })
                       }
-                      placeholder="Frage, z.B. „Welche Stühle zählen mit?"
+                      placeholder="Frage, z.B. 'Welche Stühle zählen mit?'"
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       disabled={disabled}
                     />
@@ -148,7 +148,7 @@ const UnderstandingStep: React.FC<UnderstandingStepProps> = ({
                       onChange={(e) =>
                         updateClarification(c.id, { answer: e.target.value })
                       }
-                      placeholder="Deine Annahme, z.B. „Esszimmer- + Bürostühle"
+                      placeholder="Deine Annahme, z.B. 'Esszimmer- + Bürostühle'"
                       className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       disabled={disabled}
                     />
@@ -222,7 +222,7 @@ const UnderstandingStep: React.FC<UnderstandingStepProps> = ({
           onChange={(e) =>
             onChange({ ...understanding, methodReason: e.target.value })
           }
-          placeholder="z.B. „Top-Down bietet sich an, weil ich die Bevölkerungszahl kenne und schrittweise filtern kann."
+          placeholder="z.B. Top-Down bietet sich an, weil ich die Bevölkerungszahl kenne und schrittweise filtern kann."
           rows={2}
           className="w-full resize-y rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           disabled={disabled}

@@ -120,7 +120,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
           <textarea
             value={sanityCheck.magnitudeCheck}
             onChange={(e) => update({ magnitudeCheck: e.target.value })}
-            placeholder="z.B. „Liegt im Bereich 50-100M, was plausibel ist da Deutschland 80M Einwohner hat."
+            placeholder="z.B. 'Liegt im Bereich 50-100M, was plausibel ist da Deutschland 80M Einwohner hat.'"
             rows={2}
             className="w-full resize-y rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             disabled={disabled}
@@ -137,7 +137,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
               type="text"
               value={sanityCheck.comparisonRef}
               onChange={(e) => update({ comparisonRef: e.target.value })}
-              placeholder="z.B. „Statistisches Bundesamt", „eigene Erfahrung"
+              placeholder="z.B. Statistisches Bundesamt oder eigene Erfahrung"
               className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               disabled={disabled}
             />
