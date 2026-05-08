@@ -6,18 +6,13 @@ import {
 } from "@/types/marketSizing";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
-import {
-  getLeaves,
-  computeProduct,
-  serializeMarketSizing,
-} from "@/lib/marketSizingHelpers";
+import { getLeaves, serializeMarketSizing } from "@/lib/marketSizingHelpers";
 import { DrillButton } from "@/components/ui/drill-button";
 import { X, Send, Info, ArrowLeft, ArrowRight } from "lucide-react";
 import StepperHeader, { STEP_LABELS } from "./steps/StepperHeader";
 import UnderstandingStep from "./steps/UnderstandingStep";
 import StructureStep from "./steps/StructureStep";
 import AssumptionsStep from "./steps/AssumptionsStep";
-import CalculationStep from "./steps/CalculationStep";
 import ResultStep from "./steps/ResultStep";
 
 interface MarketSizingGameProps {
@@ -48,20 +43,16 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   isEvaluating,
   onOpenIntro,
 }) => {
-  // Step state
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Data state
   const [understanding, setUnderstanding] = useState<MarketSizingUnderstanding>(emptyUnderstanding());
   const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
   const [assumptions, setAssumptions] = useState<Record<string, string>>({});
-  const [numbers, setNumbers] = useState<Record<string, string>>({});
   const [finalEstimate, setFinalEstimate] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
   const [sanityCheck, setSanityCheck] = useState<SanityCheckStructured>(emptySanityCheck());
 
-  // Reset when a new case loads
   useEffect(() => {
     if (currentCase) {
       setCurrentStep(0);
@@ -69,23 +60,18 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
       setNodes([createEmptyNode()]);
       setLastAddedId(null);
       setAssumptions({});
-      setNumbers({});
       setFinalEstimate("");
       setEstimateUnit(currentCase.unit_hint || "");
       setSanityCheck(emptySanityCheck());
     }
   }, [currentCase?.id]);
 
-  // Derived state
   const leaves = useMemo(() => getLeaves(nodes), [nodes]);
-  const product = useMemo(() => computeProduct(leaves, numbers), [leaves, numbers]);
+  const treeText = useMemo(() => serializeFramework({ nodes }), [nodes]);
 
-  // Advance guards
   const canAdvanceFromUnderstanding = understanding.method !== null;
   const canAdvanceFromStructure = isFrameworkValid({ nodes });
-  const canSubmit =
-    !isEvaluating &&
-    (finalEstimate.trim().length > 0 || product.parsedCount > 0);
+  const canSubmit = !isEvaluating && finalEstimate.trim().length > 0;
 
   const goNext = useCallback(() => {
     setCurrentStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
@@ -97,14 +83,11 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
   const handleSubmit = useCallback(() => {
     if (!canSubmit) return;
-    const treeText = serializeFramework({ nodes });
     const serialized = serializeMarketSizing({
       understanding,
       treeText,
       leaves,
       assumptions,
-      numbers,
-      product,
       finalEstimateInput: finalEstimate,
       finalEstimateUnit: estimateUnit,
       sanityCheck,
@@ -117,11 +100,9 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   }, [
     canSubmit,
     understanding,
-    nodes,
+    treeText,
     leaves,
     assumptions,
-    numbers,
-    product,
     finalEstimate,
     estimateUnit,
     sanityCheck,
@@ -132,7 +113,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
   const isLastStep = currentStep === STEP_LABELS.length - 1;
 
-  // Per-step advance guard
   const canAdvanceCurrentStep =
     currentStep === 0 ? canAdvanceFromUnderstanding :
     currentStep === 1 ? canAdvanceFromStructure :
@@ -140,7 +120,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Timer + Actions */}
       <div className="flex w-full items-center gap-3">
         <div className="flex-1">
           <span className="text-xs text-muted-foreground">Nimm dir die Zeit, die du brauchst.</span>
@@ -165,7 +144,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         </DrillButton>
       </div>
 
-      {/* Case Prompt */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
         <p className="text-lg font-medium text-foreground leading-relaxed">{currentCase.prompt}</p>
         {currentCase.unit_hint && (
@@ -184,10 +162,8 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         )}
       </div>
 
-      {/* Stepper */}
       <StepperHeader currentStep={currentStep} onJumpTo={setCurrentStep} />
 
-      {/* Active step */}
       {currentStep === 0 && (
         <UnderstandingStep
           understanding={understanding}
@@ -214,18 +190,11 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         />
       )}
       {currentStep === 3 && (
-        <CalculationStep
-          leaves={leaves}
-          numbers={numbers}
-          onChange={setNumbers}
-          product={product}
-          unitHint={currentCase.unit_hint || undefined}
-          disabled={isEvaluating}
-        />
-      )}
-      {currentStep === 4 && (
         <ResultStep
-          product={product}
+          understanding={understanding}
+          treeText={treeText}
+          leaves={leaves}
+          assumptions={assumptions}
           finalEstimate={finalEstimate}
           onFinalEstimateChange={setFinalEstimate}
           unit={estimateUnit}
@@ -237,7 +206,6 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
         />
       )}
 
-      {/* Navigation */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <DrillButton
           variant="inactive"

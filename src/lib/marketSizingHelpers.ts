@@ -170,8 +170,6 @@ export function serializeMarketSizing(args: {
   treeText: string;
   leaves: MarketSizingLeaf[];
   assumptions: Record<string, string>;
-  numbers: Record<string, string>;
-  product: ProductResult;
   finalEstimateInput: string;
   finalEstimateUnit: string;
   sanityCheck: SanityCheckStructured;
@@ -181,8 +179,6 @@ export function serializeMarketSizing(args: {
     treeText,
     leaves,
     assumptions,
-    numbers,
-    product,
     finalEstimateInput,
     finalEstimateUnit,
     sanityCheck,
@@ -223,33 +219,10 @@ export function serializeMarketSizing(args: {
     out += `\n\nANNAHMEN:\n${assumptionLines.join("\n")}`;
   }
 
-  const calcLines = leaves
-    .map((l) => {
-      const raw = (numbers[l.id] ?? "").trim();
-      if (!raw) return null;
-      const parsed = parseGermanNumber(raw);
-      const parsedStr = parsed != null ? formatGermanNumber(parsed) : raw;
-      return `- [${l.path}] ${l.labelChain}: ${parsedStr}${raw !== parsedStr ? ` (Eingabe: ${raw})` : ""}`;
-    })
-    .filter(Boolean);
-  if (calcLines.length > 0) {
-    const chain = leaves
-      .map((l) => parseGermanNumber(numbers[l.id] ?? ""))
-      .filter((n) => n != null)
-      .map((n) => formatGermanNumber(n!))
-      .join(" × ");
-    out += `\n\nRECHNUNG:\n${calcLines.join("\n")}\n${chain} = ${formatGermanNumber(product.value)}`;
-  }
-
-  // Final estimate: prefer explicit user input, else computed product
+  // Final estimate: solely from user input (no calculation step in flow)
   const finalParsed = parseGermanNumber(finalEstimateInput);
-  const finalValue = finalParsed ?? (product.parsedCount > 0 ? product.value : null);
-  const finalDisplay =
-    finalParsed != null
-      ? finalEstimateInput.trim()
-      : product.parsedCount > 0
-      ? shortFormat(product.value)
-      : "—";
+  const finalValue = finalParsed;
+  const finalDisplay = finalParsed != null ? finalEstimateInput.trim() : "—";
 
   out += `\n\nFINALE SCHÄTZUNG: ${finalDisplay}${finalEstimateUnit ? " " + finalEstimateUnit : ""}`;
 

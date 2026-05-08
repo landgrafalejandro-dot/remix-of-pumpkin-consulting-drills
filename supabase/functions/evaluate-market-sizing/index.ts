@@ -62,8 +62,7 @@ Die Antwort kommt in strukturiertem Format mit folgenden Sektionen (manche optio
   - "  [Unterast N.M] Titel" = Detailschritte (bis dritte Ebene möglich)
   - "  - Punkt" = Annahmen / Zwischenergebnisse
 - "ANNAHMEN:" (optional) = Begründungen pro Leaf, mit Pfad-Verweisen [N.M]
-- "RECHNUNG:" (optional) = Zahlen pro Leaf + Gesamtprodukt
-- "FINALE SCHÄTZUNG:" = Endwert mit Einheit
+- "FINALE SCHÄTZUNG:" = Endwert mit Einheit (User rechnet auf Papier — keine RECHNUNG-Sektion mehr im Antwort-Format)
 - "SANITY CHECK:" (optional) = Strukturierter Plausibilitäts-Check mit drei Unterfeldern:
   - "Größenordnung:" = qualitativer Magnitude-Check
   - "Vergleich:" = optionaler Vergleichswert mit Quelle
@@ -94,11 +93,12 @@ Annahmenqualität (max 25):
 - 0-6: Annahmen fehlen oder klar falsch.
 
 Mathematische Konsistenz (max 20):
-- 18-20: Rechnung vollständig nachvollziehbar, Einheiten konsistent, keine Fehler.
-- 14-17: Rechnung nachvollziehbar mit 1 kleinen Fehler oder Ungenauigkeit.
-- 10-13: Rechnung grundsätzlich ok, aber mehrere kleine Fehler ODER eine Unstimmigkeit.
-- 5-9: Rechnung mit groben Fehlern oder inkonsistenten Einheiten.
-- 0-4: Keine nachvollziehbare Rechnung.
+HINWEIS: Der User rechnet auf Papier — die Rechnung ist NICHT in der Antwort enthalten. Bewerte stattdessen, ob die Annahmen + finale Schätzung mathematisch zusammenpassen (Größenordnung, Plausibilität der impliziten Multiplikation).
+- 18-20: Annahmen und Schätzung passen exakt zusammen (Größenordnung passt zur erwarteten Multiplikation der genannten Werte). Einheiten konsistent.
+- 14-17: Schätzung passt grob zu den Annahmen, Faktor 2-3 Abweichung möglich.
+- 10-13: Schätzung weicht erkennbar von den Annahmen ab (Faktor 5-10), aber Logik noch nachvollziehbar.
+- 5-9: Schätzung passt nicht zu den Annahmen (Faktor >10 daneben) oder Einheiten widersprüchlich.
+- 0-4: Schätzung steht in keinem nachvollziehbaren Zusammenhang zu den Annahmen.
 
 Plausibilität / Sanity Check (max 20):
 - 18-20: Ergebnis innerhalb Faktor 3 der erwarteten Größenordnung UND expliziter Sanity Check/Vergleich.
