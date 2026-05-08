@@ -54,14 +54,21 @@ WICHTIGE REGELN:
 - Wenn du unsicher bist ob die Größenordnung stimmt, setze flagged=true.
 
 HINWEIS ZUM ANTWORT-FORMAT:
-Die Antwort kommt in strukturiertem Format:
-- "STRUKTUR:" gefolgt von einem hierarchischen Issue Tree
+Die Antwort kommt in strukturiertem Format mit folgenden Sektionen (manche optional):
+- "VERSTÄNDNIS:" (optional) = Klärungsfragen die der User selbst gestellt und beantwortet hat. Werte das positiv für Annahmenqualität (B), wenn sinnvoll.
+- "METHODE:" = Methodenwahl (Top-Down / Bottom-Up / Mixed) + Begründung. Prüfe ob die Methode in der Struktur konsistent durchgezogen wurde (Dimension A).
+- "STRUKTUR:" = Hierarchischer Issue Tree
   - "[Ast N] Titel" = Hauptschritte der Rechnung
-  - "  [Unterast N.M] Titel" = Detailschritte (kann bis zu einer dritten Ebene verschachtelt sein, z.B. [Unterast N.M.O])
-  - "  - Punkt" = Annahmen und Zwischenergebnisse
-- "METHODE:" = Kurze Erklärung des gewählten Ansatzes
-- "SANITY CHECK:" = Plausibilitätsprüfung
+  - "  [Unterast N.M] Titel" = Detailschritte (bis dritte Ebene möglich)
+  - "  - Punkt" = Annahmen / Zwischenergebnisse
+- "ANNAHMEN:" (optional) = Begründungen pro Leaf, mit Pfad-Verweisen [N.M]
+- "RECHNUNG:" (optional) = Zahlen pro Leaf + Gesamtprodukt
 - "FINALE SCHÄTZUNG:" = Endwert mit Einheit
+- "SANITY CHECK:" (optional) = Strukturierter Plausibilitäts-Check mit drei Unterfeldern:
+  - "Größenordnung:" = qualitativer Magnitude-Check
+  - "Vergleich:" = optionaler Vergleichswert mit Quelle
+  - "Begründung:" = Plausibilitäts-Argumentation
+  Werte STARK auf Dimension D: ein vollständig ausgefüllter strukturierter Sanity Check (alle drei Felder) verdient die Top-Stufe; nur Größenordnung ohne Vergleich/Begründung mittlere Stufe.
 Bewerte jeden Bereich nach der Rubrik.
 
 RUBRIK (0-100 Punkte):

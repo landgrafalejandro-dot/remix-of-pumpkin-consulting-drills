@@ -1,4 +1,15 @@
 import { FrameworkNode } from "@/types/frameworkBuilder";
+import {
+  MarketSizingMethod,
+  MarketSizingUnderstanding,
+  SanityCheckStructured,
+} from "@/types/marketSizing";
+
+const METHOD_LABELS: Record<MarketSizingMethod, string> = {
+  top_down: "Top-Down",
+  bottom_up: "Bottom-Up",
+  mixed: "Mixed (Top-Down + Bottom-Up)",
+};
 
 export interface MarketSizingLeaf {
   /** Leaf node id, used as key for assumptions/numbers maps */
@@ -155,6 +166,7 @@ export interface SerializedMarketSizing {
  * which is always present).
  */
 export function serializeMarketSizing(args: {
+  understanding: MarketSizingUnderstanding;
   treeText: string;
   leaves: MarketSizingLeaf[];
   assumptions: Record<string, string>;
@@ -162,9 +174,10 @@ export function serializeMarketSizing(args: {
   product: ProductResult;
   finalEstimateInput: string;
   finalEstimateUnit: string;
-  sanityCheck: string;
+  sanityCheck: SanityCheckStructured;
 }): SerializedMarketSizing {
   const {
+    understanding,
     treeText,
     leaves,
     assumptions,
@@ -175,7 +188,30 @@ export function serializeMarketSizing(args: {
     sanityCheck,
   } = args;
 
-  let out = `STRUKTUR:\n${treeText}`;
+  // VERSTÄNDNIS section (clarifications)
+  let out = "";
+  const clarLines = understanding.clarifications
+    .map((c) => {
+      const q = c.question.trim();
+      const a = c.answer.trim();
+      if (!q && !a) return null;
+      return `- Frage: ${q || "(ohne Frage)"}\n  Annahme: ${a || "(keine Annahme)"}`;
+    })
+    .filter(Boolean);
+  if (clarLines.length > 0) {
+    out += `VERSTÄNDNIS:\n${clarLines.join("\n")}\n\n`;
+  }
+
+  // METHODE section
+  if (understanding.method) {
+    out += `METHODE: ${METHOD_LABELS[understanding.method]}`;
+    if (understanding.methodReason.trim()) {
+      out += `\nBegründung: ${understanding.methodReason.trim()}`;
+    }
+    out += `\n\n`;
+  }
+
+  out += `STRUKTUR:\n${treeText}`;
 
   const assumptionLines = leaves
     .map((l) => {
@@ -217,8 +253,27 @@ export function serializeMarketSizing(args: {
 
   out += `\n\nFINALE SCHÄTZUNG: ${finalDisplay}${finalEstimateUnit ? " " + finalEstimateUnit : ""}`;
 
-  if (sanityCheck.trim()) {
-    out += `\n\nSANITY CHECK:\n${sanityCheck.trim()}`;
+  // SANITY CHECK section (structured)
+  const sanityLines: string[] = [];
+  if (sanityCheck.magnitudeCheck.trim()) {
+    sanityLines.push(`Größenordnung: ${sanityCheck.magnitudeCheck.trim()}`);
+  }
+  const ref = sanityCheck.comparisonRef.trim();
+  const refVal = sanityCheck.comparisonValue.trim();
+  if (ref || refVal) {
+    const parts: string[] = [];
+    if (refVal) {
+      const parsed = parseGermanNumber(refVal);
+      parts.push(parsed != null ? `${formatGermanNumber(parsed)} (${refVal})` : refVal);
+    }
+    if (ref) parts.push(`Quelle: ${ref}`);
+    sanityLines.push(`Vergleich: ${parts.join(" — ")}`);
+  }
+  if (sanityCheck.reasoning.trim()) {
+    sanityLines.push(`Begründung: ${sanityCheck.reasoning.trim()}`);
+  }
+  if (sanityLines.length > 0) {
+    out += `\n\nSANITY CHECK:\n${sanityLines.join("\n")}`;
   }
 
   return {

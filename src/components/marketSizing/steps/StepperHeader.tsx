@@ -1,10 +1,10 @@
 import React from "react";
 import { Check } from "lucide-react";
 
-export const STEP_LABELS = ["Struktur", "Annahmen", "Rechnung", "Ergebnis"] as const;
+export const STEP_LABELS = ["Verständnis", "Struktur", "Annahmen", "Rechnung", "Ergebnis"] as const;
 
 interface StepperHeaderProps {
-  currentStep: number; // 0..3
+  currentStep: number; // 0..4
   onJumpTo?: (step: number) => void;
 }
 

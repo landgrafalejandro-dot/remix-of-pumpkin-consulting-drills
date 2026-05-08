@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { MarketSizingCase } from "@/types/marketSizing";
+import {
+  MarketSizingCase,
+  MarketSizingUnderstanding,
+  SanityCheckStructured,
+} from "@/types/marketSizing";
 import { FrameworkNode } from "@/types/frameworkBuilder";
 import { createEmptyNode, serializeFramework, isFrameworkValid } from "@/lib/frameworkSerializer";
 import {
@@ -10,6 +14,7 @@ import {
 import { DrillButton } from "@/components/ui/drill-button";
 import { X, Send, Info, ArrowLeft, ArrowRight } from "lucide-react";
 import StepperHeader, { STEP_LABELS } from "./steps/StepperHeader";
+import UnderstandingStep from "./steps/UnderstandingStep";
 import StructureStep from "./steps/StructureStep";
 import AssumptionsStep from "./steps/AssumptionsStep";
 import CalculationStep from "./steps/CalculationStep";
@@ -23,6 +28,19 @@ interface MarketSizingGameProps {
   onOpenIntro?: () => void;
 }
 
+const emptyUnderstanding = (): MarketSizingUnderstanding => ({
+  clarifications: [],
+  method: null,
+  methodReason: "",
+});
+
+const emptySanityCheck = (): SanityCheckStructured => ({
+  magnitudeCheck: "",
+  comparisonRef: "",
+  comparisonValue: "",
+  reasoning: "",
+});
+
 const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   currentCase,
   onSubmit,
@@ -34,25 +52,27 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
 
   // Data state
+  const [understanding, setUnderstanding] = useState<MarketSizingUnderstanding>(emptyUnderstanding());
   const [nodes, setNodes] = useState<FrameworkNode[]>([createEmptyNode()]);
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
   const [assumptions, setAssumptions] = useState<Record<string, string>>({});
   const [numbers, setNumbers] = useState<Record<string, string>>({});
   const [finalEstimate, setFinalEstimate] = useState("");
   const [estimateUnit, setEstimateUnit] = useState("");
-  const [sanityCheck, setSanityCheck] = useState("");
+  const [sanityCheck, setSanityCheck] = useState<SanityCheckStructured>(emptySanityCheck());
 
   // Reset when a new case loads
   useEffect(() => {
     if (currentCase) {
       setCurrentStep(0);
+      setUnderstanding(emptyUnderstanding());
       setNodes([createEmptyNode()]);
       setLastAddedId(null);
       setAssumptions({});
       setNumbers({});
       setFinalEstimate("");
       setEstimateUnit(currentCase.unit_hint || "");
-      setSanityCheck("");
+      setSanityCheck(emptySanityCheck());
     }
   }, [currentCase?.id]);
 
@@ -61,6 +81,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   const product = useMemo(() => computeProduct(leaves, numbers), [leaves, numbers]);
 
   // Advance guards
+  const canAdvanceFromUnderstanding = understanding.method !== null;
   const canAdvanceFromStructure = isFrameworkValid({ nodes });
   const canSubmit =
     !isEvaluating &&
@@ -78,6 +99,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
     if (!canSubmit) return;
     const treeText = serializeFramework({ nodes });
     const serialized = serializeMarketSizing({
+      understanding,
       treeText,
       leaves,
       assumptions,
@@ -94,6 +116,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
     );
   }, [
     canSubmit,
+    understanding,
     nodes,
     leaves,
     assumptions,
@@ -108,6 +131,12 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
   if (!currentCase) return null;
 
   const isLastStep = currentStep === STEP_LABELS.length - 1;
+
+  // Per-step advance guard
+  const canAdvanceCurrentStep =
+    currentStep === 0 ? canAdvanceFromUnderstanding :
+    currentStep === 1 ? canAdvanceFromStructure :
+    true;
 
   return (
     <div className="flex flex-col gap-5">
@@ -160,6 +189,14 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
 
       {/* Active step */}
       {currentStep === 0 && (
+        <UnderstandingStep
+          understanding={understanding}
+          onChange={setUnderstanding}
+          allowedMethods={currentCase.allowed_methods}
+          disabled={isEvaluating}
+        />
+      )}
+      {currentStep === 1 && (
         <StructureStep
           nodes={nodes}
           onChange={setNodes}
@@ -168,7 +205,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           disabled={isEvaluating}
         />
       )}
-      {currentStep === 1 && (
+      {currentStep === 2 && (
         <AssumptionsStep
           leaves={leaves}
           assumptions={assumptions}
@@ -176,7 +213,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           disabled={isEvaluating}
         />
       )}
-      {currentStep === 2 && (
+      {currentStep === 3 && (
         <CalculationStep
           leaves={leaves}
           numbers={numbers}
@@ -186,7 +223,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
           disabled={isEvaluating}
         />
       )}
-      {currentStep === 3 && (
+      {currentStep === 4 && (
         <ResultStep
           product={product}
           finalEstimate={finalEstimate}
@@ -217,7 +254,7 @@ const MarketSizingGame: React.FC<MarketSizingGameProps> = ({
             variant="active"
             size="md"
             onClick={goNext}
-            disabled={currentStep === 0 && !canAdvanceFromStructure}
+            disabled={!canAdvanceCurrentStep}
             className="gap-2"
           >
             Weiter <ArrowRight className="h-4 w-4" />
