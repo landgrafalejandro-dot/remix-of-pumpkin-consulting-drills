@@ -45,10 +45,12 @@ const UnderstandingStep: React.FC<UnderstandingStepProps> = ({
   allowedMethods,
   disabled,
 }) => {
+  // DB stores values as "top-down,bottom-up,mixed" but our type uses underscores.
+  // Normalize both to underscores so comparison works.
   const allowedSet = new Set(
     (allowedMethods || "")
       .split(",")
-      .map((s) => s.trim())
+      .map((s) => s.trim().toLowerCase().replace(/-/g, "_"))
       .filter(Boolean)
   );
   const isAllowed = (m: MarketSizingMethod) =>
