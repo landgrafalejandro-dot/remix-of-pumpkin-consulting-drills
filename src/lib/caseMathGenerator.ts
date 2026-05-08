@@ -164,6 +164,284 @@ const profitabilityTemplates: TemplateGen[] = [
       tip: `Formel: Gewinn = (Kunden × Preis) × (1 − Kosten %)\n\nTypischer Fehler: Kosten-% statt Gewinn-% nehmen.`,
     };
   },
+
+  // Template 4: Gesamtkosten — Fix + Variable
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const fix = choice([200_000, 500_000, 800_000, 1_000_000]);
+      const varCost = choice([100_000, 300_000, 500_000, 1_500_000]);
+      const answer = fix + varCost;
+      return {
+        question: `Ein ${ind} hat Fixkosten von **${fmtEur(fix)}** und variable Kosten von **${fmtEur(varCost)}**. Wie hoch sind die Gesamtkosten?`,
+        answer, tolerance: 0,
+        tip: `Formel: Gesamtkosten = Fixkosten + Variable Kosten\n\nTypischer Fehler: Zahlendreher bei großen Beträgen.`,
+      };
+    }
+    if (diff === 2) {
+      const rev = choice([2, 5, 8, 10]) * 1_000_000;
+      const varPct = choice([30, 40, 50, 60]);
+      const fix = choice([500_000, 1_000_000, 2_000_000]);
+      const answer = rev * varPct / 100 + fix;
+      return {
+        question: `Ein ${ind} mit Umsatz **${fmtEur(rev)}**: variable Kosten **${fmtPct(varPct)}** vom Umsatz, Fixkosten **${fmtEur(fix)}**. Wie hoch sind die Gesamtkosten?`,
+        answer, tolerance: answer * 0.005,
+        tip: `Formel: Gesamtkosten = Umsatz × Var. Kosten % + Fixkosten\n\nTypischer Fehler: Variable Kosten als Absolutbetrag statt als % vom Umsatz rechnen.`,
+      };
+    }
+    const rev = choice([5, 8, 10, 20]) * 1_000_000;
+    const varPct = choice([35, 40, 45, 50]);
+    const vertriebPct = choice([5, 8, 10]);
+    const fix = choice([500_000, 1_000_000]);
+    const verwaltung = choice([200_000, 300_000, 500_000]);
+    const answer = rev * (varPct + vertriebPct) / 100 + fix + verwaltung;
+    return {
+      question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**, variable Kosten **${fmtPct(varPct)}**, Vertriebskosten **${fmtPct(vertriebPct)}** vom Umsatz, Fixkosten **${fmtEur(fix)}**, Verwaltung **${fmtEur(verwaltung)}**. Gesamtkosten?`,
+      answer, tolerance: answer * 0.01,
+      tip: `Formel: Gesamtkosten = Umsatz × (Var% + Vertrieb%) + Fixkosten + Verwaltung\n\nTypischer Fehler: Prozentsätze einzeln runden statt erst addieren.`,
+    };
+  },
+
+  // Template 5: Gesamtkosten — Stückkosten-basiert
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const units = choice([1_000, 2_000, 5_000, 10_000]);
+      const costPerUnit = choice([20, 50, 80, 100, 200]);
+      const answer = units * costPerUnit;
+      return {
+        question: `Ein ${ind} produziert **${fmt(units)} Einheiten** zu je **${fmtEur(costPerUnit)}/Stück**. Wie hoch sind die Produktionskosten?`,
+        answer, tolerance: 0,
+        tip: `Formel: Gesamtkosten = Stückzahl × Kosten/Stück\n\nTypischer Fehler: Nullen falsch zählen bei großen Stückzahlen.`,
+      };
+    }
+    if (diff === 2) {
+      const units = choice([2_000, 5_000, 8_000, 10_000]);
+      const varPerUnit = choice([30, 50, 80, 120]);
+      const fix = choice([200_000, 500_000, 1_000_000]);
+      const answer = units * varPerUnit + fix;
+      return {
+        question: `Ein ${ind}: **${fmt(units)} Einheiten** × **${fmtEur(varPerUnit)} variable Stückkosten** + Fixkosten **${fmtEur(fix)}**. Gesamtkosten?`,
+        answer, tolerance: answer * 0.005,
+        tip: `Formel: Gesamtkosten = Stückzahl × Var. Kosten/Stück + Fixkosten\n\nTypischer Fehler: Fixkosten vergessen.`,
+      };
+    }
+    const units = choice([5_000, 10_000, 20_000]);
+    const material = choice([15, 20, 25, 40]);
+    const labor = choice([10, 20, 25, 30]);
+    const fix = choice([500_000, 1_000_000]);
+    const overheadPct = choice([10, 15, 20]);
+    const varTotal = units * (material + labor);
+    const answer = varTotal * (1 + overheadPct / 100) + fix;
+    return {
+      question: `Ein ${ind}: **${fmt(units)} Einheiten**, Material **${fmtEur(material)}/Stück**, Arbeit **${fmtEur(labor)}/Stück**, Fixkosten **${fmtEur(fix)}**, Gemeinkostenzuschlag **${fmtPct(overheadPct)}** auf variable Kosten. Gesamtkosten?`,
+      answer, tolerance: answer * 0.02,
+      tip: `Formel: Gesamtkosten = Stückzahl × (Material + Arbeit) × (1 + Gemeinkostenzuschlag %) + Fixkosten\n\nTypischer Fehler: Gemeinkostenzuschlag auf Gesamtkosten statt nur auf variable Kosten.`,
+    };
+  },
+
+  // Template 6: Gesamtkosten — Personalkosten
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const employees = choice([10, 20, 50, 100]);
+      const salary = choice([40_000, 50_000, 60_000, 80_000]);
+      const answer = employees * salary;
+      return {
+        question: `Ein ${ind} hat **${employees} Mitarbeiter** mit einem Durchschnittsgehalt von **${fmtEur(salary)}/Jahr**. Wie hoch sind die jährlichen Personalkosten?`,
+        answer, tolerance: 0,
+        tip: `Formel: Personalkosten = Mitarbeiter × Gehalt\n\nTypischer Fehler: Monatsgehalt statt Jahresgehalt verwenden.`,
+      };
+    }
+    if (diff === 2) {
+      const employees = choice([15, 20, 30, 50]);
+      const salary = choice([50_000, 60_000, 80_000]);
+      const sozialPct = choice([20, 25, 30]);
+      const office = choice([100_000, 200_000, 500_000]);
+      const answer = employees * salary * (1 + sozialPct / 100) + office;
+      return {
+        question: `Ein ${ind}: **${employees} Mitarbeiter** × **${fmtEur(salary)}/Jahr**, Sozialabgaben **${fmtPct(sozialPct)}** der Gehälter, Bürokosten **${fmtEur(office)}**. Gesamte Personalkosten?`,
+        answer, tolerance: answer * 0.01,
+        tip: `Formel: Personalkosten = Mitarbeiter × Gehalt × (1 + Sozialabgaben %) + Bürokosten\n\nTypischer Fehler: Sozialabgaben als Abzug statt als Aufschlag rechnen.`,
+      };
+    }
+    const empA = choice([20, 30, 50]);
+    const salaryA = choice([60_000, 80_000]);
+    const empB = choice([10, 15, 25]);
+    const salaryB = choice([40_000, 50_000, 70_000]);
+    const nebenkostenPct = choice([20, 25, 30]);
+    const office = choice([200_000, 300_000, 500_000]);
+    const baseCost = empA * salaryA + empB * salaryB;
+    const answer = baseCost * (1 + nebenkostenPct / 100) + office;
+    return {
+      question: `Ein ${ind}: Abteilung A **${empA} Mitarbeiter** × **${fmtEur(salaryA)}**, Abteilung B **${empB} Mitarbeiter** × **${fmtEur(salaryB)}**. Lohnnebenkosten **${fmtPct(nebenkostenPct)}** aller Gehälter, Bürokosten **${fmtEur(office)}**. Gesamte Personalkosten?`,
+      answer, tolerance: answer * 0.02,
+      tip: `Formel: Personalkosten = (Abt. A + Abt. B) × (1 + Nebenkosten %) + Büro\n\nTypischer Fehler: Nebenkosten nur auf eine Abteilung statt auf die Gesamtbasis anwenden.`,
+    };
+  },
+
+  // Template 7: Zeitraum-Profit (Umsatz − Kosten, viele Varianten)
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const period = choice(["Monat", "Quartal"]);
+      const rev = choice([200_000, 500_000, 800_000, 1_000_000, 1_500_000, 2_000_000]);
+      const cost = choice([100_000, 200_000, 300_000, 400_000, 600_000, 800_000]);
+      const safeCost = Math.min(cost, rev - 50_000);
+      const answer = rev - safeCost;
+      return {
+        question: `Ein ${ind} hat einen ${period}sumsatz von **${fmtEur(rev)}** und ${period}skosten von **${fmtEur(safeCost)}**. Wie hoch ist der ${period}sgewinn?`,
+        answer, tolerance: 0,
+        tip: `Formel: Gewinn = Umsatz − Kosten\n\nTypischer Fehler: Zeitraum nicht beachten (z.B. Monat vs. Jahr).`,
+      };
+    }
+    if (diff === 2) {
+      const rev = choice([1, 2, 5]) * 1_000_000;
+      const material = choice([200_000, 300_000, 500_000]);
+      const personal = choice([200_000, 400_000, 600_000]);
+      const miete = choice([50_000, 100_000, 200_000]);
+      const totalCost = material + personal + miete;
+      const safeRev = Math.max(rev, totalCost + 100_000);
+      const answer = safeRev - totalCost;
+      return {
+        question: `Ein ${ind}: Umsatz **${fmtEur(safeRev)}**, Material **${fmtEur(material)}**, Personal **${fmtEur(personal)}**, Miete **${fmtEur(miete)}**. Wie hoch ist der Gewinn?`,
+        answer, tolerance: answer * 0.005,
+        tip: `Formel: Gewinn = Umsatz − (Material + Personal + Miete)\n\nTypischer Fehler: Einen Kostenblock übersehen.`,
+      };
+    }
+    const revA = choice([2, 3, 5]) * 1_000_000;
+    const revB = choice([1, 2, 3]) * 1_000_000;
+    const material = choice([500_000, 800_000, 1_000_000]);
+    const personal = choice([500_000, 1_000_000, 1_500_000]);
+    const miete = choice([100_000, 200_000, 300_000]);
+    const marketing = choice([200_000, 500_000, 800_000]);
+    const totalRev = revA + revB;
+    const totalCost = material + personal + miete + marketing;
+    const safeTotalRev = Math.max(totalRev, totalCost + 200_000);
+    const answer = safeTotalRev - totalCost;
+    return {
+      question: `Ein ${ind}: Produktumsatz **${fmtEur(revA)}**, Serviceumsatz **${fmtEur(revB)}**. Kosten: Material **${fmtEur(material)}**, Personal **${fmtEur(personal)}**, Miete **${fmtEur(miete)}**, Marketing **${fmtEur(marketing)}**. Gesamtgewinn?`,
+      answer, tolerance: answer * 0.01,
+      tip: `Formel: Gewinn = (Umsatz A + Umsatz B) − Σ Kostenblöcke\n\nTypischer Fehler: Umsatzströme nur teilweise addieren.`,
+    };
+  },
+
+  // Template 8: Gewinn pro Stück
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const profitPerUnit = choice([5, 10, 20, 25, 50]);
+      const quantity = choice([1_000, 2_000, 5_000, 10_000]);
+      const answer = profitPerUnit * quantity;
+      return {
+        question: `Ein ${ind} verkauft **${fmt(quantity)} Einheiten** mit einem Gewinn von **${fmtEur(profitPerUnit)}/Stück**. Wie hoch ist der Gesamtgewinn?`,
+        answer, tolerance: 0,
+        tip: `Formel: Gesamtgewinn = Gewinn/Stück × Stückzahl\n\nTypischer Fehler: Bei großen Stückzahlen die Nullen falsch zählen.`,
+      };
+    }
+    if (diff === 2) {
+      const price = choice([80, 100, 150, 200, 250]);
+      const unitCost = choice([30, 50, 60, 80, 100]);
+      const safeUnitCost = Math.min(unitCost, price - 10);
+      const quantity = choice([2_000, 5_000, 10_000, 20_000]);
+      const answer = (price - safeUnitCost) * quantity;
+      return {
+        question: `Ein ${ind}: Verkaufspreis **${fmtEur(price)}/Stück**, Herstellungskosten **${fmtEur(safeUnitCost)}/Stück**, Absatz **${fmt(quantity)} Stück**. Gesamtgewinn?`,
+        answer, tolerance: answer * 0.005,
+        tip: `Formel: Gesamtgewinn = (Preis − Stückkosten) × Stückzahl\n\nTypischer Fehler: Stückkosten vom Gesamtumsatz statt pro Stück abziehen.`,
+      };
+    }
+    const price = choice([100, 150, 200, 300]);
+    const varCost = choice([40, 60, 80, 120]);
+    const safeVarCost = Math.min(varCost, price - 20);
+    const quantity = choice([5_000, 10_000, 20_000]);
+    const fixedCosts = choice([200_000, 500_000, 1_000_000]);
+    const contribution = (price - safeVarCost) * quantity;
+    const safeFixed = Math.min(fixedCosts, contribution - 100_000);
+    const answer = contribution - safeFixed;
+    return {
+      question: `Ein ${ind}: Verkaufspreis **${fmtEur(price)}**, variable Stückkosten **${fmtEur(safeVarCost)}**, Absatz **${fmt(quantity)} Stück**, Fixkosten **${fmtEur(safeFixed)}**. Gesamtgewinn?`,
+      answer, tolerance: answer * 0.01,
+      tip: `Formel: Gesamtgewinn = (Preis − Var. Kosten) × Stückzahl − Fixkosten\n\nTypischer Fehler: Fixkosten pro Stück statt als Gesamtbetrag abziehen.`,
+    };
+  },
+
+  // Template 9: Direkte Profit Margin (%)
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const rev = choice([1, 2, 5, 10]) * 1_000_000;
+      const margin = choice([10, 15, 20, 25, 30, 40, 50]);
+      const profit = rev * margin / 100;
+      return {
+        question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**, Gewinn **${fmtEur(profit)}**. Wie hoch ist die Gewinnmarge in %?`,
+        answer: margin, tolerance: 0,
+        tip: `Formel: Marge = Gewinn ÷ Umsatz × 100\n\nTypischer Fehler: Division in falscher Richtung (Umsatz ÷ Gewinn).`,
+      };
+    }
+    if (diff === 2) {
+      const rev = choice([2, 4, 5, 8, 10]) * 1_000_000;
+      const margin = choice([10, 15, 20, 25, 30]);
+      const costs = rev * (1 - margin / 100);
+      return {
+        question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**, Gesamtkosten **${fmtEur(costs)}**. Wie hoch ist die Gewinnmarge in %?`,
+        answer: margin, tolerance: 0.5,
+        tip: `Formel: Marge = (Umsatz − Kosten) ÷ Umsatz × 100\n\nTypischer Fehler: Kosten ÷ Umsatz rechnen (das ist die Kostenquote, nicht die Marge).`,
+      };
+    }
+    const rev = choice([5, 10, 15, 20]) * 1_000_000;
+    const varPct = choice([40, 45, 50, 55, 60]);
+    const fix = choice([1, 2, 3]) * 1_000_000;
+    const ebit = rev * (1 - varPct / 100) - fix;
+    if (ebit <= 0) return profitabilityTemplates[8](diff);
+    const answer = (ebit / rev) * 100;
+    return {
+      question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**, variable Kosten **${fmtPct(varPct)}** vom Umsatz, Fixkosten **${fmtEur(fix)}**. Wie hoch ist die operative Marge (EBIT-Marge) in %?`,
+      answer, tolerance: 1,
+      tip: `Formel: EBIT = Umsatz × (1 − Var%) − Fix, dann Marge = EBIT ÷ Umsatz × 100\n\nTypischer Fehler: Fixkosten auch als Prozentsatz behandeln statt als Absolutbetrag.`,
+    };
+  },
+
+  // Template 10: Kostenseitige Marge
+  (diff) => {
+    const ind = choice(industries);
+    if (diff === 1) {
+      const costPct = choice([60, 65, 70, 75, 80, 85]);
+      const rev = choice([2, 5, 10]) * 1_000_000;
+      const answer = 100 - costPct;
+      return {
+        question: `Ein ${ind} mit Umsatz **${fmtEur(rev)}**: die Gesamtkosten betragen **${fmtPct(costPct)}** vom Umsatz. Wie hoch ist die Gewinnmarge in %?`,
+        answer, tolerance: 0,
+        tip: `Formel: Marge = 100% − Kostenquote\n\nTypischer Fehler: Kostenquote und Marge verwechseln.`,
+      };
+    }
+    if (diff === 2) {
+      const rev = choice([5, 8, 10]) * 1_000_000;
+      const margin = choice([10, 15, 20, 25]);
+      const totalCosts = rev * (1 - margin / 100);
+      const material = Math.round(totalCosts * 0.5);
+      const personal = Math.round(totalCosts * 0.35);
+      const other = totalCosts - material - personal;
+      return {
+        question: `Ein ${ind}: Umsatz **${fmtEur(rev)}**. Kosten: Material **${fmtEur(material)}**, Personal **${fmtEur(personal)}**, Sonstiges **${fmtEur(other)}**. Gewinnmarge in %?`,
+        answer: margin, tolerance: 0.5,
+        tip: `Formel: Marge = (Umsatz − Σ Kosten) ÷ Umsatz × 100\n\nTypischer Fehler: Einen Kostenblock vergessen.`,
+      };
+    }
+    const revOld = choice([5, 8, 10]) * 1_000_000;
+    const marginOld = choice([15, 20, 25]);
+    const costsOld = revOld * (1 - marginOld / 100);
+    const delta = choice([-5, -3, 2, 3, 5]);
+    const marginNew = marginOld + delta;
+    const growthPct = choice([10, 15, 20]);
+    const revNew = revOld * (1 + growthPct / 100);
+    const costsNew = revNew * (1 - marginNew / 100);
+    return {
+      question: `Ein ${ind}: Vorjahr Umsatz **${fmtEur(revOld)}**, Kosten **${fmtEur(costsOld)}**. Dieses Jahr Umsatz **${fmtEur(revNew)}**, Kosten **${fmtEur(costsNew)}**. Um wie viele Prozentpunkte hat sich die Marge verändert?`,
+      answer: delta, tolerance: 0.5,
+      tip: `Formel: Margenveränderung = Marge neu − Marge alt (in Prozentpunkten)\n\nTypischer Fehler: Prozentuale Veränderung statt Prozentpunkte berechnen.`,
+    };
+  },
 ];
 
 // ============================================

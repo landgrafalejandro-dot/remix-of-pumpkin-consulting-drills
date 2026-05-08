@@ -323,7 +323,7 @@ const generatePercentageL2 = (): GenResult => {
 };
 
 const generatePercentageL3 = (): GenResult => {
-  const template = choice(["business_hard", "umkehr", "veraenderung"]);
+  const template = choice(["business_hard", "umkehr"]);
 
   if (template === "business_hard") {
     const pct = choice([8, 12, 15, 18, 22]);
@@ -362,25 +362,8 @@ const generatePercentageL3 = (): GenResult => {
       },
     };
   }
-  // veraenderung
-  const pctChange = choice([5, 8, 10, 12, 15, 20, 25, 30, 40, 50]);
-  const isGrowth = Math.random() > 0.3;
-  const oldVal = choice([200, 350, 500, 680, 850, 1000, 1200]) * (choice(["k", "Mio"]) === "k" ? 1000 : 1_000_000);
-  const newVal = isGrowth ? Math.round(oldVal * (1 + pctChange / 100)) : Math.round(oldVal * (1 - pctChange / 100));
-  return {
-    question: `(${fmtAbbrev(newVal)} − ${fmtAbbrev(oldVal)}) ÷ ${fmtAbbrev(oldVal)} × 100`,
-    answer: isGrowth ? pctChange : -pctChange,
-    tolerance: 0.5,
-    shortcut: {
-      name: "Veränderungsrate",
-      description: "(Neu - Alt) ÷ Alt × 100",
-      steps: [
-        `Differenz: ${bold(fmtAbbrev(newVal - oldVal))}`,
-        `÷ ${bold(fmtAbbrev(oldVal))} = ${bold(String(((newVal - oldVal) / oldVal)).replace(".", ","))}`,
-        `× 100 = ${bold((isGrowth ? "+" : "") + pctChange + "%")}`,
-      ],
-    },
-  };
+  // umkehr is the last template — no fallthrough needed
+  return generatePercentageL3();
 };
 
 // ============================================
@@ -525,7 +508,7 @@ const generateDivisionL3 = (): GenResult => {
     const result = choice([4, 5, 6, 8, 10, 12, 15, 20]);
     const divisorK = choice([100, 200, 250, 500, 1000]);
     const dividendMrd = (result * divisorK * 1000) / 1_000_000_000;
-    const answer = result * 1000; // result in absolute
+    const answer = result;
     // Format dividend nicely
     const dividendDisplay = dividendMrd >= 1
       ? `${String(dividendMrd).replace(".", ",")} Mrd`
