@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
+import HomePage from "./pages/HomePage";
+import ConsultingLandingPage from "./pages/ConsultingLandingPage";
+import IBLandingPage from "./pages/IBLandingPage";
 import DashboardPage from "./pages/DashboardPage";
 import MentalMathDrill from "./pages/MentalMathDrill";
 import CaseMathDrill from "./pages/CaseMathDrill";
@@ -25,7 +27,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/consulting" element={<ConsultingLandingPage />} />
+          <Route path="/ib" element={<IBLandingPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/mental-math-drill" element={<MentalMathDrill />} />
           <Route path="/case-math-drill" element={<CaseMathDrill />} />
