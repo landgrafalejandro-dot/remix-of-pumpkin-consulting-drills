@@ -5,19 +5,11 @@ let casesPool: MarketSizingCase[] = [];
 let seenIds: string[] = [];
 let seenIndustries: string[] = [];
 
-export const fetchMarketSizingCases = async (
-  difficulty: "easy" | "medium" | "hard",
-  industryTag?: string
-): Promise<void> => {
-  let query = supabase
+export const fetchMarketSizingCases = async (): Promise<void> => {
+  const query = supabase
     .from("market_sizing_cases" as any)
     .select("*")
-    .eq("active", true)
-    .eq("difficulty", difficulty);
-
-  if (industryTag && industryTag !== "all") {
-    query = query.eq("industry_tag", industryTag);
-  }
+    .eq("active", true);
 
   const { data, error } = await query;
   if (error) {

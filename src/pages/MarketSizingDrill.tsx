@@ -20,8 +20,6 @@ import { toast } from "sonner";
 
 const MarketSizingDrill: React.FC = () => {
   const userEmail = useUserEmail();
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [industryTag, setIndustryTag] = useState("all");
   const [phase, setPhase] = useState<MarketSizingPhase>("config");
   const [currentCase, setCurrentCase] = useState<MarketSizingCase | null>(null);
   const [results, setResults] = useState<MarketSizingResult[]>([]);
@@ -45,7 +43,7 @@ const MarketSizingDrill: React.FC = () => {
   }, []);
 
   const handleStart = useCallback(async () => {
-    await fetchMarketSizingCases(difficulty, industryTag);
+    await fetchMarketSizingCases();
     resetMarketSizingSession();
     sessionIdRef.current = crypto.randomUUID();
     setResults([]);
@@ -62,7 +60,7 @@ const MarketSizingDrill: React.FC = () => {
     }
 
     loadNextCase();
-  }, [difficulty, industryTag, loadNextCase]);
+  }, [loadNextCase]);
 
   const handleEnd = useCallback(() => {
     setPhase("debrief");
@@ -101,7 +99,6 @@ const MarketSizingDrill: React.FC = () => {
           answer_text: answerText,
           final_estimate_value: estimateValue,
           final_estimate_unit: estimateUnit,
-          difficulty,
           reference_structure: currentCase.reference_structure,
         },
       });
@@ -147,7 +144,7 @@ const MarketSizingDrill: React.FC = () => {
     setCurrentResult(result);
     setIsEvaluating(false);
     setPhase("result");
-  }, [currentCase, userEmail, difficulty]);
+  }, [currentCase, userEmail]);
 
   const handleNext = useCallback(() => {
     loadNextCase();
@@ -182,7 +179,7 @@ const MarketSizingDrill: React.FC = () => {
             taskType: "market_sizing",
             isCorrect: (r.evaluation?.total_score ?? 0) >= 60,
             responseTimeMs: r.timeSpentSec * 1000,
-            difficulty,
+            difficulty: "medium" as const,
           })),
         });
       });
@@ -228,11 +225,7 @@ const MarketSizingDrill: React.FC = () => {
           </section>
           <main className="flex flex-1 flex-col items-center px-4 pb-12">
             <div className="w-full max-w-drill rounded-2xl border border-border bg-card p-card-padding">
-              <MarketSizingConfig
-                difficulty={difficulty} onDifficultyChange={setDifficulty}
-                industryTag={industryTag} onIndustryTagChange={setIndustryTag}
-                onStart={handleStart}
-              />
+              <MarketSizingConfig onStart={handleStart} />
             </div>
           </main>
         </>

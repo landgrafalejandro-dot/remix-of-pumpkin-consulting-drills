@@ -92,7 +92,7 @@ const MarketSizingDebrief: React.FC<MarketSizingDebriefProps> = ({
               <span className="text-xs text-muted-foreground w-6">{i + 1}.</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground truncate">{r.case.prompt}</p>
-                <p className="text-xs text-muted-foreground">{r.case.industry_tag} • {r.case.difficulty}</p>
+                <p className="text-xs text-muted-foreground">{r.case.industry_tag}</p>
               </div>
               <span className={`text-sm font-bold ${
                 (r.evaluation?.total_score ?? 0) >= 70 ? "text-success" : (r.evaluation?.total_score ?? 0) >= 50 ? "text-primary" : "text-destructive"

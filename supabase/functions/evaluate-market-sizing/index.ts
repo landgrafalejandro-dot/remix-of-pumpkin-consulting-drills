@@ -25,7 +25,6 @@ serve(async (req) => {
       answer_text,
       final_estimate_value,
       final_estimate_unit,
-      difficulty,
       reference_structure,
     } = body;
 
@@ -39,9 +38,7 @@ serve(async (req) => {
       : "";
 
     const difficultyGuidance =
-      difficulty === "easy" ? "Schwierigkeit: EINFACH (ca. 5 Min Bearbeitung). Ziel: nachvollziehbarer Top-down-Ansatz mit 3+ Schritten, plausible Annahmen. Solider Ansatz verdient 75-85 Punkte. 90+ nur bei sauberer MECE-Struktur UND korrekter Größenordnung UND Sanity Check." :
-      difficulty === "medium" ? "Schwierigkeit: MITTEL (ca. 6-8 Min). Ziel: klare MECE-Struktur, 2+ Segmente, plausible Annahmen mit Begründung. Solider Ansatz verdient 70-80 Punkte. 85+ bei differenzierter Segmentierung." :
-      "Schwierigkeit: SCHWER (ca. 8-10 Min). Ziel: Multi-Segment-Analyse, Sensitivität, mehrere Sanity Checks. Guter Ansatz verdient 65-75 Punkte. 85+ nur bei Sensitivität UND Cross-Check-Logik.";
+      "Realistisch: 6-10 Min Bearbeitung. Ziel: klare MECE-Struktur mit 2-3 Segmenten, plausible und begründete Annahmen, Sanity Check. Solider Ansatz verdient 75-85 Punkte. 90+ nur bei sauberer MECE-Struktur UND korrekter Größenordnung UND vollständigem strukturierten Sanity Check.";
 
     const systemPrompt = `Du bist ein fairer, konsistenter Bewertungsassistent für Market-Sizing-Übungen im Consulting-Interview-Training.
 
