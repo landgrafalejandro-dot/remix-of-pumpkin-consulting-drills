@@ -6,17 +6,18 @@ interface ChatBubbleProps {
   text: string;
   audioUrl?: string | null;
   autoPlay?: boolean;
+  controls?: boolean;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, audioUrl, autoPlay }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, audioUrl, autoPlay, controls = true }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    if (autoPlay && audioUrl && audioRef.current) {
+    if (controls && autoPlay && audioUrl && audioRef.current) {
       audioRef.current.play().catch(() => {});
     }
-  }, [audioUrl, autoPlay]);
+  }, [audioUrl, autoPlay, controls]);
 
   const toggle = () => {
     if (!audioRef.current) return;
@@ -43,7 +44,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ role, text, audioUrl, autoPlay 
         <div className="rounded-2xl rounded-tl-md border border-white/[0.08] bg-[#101013] px-4 py-2.5 text-sm text-foreground">
           {text}
         </div>
-        {audioUrl && (
+        {controls && audioUrl && (
           <div className="flex items-center gap-2">
             <button
               type="button"

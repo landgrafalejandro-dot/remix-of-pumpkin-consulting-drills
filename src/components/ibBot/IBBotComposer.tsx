@@ -6,12 +6,13 @@ import { cn } from "@/lib/utils";
 interface IBBotComposerProps {
   onSend: (text: string, mode: "text" | "audio") => void;
   disabled?: boolean;
+  onRecordingChange?: (recording: boolean) => void;
 }
 
 const MIN_HEIGHT = 60;
 const MAX_HEIGHT = 200;
 
-const IBBotComposer: React.FC<IBBotComposerProps> = ({ onSend, disabled }) => {
+const IBBotComposer: React.FC<IBBotComposerProps> = ({ onSend, disabled, onRecordingChange }) => {
   const [value, setValue] = useState("");
   const [lastInputMode, setLastInputMode] = useState<"text" | "audio">("text");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -42,6 +43,10 @@ const IBBotComposer: React.FC<IBBotComposerProps> = ({ onSend, disabled }) => {
 
   const recording = state === "recording";
   const transcribing = state === "transcribing";
+
+  useEffect(() => {
+    onRecordingChange?.(recording);
+  }, [recording, onRecordingChange]);
 
   const handleSend = () => {
     const text = value.trim();
