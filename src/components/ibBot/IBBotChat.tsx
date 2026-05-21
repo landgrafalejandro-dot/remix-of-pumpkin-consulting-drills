@@ -44,7 +44,7 @@ const IBBotChat: React.FC<IBBotChatProps> = ({
   }, [isRecording]);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[760px] flex-col">
+    <div className="mx-auto flex h-full w-full max-w-[1080px] flex-col">
       <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
         <SessionTimer
           remainingSec={sessionState.time_remaining_sec}
@@ -78,7 +78,7 @@ const IBBotChat: React.FC<IBBotChatProps> = ({
         {lastBotTurn && (
           <p
             aria-live="polite"
-            className="max-w-[640px] text-center text-xl font-medium leading-relaxed text-foreground"
+            className="max-w-[920px] text-center text-2xl font-medium leading-relaxed text-foreground"
           >
             {lastBotTurn.text}
           </p>
@@ -86,8 +86,8 @@ const IBBotChat: React.FC<IBBotChatProps> = ({
 
         {lastUserTurn && (
           <>
-            <div className="h-px w-24 bg-white/10" />
-            <p className="max-w-[640px] text-center text-sm leading-relaxed text-muted-foreground">
+            <div className="h-px w-32 bg-white/10" />
+            <p className="max-w-[920px] text-center text-base leading-relaxed text-muted-foreground">
               <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/60">
                 du
               </span>
